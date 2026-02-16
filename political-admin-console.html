@@ -962,6 +962,9 @@ function renderBrandInputsFromConfig() {
 }
 
 function renderBrandPreview() {
+  // Keep state.config in sync with inputs (so Preview + Save match)
+  try{ collectBrandFromUI(); }catch(e){}
+
   if(!state.config) return;
   const eff = getEffectiveForm(state.target || "visitor_form");
 
@@ -996,7 +999,10 @@ function renderBrandPreview() {
 
   renderPreviewTabs();
   // // // renderAllFormsGrid(); // disabled // disabled // disabled (use dropdown preview)
+
+  try{ sendPreviewUpdate(); }catch(e){}
 }
+
 
 
 function buildPreviewSrcDoc(ft) {
@@ -1109,34 +1115,69 @@ function buildPreviewSrcDoc(ft) {
 </html>`;
 }
 
+
+function sendPreviewUpdate() {
+  const iframe = $("formPreviewIframe");
+  if (!iframe || !iframe.contentWindow) return;
+  const ft0 = state.target || "visitor_form";
+  const ft = (ft0 === "__defaults__") ? "visitor_form" : ft0;
+  if (!state.config) return;
+
+  // Send whole config (forms will pick their own node)
+  const payload = {
+    settings: state.config,
+    form_type: ft,
+    updated_at_ms: String(state.cacheBust || Date.now())
+  };
+
+  try {
+    iframe.contentWindow.postMessage({
+      type: "EL_PREVIEW_SETTINGS",
+      cid: state.cid || "",
+      form_type: ft,
+      payload
+    }, "*");
+  } catch(e) {}
+}
+
 function renderFormPreviewIframe() {
   const iframe = $("formPreviewIframe");
   if (!iframe) return;
-  const doc = buildPreviewSrcDoc(state.target || "visitor_form");
-  state.lastPreviewDoc = doc;
 
-  // Use a Blob URL (same-origin) instead of srcdoc so blob: preview images also work reliably.
-  try{
-    if (state._previewBlobUrl) URL.revokeObjectURL(state._previewBlobUrl);
-  }catch(e){}
-  try{
-    const blob = new Blob([doc], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    state._previewBlobUrl = url;
-    iframe.removeAttribute("srcdoc");
-    iframe.src = url;
-  }catch(e){
-    // Fallback
-    iframe.srcdoc = doc;
+  const ft0 = state.target || "visitor_form";
+  const ft = (ft0 === "__defaults__") ? "visitor_form" : ft0;
+  const meta = FORM_META[ft] || FORM_META.__defaults__ || { file: "political_visitor_form.html" };
+  const file = meta.file || "political_visitor_form.html";
+
+  const cid = (state.cid || qs("cid") || qs("collection_id") || "").trim();
+  const u = new URL(file, window.location.origin);
+  if (cid) u.searchParams.set("cid", cid);
+  u.searchParams.set("form_type", ft);
+  u.searchParams.set("embed", "1");
+  u.searchParams.set("preview", "1");
+  u.searchParams.set("t", String(state.cacheBust || Date.now()));
+
+  const nextUrl = u.toString();
+
+  // Only reload iframe if URL changed (target change / hard refresh)
+  if (state._lastIframeUrl !== nextUrl) {
+    state._lastIframeUrl = nextUrl;
+    iframe.src = nextUrl;
   }
+
+  // When loaded, push current config into iframe
+  iframe.onload = () => {
+    try { sendPreviewUpdate(); } catch(e) {}
+  };
+
+  // Also try immediately (if already loaded)
+  try { sendPreviewUpdate(); } catch(e) {}
 }
 
 function openCurrentPreviewInNewTab() {
-  const doc = state.lastPreviewDoc || buildPreviewSrcDoc(state.target || "visitor_form");
-  const blob = new Blob([doc], { type: "text/html" });
-  const url = URL.createObjectURL(blob);
-  window.open(url, "_blank", "noopener");
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  const iframe = $("formPreviewIframe");
+  const url = iframe?.src || state._lastIframeUrl || "";
+  if (url) window.open(url, "_blank");
 }
 
 function renderPreviewTabs() {
