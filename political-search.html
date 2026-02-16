@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karyakarta Search AI - EventLens</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+          colors: { brand: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c', dark: '#0f172a' } },
+          animation: {
+            'scan': 'scan 2s linear infinite',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'shimmer': 'shimmer 1.5s infinite linear',
+          },
+          keyframes: {
+            scan: {
+              '0%': { top: '0%', opacity: '0' },
+              '10%': { opacity: '1' },
+              '90%': { opacity: '1' },
+              '100%': { top: '100%', opacity: '0' },
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '-1000px 0' },
+              '100%': { backgroundPosition: '1000px 0' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { 
+      background-color: #020617;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.10) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: #e2e8f0; 
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-panel { 
+      background: rgba(15, 23, 42, 0.6); 
+      backdrop-filter: blur(20px); 
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08); 
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+    .glass-card {
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .timeline-line::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 20px;
+      width: 2px;
+      background: linear-gradient(to bottom, #f97316 0%, rgba(51, 65, 85, 0.5) 100%);
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Scan animation overlay */
+    .scan-overlay {
+      background: linear-gradient(to bottom, transparent, rgba(249, 115, 22, 0.5), transparent);
+      height: 4px;
+      box-shadow: 0 0 15px rgba(249, 115, 22, 0.8);
+    }
+
+    /* Active Tab Style */
+    .tab-active {
+        color: #f97316;
+        border-bottom-color: #f97316;
+    }
+    .tab-inactive {
+        color: #94a3b8;
+        border-bottom-color: transparent;
+    }
+    .tab-inactive:hover {
+        color: #e2e8f0;
+        border-bottom-color: #334155;
+    }
+
+    /* Skeleton Shimmer */
+    .skeleton {
+      background: #1e293b;
+      background-image: linear-gradient(to right, #1e293b 0%, #334155 20%, #1e293b 40%, #1e293b 100%);
+      background-repeat: no-repeat;
+      background-size: 1000px 100%;
+      animation: shimmer 2s infinite linear forwards;
+    }
+
+    /* Markdown Styles for AI Report */
+    .ai-report-content h1, .ai-report-content h2, .ai-report-content h3 {
+        font-weight: 700;
+        color: #fff;
+        margin-top: 1em;
+        margin-bottom: 0.5em;
+    }
+    .ai-report-content p {
+        margin-bottom: 0.8em;
+        line-height: 1.6;
+        color: #e2e8f0;
+    }
+    .ai-report-content ul {
+        list-style-type: disc;
+        padding-left: 1.5em;
+        margin-bottom: 1em;
+        color: #cbd5e1;
+    }
+    .ai-report-content li {
+        margin-bottom: 0.4em;
+    }
+    .ai-report-content strong {
+        color: #f97316;
+    }
+  </style>
+
+  <script>
+    // --- Image helpers ---
+    function previewImage(inputEl) {
+      try {
+        const file = inputEl && inputEl.files && inputEl.files[0];
+        const preview = document.getElementById("preview");
+        const placeholder = document.getElementById("uploadPlaceholder");
+        const scanLine = document.getElementById("scanLine");
+        
+        if (!preview) return;
+        if (!file) {
+          preview.src = "";
+          preview.classList.add("hidden");
+          if(placeholder) placeholder.classList.remove("hidden");
+          if(scanLine) scanLine.classList.add("hidden");
+          return;
+        }
+        const url = URL.createObjectURL(file);
+        preview.src = url;
+        preview.classList.remove("hidden");
+        if(placeholder) placeholder.classList.add("hidden");
+        if(scanLine) scanLine.classList.remove("hidden");
+      } catch (e) { console.error(e); }
+    }
+
+    function setImgSrcWithRetry(imgEl, url, maxRetries = 2) {
+      if (!imgEl) return;
+      let attempt = 0;
+      imgEl.referrerPolicy = "no-referrer";
+      const load = () => { imgEl.src = url; };
+      imgEl.onerror = () => {
+        if (attempt < maxRetries) {
+          attempt += 1;
+          setTimeout(load, 350 * attempt);
+          return;
+        }
+        // Fallback placeholder
+        imgEl.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Cimage x='6' y='6' width='12' height='12' href='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTRhM2I4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSIvPjwvc3ZnPg=='/%3E%3C/svg%3E";
+      };
+      load();
+    }
+    function getBestThumbUrl(obj, fallbackUrl) {
+      if (!obj) return fallbackUrl;
+      return obj.thumb_url || obj.thumbUrl || obj.thumbnail_url || obj.thumbnailUrl || fallbackUrl;
+    }
+  </script>
+</head>
+<body class="min-h-screen font-sans selection:bg-orange-500/30 pb-20 lg:pb-0">
+
+  <!-- Top Navbar -->
+  <nav class="sticky top-0 z-40 glass-panel border-b-0 border-b-white/5 shadow-lg shadow-orange-900/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+            <i class="fa-solid fa-bolt text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-white tracking-tight">EventLens <span class="text-orange-400">AI</span></h1>
+            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Political Intelligence Unit</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+           <!-- Share/Copy Button -->
+           <button id="copySummaryBtn" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700 text-xs font-medium">
+             <i class="fa-regular fa-copy"></i> Copy Stats
+           </button>
+           <div id="tokenDisplay" class="hidden md:block px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-xs font-mono text-slate-400">
+             <i class="fa-solid fa-shield-halved mr-1 text-emerald-500"></i> Secure
+           </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 py-6 lg:py-8">
+    <div class="grid lg:grid-cols-12 gap-6 lg:gap-8">
+      
+      <!-- Left Column: Search & Upload -->
+      <!-- On mobile, this stays on top but becomes more compact after search -->
+      <div class="lg:col-span-4 space-y-4 lg:space-y-6">
+        
+        <!-- Search Card -->
+        <div class="glass-panel rounded-2xl p-1 shadow-2xl overflow-hidden relative group">
+          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600"></div>
+          
+          <div class="p-5 lg:p-6 bg-slate-900/40">
+            <h2 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-face-viewfinder text-orange-500"></i> Face Search
+            </h2>
+            <p class="text-slate-400 text-xs mb-4 lg:mb-6">Upload a selfie to scan the karyakarta database.</p>
+
+            <!-- Upload Area -->
+            <div class="relative w-full aspect-[4/5] lg:aspect-[4/5] bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-700 hover:border-orange-500/50 transition-all duration-300 overflow-hidden group/upload cursor-pointer touch-manipulation">
+              <input id="selfieInput" accept="image/*" type="file" class="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer" onchange="previewImage(this)" />
+              
+              <!-- Placeholder State -->
+              <div id="uploadPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 group-hover/upload:text-orange-400 transition-colors pointer-events-none">
+                <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-3 shadow-inner">
+                  <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                </div>
+                <span class="text-sm font-medium">Click to Upload Selfie</span>
+                <span class="text-xs opacity-60 mt-1">Supports JPG, PNG</span>
+              </div>
+
+              <!-- Preview State -->
+              <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover z-10" />
+              
+              <!-- Scanning Animation -->
+              <div id="scanLine" class="hidden absolute left-0 w-full h-1 bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,1)] z-10 animate-scan pointer-events-none"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 lg:mt-6 space-y-3">
+              <button id="searchBtn" class="relative w-full py-3.5 lg:py-4 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold shadow-lg shadow-orange-900/40 transition-all active:scale-[0.98] group/btn overflow-hidden">
+                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
+                <span class="relative flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-magnifying-glass"></i> Search Database
+                </span>
+              </button>
+            </div>
+            
+            <!-- Status Text -->
+            <div id="statusBox" class="hidden mt-4 text-center"></div>
+          </div>
+        </div>
+
+        <!-- Instructions (Desktop Only) -->
+        <div class="hidden lg:block p-5 rounded-2xl border border-slate-800 bg-slate-900/30 text-xs text-slate-400 leading-relaxed">
+          <strong class="text-slate-300 block mb-2"><i class="fa-regular fa-lightbulb text-yellow-500 mr-1"></i> Pro Tips:</strong>
+          <ul class="list-disc pl-4 space-y-1">
+             <li>Ensure good lighting on the face.</li>
+             <li>Avoid wearing sunglasses or masks.</li>
+             <li>Results show timeline events and grouped photos.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Right Column: Results -->
+      <div class="lg:col-span-8 space-y-6">
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="glass-panel rounded-2xl p-8 lg:p-12 text-center flex flex-col items-center justify-center h-full min-h-[300px] lg:min-h-[400px]">
+           <div class="w-20 h-20 lg:w-24 lg:h-24 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 border border-slate-700">
+             <i class="fa-solid fa-fingerprint text-3xl lg:text-4xl text-slate-600"></i>
+           </div>
+           <h3 class="text-xl font-bold text-slate-300">Ready to Search</h3>
+           <p class="text-slate-500 mt-2 max-w-sm text-sm lg:text-base">Upload a photo to verify identity and view timeline.</p>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div id="statsDashboard" class="hidden grid grid-cols-3 gap-3 lg:gap-4">
+          <!-- Match Score -->
+          <div class="glass-card p-3 lg:p-4 rounded-xl relative overflow-hidden text-center lg:text-left">
+             <div class="lg:absolute lg:right-0 lg:top-0 lg:p-3 opacity-10 hidden lg:block"><i class="fa-solid fa-bullseye text-6xl"></i></div>
+             <div class="text-slate-400 text-[10px] lg:text-xs font-semibold uppercase tracking-wider">Confidence</div>
+             <div class="mt-1 lg:mt-2 flex justify-center lg:justify-start items-baseline gap-1">
+                <span id="scoreVal" class="text-2xl lg:text-3xl font-extrabold text-white">0%</span>
+             </div>
+             <div class="w-full bg-slate-700 h-1 mt-2 rounded-full overflow-hidden mx-auto lg:mx-0 max-w-[80px] lg:max-w-none">
+                <div id="scoreBar" class="h-full bg-emerald-500 w-0 transition-all duration-1000"></div>
+             </div>
+          </div>
+          
+          <!-- Timeline Count -->
+          <div class="glass-card p-3 lg:p-4 rounded-xl relative overflow-hidden text-center lg:text-left">
+             <div class="lg:absolute lg:right-0 lg:top-0 lg:p-3 opacity-10 hidden lg:block"><i class="fa-solid fa-clock-rotate-left text-6xl"></i></div>
+             <div class="text-slate-400 text-[10px] lg:text-xs font-semibold uppercase tracking-wider">Events</div>
+             <div class="mt-1 lg:mt-2 text-2xl lg:text-3xl font-extrabold text-white" id="eventCountVal">0</div>
+          </div>
+          
+          <!-- Photos Count -->
+          <div class="glass-card p-3 lg:p-4 rounded-xl relative overflow-hidden text-center lg:text-left">
+             <div class="lg:absolute lg:right-0 lg:top-0 lg:p-3 opacity-10 hidden lg:block"><i class="fa-solid fa-images text-6xl"></i></div>
+             <div class="text-slate-400 text-[10px] lg:text-xs font-semibold uppercase tracking-wider">Photos</div>
+             <div class="mt-1 lg:mt-2 text-2xl lg:text-3xl font-extrabold text-white" id="photoCountVal">0</div>
+          </div>
+        </div>
+
+        <!-- Skeleton Loader (New) -->
+        <div id="skeletonLoader" class="hidden space-y-6">
+           <div class="flex gap-4 mb-8">
+              <div class="w-24 h-8 rounded-lg skeleton"></div>
+              <div class="w-24 h-8 rounded-lg skeleton"></div>
+           </div>
+           <!-- Fake Items -->
+           <div class="pl-8 relative border-l-2 border-slate-800 space-y-8">
+              <div class="relative">
+                 <div class="absolute -left-[39px] top-4 w-4 h-4 rounded-full bg-slate-800 border-2 border-slate-700"></div>
+                 <div class="glass-card rounded-xl p-5 h-32 skeleton"></div>
+              </div>
+              <div class="relative">
+                 <div class="absolute -left-[39px] top-4 w-4 h-4 rounded-full bg-slate-800 border-2 border-slate-700"></div>
+                 <div class="glass-card rounded-xl p-5 h-32 skeleton"></div>
+              </div>
+              <div class="relative">
+                 <div class="absolute -left-[39px] top-4 w-4 h-4 rounded-full bg-slate-800 border-2 border-slate-700"></div>
+                 <div class="glass-card rounded-xl p-5 h-32 skeleton"></div>
+              </div>
+           </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div id="resultsContainer" class="hidden flex flex-col min-h-[500px]">
+           
+           <!-- Tabs (Mobile Optimized) -->
+           <div class="flex items-center gap-2 border-b border-slate-700/50 mb-4 sticky top-16 lg:top-0 bg-[#020617] lg:bg-transparent z-30 pt-4 lg:pt-0">
+              <button id="btnTabTimeline" class="flex-1 lg:flex-none text-center lg:text-left font-bold border-b-2 pb-3 px-4 transition-all tab-active">
+                  <i class="fa-solid fa-timeline mr-2"></i> Timeline
+              </button>
+              <button id="btnTabPhotos" class="flex-1 lg:flex-none text-center lg:text-left font-medium border-b-2 pb-3 px-4 transition-all tab-inactive">
+                  <i class="fa-regular fa-images mr-2"></i> Photos
+              </button>
+           </div>
+
+           <!-- Actions Toolbar (Filters + AI) -->
+           <div class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-6 animate-fade-in">
+              <!-- Timeline Filters -->
+              <div id="timelineFilters" class="hidden flex-wrap gap-2">
+                 <button class="filter-btn active px-3 py-1.5 rounded-full text-xs font-medium border border-orange-500 bg-orange-500/20 text-orange-200 transition-all" data-filter="all">All</button>
+                 <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-800 text-slate-400 hover:text-white transition-all" data-filter="tour">Tours</button>
+                 <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-800 text-slate-400 hover:text-white transition-all" data-filter="report">Reports</button>
+                 <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-800 text-slate-400 hover:text-white transition-all" data-filter="other">Others</button>
+              </div>
+
+              <!-- AI Button -->
+              <button id="btnAiReport" class="hidden px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-lg shadow-indigo-500/30 transition-all items-center gap-2 self-start sm:self-auto">
+                 <i class="fa-solid fa-wand-magic-sparkles"></i> Generate AI Report ✨
+              </button>
+           </div>
+
+           <!-- Timeline View -->
+           <div id="viewTimeline" class="relative pl-4 timeline-line space-y-6 lg:space-y-8 animate-fade-in">
+              <!-- Timeline Items injected here -->
+           </div>
+
+           <!-- Photos View (Grid) -->
+           <div id="viewPhotos" class="hidden">
+              <div id="photosGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 lg:gap-4">
+                 <!-- Photos injected here -->
+              </div>
+              <div class="text-center mt-8 text-slate-500 text-xs">
+                <p>All photos associated with identified person.</p>
+              </div>
+           </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detailModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-950/90 backdrop-blur-md transition-opacity opacity-0" id="modalBackdrop"></div>
+    
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+      <div class="flex min-h-full items-center justify-center p-0 lg:p-4 text-center">
+        
+        <!-- Panel -->
+        <div class="relative w-full h-full lg:h-auto lg:max-h-[90vh] lg:max-w-4xl transform overflow-hidden lg:rounded-2xl bg-black lg:bg-slate-900 border-0 lg:border border-slate-700 text-left shadow-2xl transition-all opacity-0 scale-95 flex flex-col" id="modalPanel">
+          
+          <!-- Header -->
+          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900 z-10">
+             <h3 class="text-base lg:text-lg font-semibold leading-6 text-white truncate pr-4" id="detailModalTitle">Details</h3>
+             <button id="detailModalClose" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-300 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+          </div>
+          
+          <!-- Body -->
+          <div class="flex-1 overflow-y-auto bg-black/50 custom-scrollbar" id="detailModalBody">
+            <!-- Content -->
+          </div>
+
+          <!-- Carousel Controls (Only visible in Gallery Mode) -->
+          <div id="carouselControls" class="hidden absolute top-1/2 -translate-y-1/2 w-full justify-between px-2 pointer-events-none">
+             <button id="prevBtn" class="pointer-events-auto w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur border border-white/10 flex items-center justify-center transition-all active:scale-95"><i class="fa-solid fa-chevron-left"></i></button>
+             <button id="nextBtn" class="pointer-events-auto w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur border border-white/10 flex items-center justify-center transition-all active:scale-95"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const API_ID = "vxid0yoovj";
+  const REGION = "ap-south-1";
+  const BASE_URL = `https://${API_ID}.execute-api.${REGION}.amazonaws.com/prod`;
+  const apiKey = ""; // Runtime injection
+
+  const qs = new URLSearchParams(window.location.search);
+  const token = qs.get("token") || "";   
+
+  // State
+  let galleryImages = []; 
+  let currentGalleryIndex = 0;
+  let globalTimelineData = [];
+  let globalPhotoMap = new Map();
+  let currentFilter = 'all';
+
+  const el = {
+    selfieInput: document.getElementById("selfieInput"),
+    preview: document.getElementById("preview"),
+    statusBox: document.getElementById("statusBox"),
+    emptyState: document.getElementById("emptyState"),
+    statsDashboard: document.getElementById("statsDashboard"),
+    resultsContainer: document.getElementById("resultsContainer"),
+    skeletonLoader: document.getElementById("skeletonLoader"),
+    
+    // Stats
+    scoreVal: document.getElementById("scoreVal"),
+    scoreBar: document.getElementById("scoreBar"),
+    eventCountVal: document.getElementById("eventCountVal"),
+    photoCountVal: document.getElementById("photoCountVal"),
+    
+    // Tabs & Views
+    btnTabTimeline: document.getElementById("btnTabTimeline"),
+    btnTabPhotos: document.getElementById("btnTabPhotos"),
+    viewTimeline: document.getElementById("viewTimeline"),
+    viewPhotos: document.getElementById("viewPhotos"),
+    photosGrid: document.getElementById("photosGrid"),
+    timelineFilters: document.getElementById("timelineFilters"),
+    
+    searchBtn: document.getElementById("searchBtn"),
+    copySummaryBtn: document.getElementById("copySummaryBtn"),
+    btnAiReport: document.getElementById("btnAiReport"),
+  };
+
+  // --------- Tab Logic ----------
+  function switchTab(tab) {
+    if (tab === 'timeline') {
+        el.viewTimeline.classList.remove('hidden');
+        el.timelineFilters.classList.remove('hidden');
+        el.timelineFilters.classList.add('flex');
+        el.viewPhotos.classList.add('hidden');
+        el.btnTabTimeline.className = "flex-1 lg:flex-none text-center lg:text-left font-bold border-b-2 pb-3 px-4 transition-all tab-active";
+        el.btnTabPhotos.className = "flex-1 lg:flex-none text-center lg:text-left font-medium border-b-2 pb-3 px-4 transition-all tab-inactive";
+    } else {
+        el.viewTimeline.classList.add('hidden');
+        el.timelineFilters.classList.add('hidden');
+        el.timelineFilters.classList.remove('flex');
+        el.viewPhotos.classList.remove('hidden');
+        el.btnTabTimeline.className = "flex-1 lg:flex-none text-center lg:text-left font-medium border-b-2 pb-3 px-4 transition-all tab-inactive";
+        el.btnTabPhotos.className = "flex-1 lg:flex-none text-center lg:text-left font-bold border-b-2 pb-3 px-4 transition-all tab-active";
+    }
+  }
+
+  el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
+  el.btnTabPhotos.addEventListener('click', () => switchTab('photos'));
+
+  // --------- Filter Logic ----------
+  function initFilters() {
+    const btns = el.timelineFilters.querySelectorAll('.filter-btn');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // UI
+        btns.forEach(b => {
+          b.classList.remove('border-orange-500', 'bg-orange-500/20', 'text-orange-200');
+          b.classList.add('border-slate-700', 'bg-slate-800', 'text-slate-400');
+        });
+        btn.classList.remove('border-slate-700', 'bg-slate-800', 'text-slate-400');
+        btn.classList.add('border-orange-500', 'bg-orange-500/20', 'text-orange-200');
+        
+        // Logic
+        currentFilter = btn.dataset.filter;
+        applyFilter();
+      });
+    });
+  }
+
+  function applyFilter() {
+    if (!globalTimelineData.length) return;
+    
+    let filtered = globalTimelineData;
+    if (currentFilter !== 'all') {
+      filtered = globalTimelineData.filter(item => {
+        const type = (item.form_type || "").toLowerCase();
+        const data = item.data || {};
+        const pType = (data.program_type || "").toLowerCase();
+
+        if (currentFilter === 'tour') return type.includes('tour') || pType.includes('tour');
+        if (currentFilter === 'report') return type.includes('mandal') || type.includes('report');
+        if (currentFilter === 'other') return !type.includes('tour') && !pType.includes('tour') && !type.includes('mandal') && !type.includes('report');
+        return true;
+      });
+    }
+    renderTimeline(filtered, globalPhotoMap);
+  }
+
+  // --------- Gemini AI Logic ----------
+  async function generateAiReport() {
+    if (!globalTimelineData.length) return;
+
+    const btn = el.btnAiReport;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+
+    try {
+        // Prepare simplified data for LLM to save tokens
+        const simplifiedEvents = globalTimelineData.slice(0, 30).map(item => {
+            const sum = buildEventSummary(item);
+            return {
+                date: sum.subtitle,
+                title: sum.title,
+                type: item.form_type,
+                details: sum.highlights.map(h => `${h[0]}: ${h[1]}`).join(", ")
+            };
+        });
+
+        const prompt = `You are a senior political analyst. Analyze the following timeline of a 'Karyakarta' (Party Worker) in India. 
+        Write a concise, professional performance summary report in HINDI language (Devanagari script).
+        
+        Structure the response in Markdown:
+        1. **Summary**: 2-3 sentences about their overall activity level and main focus area (e.g., Tours, Mandal meetings).
+        2. **Key Activities**: Bullet points of their most significant types of participation.
+        3. **Consistency**: Comment on their regularity based on dates.
+        4. **Tone**: Encouraging and formal.
+        
+        Data: ${JSON.stringify(simplifiedEvents)}`;
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        const data = await response.json();
+        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        if (aiText) {
+            // Show in modal
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "ai-report-content p-4 text-slate-200";
+            
+            // Simple markdown parser
+            const htmlContent = aiText
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/^- (.*)/gm, '<li>$1</li>');
+
+            contentDiv.innerHTML = htmlContent;
+            
+            modal.open("AI Performance Report ✨", contentDiv);
+        } else {
+            throw new Error("No response from AI");
+        }
+
+    } catch (error) {
+        console.error("AI Error:", error);
+        alert("Could not generate report. Please try again.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+  }
+
+  if (el.btnAiReport) {
+      el.btnAiReport.addEventListener("click", generateAiReport);
+  }
+
+  // --------- Copy Logic ----------
+  if (el.copySummaryBtn) {
+    el.copySummaryBtn.addEventListener('click', () => {
+      const score = el.scoreVal.textContent;
+      const events = el.eventCountVal.textContent;
+      const photos = el.photoCountVal.textContent;
+      
+      const text = `*EventLens Search Result*\nSimilarity: ${score}\nEvents Found: ${events}\nPhotos Found: ${photos}\n\nGenerated by EventLens AI`;
+      
+      navigator.clipboard.writeText(text).then(() => {
+        const originalHtml = el.copySummaryBtn.innerHTML;
+        el.copySummaryBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        setTimeout(() => el.copySummaryBtn.innerHTML = originalHtml, 2000);
+      });
+    });
+  }
+
+  // --------- Modal & Carousel Logic ----------
+  const modal = (() => {
+    const wrap = document.getElementById("detailModal");
+    const backdrop = document.getElementById("modalBackdrop");
+    const panel = document.getElementById("modalPanel");
+    const titleEl = document.getElementById("detailModalTitle");
+    const bodyEl = document.getElementById("detailModalBody");
+    const closeBtn = document.getElementById("detailModalClose");
+    const controls = document.getElementById("carouselControls");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function open(title, bodyNode, isGalleryMode = false) {
+      titleEl.textContent = title || "Details";
+      bodyEl.innerHTML = "";
+      if (bodyNode) bodyEl.appendChild(bodyNode);
+      
+      if(isGalleryMode && galleryImages.length > 1) {
+          controls.classList.remove("hidden");
+      } else {
+          controls.classList.add("hidden");
+      }
+
+      wrap.classList.remove("hidden");
+      requestAnimationFrame(() => {
+        backdrop.classList.remove("opacity-0");
+        panel.classList.remove("opacity-0", "scale-95");
+        panel.classList.add("opacity-100", "scale-100");
+      });
+      document.body.classList.add("overflow-hidden");
+    }
+
+    function close() {
+      backdrop.classList.add("opacity-0");
+      panel.classList.remove("opacity-100", "scale-100");
+      panel.classList.add("opacity-0", "scale-95");
+      setTimeout(() => {
+        wrap.classList.add("hidden");
+        document.body.classList.remove("overflow-hidden");
+      }, 200);
+    }
+
+    function showGalleryImage(index) {
+        if(index < 0) index = galleryImages.length - 1;
+        if(index >= galleryImages.length) index = 0;
+        currentGalleryIndex = index;
+        
+        const item = galleryImages[index];
+        titleEl.textContent = `${item.title} (${index + 1}/${galleryImages.length})`;
+        
+        const body = document.createElement("div");
+        body.className = "h-full flex flex-col bg-black";
+
+        const imgCont = document.createElement("div");
+        imgCont.className = "flex-1 flex items-center justify-center p-2 relative";
+        
+        const img = document.createElement("img");
+        img.src = item.url;
+        img.className = "max-w-full max-h-full object-contain";
+        imgCont.appendChild(img);
+
+        const actions = document.createElement("div");
+        actions.className = "p-4 bg-slate-900 border-t border-slate-800 flex justify-between items-center";
+        
+        const dlBtn = document.createElement("a");
+        dlBtn.href = item.url;
+        dlBtn.download = `event_photo_${index}.jpg`;
+        dlBtn.className = "px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium border border-slate-700 flex items-center gap-2";
+        dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Download';
+        
+        actions.appendChild(dlBtn);
+        body.appendChild(imgCont);
+        body.appendChild(actions);
+
+        bodyEl.innerHTML = "";
+        bodyEl.appendChild(body);
+    }
+
+    closeBtn.addEventListener("click", close);
+    backdrop.addEventListener("click", (e) => {
+        if(e.target === backdrop) close();
+    });
+
+    prevBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        showGalleryImage(currentGalleryIndex - 1);
+    });
+    nextBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        showGalleryImage(currentGalleryIndex + 1);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if(wrap.classList.contains('hidden')) return;
+        if(e.key === 'ArrowLeft') showGalleryImage(currentGalleryIndex - 1);
+        if(e.key === 'ArrowRight') showGalleryImage(currentGalleryIndex + 1);
+        if(e.key === 'Escape') close();
+    });
+
+    return { open, close, showGalleryImage };
+  })();
+
+  // --------- UI Helpers ----------
+  function isNonEmpty(v) { return v !== null && v !== undefined && String(v).trim() !== ""; }
+  
+  function prettyIso(iso) {
+    if (!isNonEmpty(iso)) return "";
+    const date = new Date(iso);
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function setStatus(msg, type = "info") {
+    if (!el.statusBox) return;
+    el.statusBox.classList.remove("hidden");
+    el.statusBox.innerHTML = `
+      <div class="inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold ${
+        type === 'error' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 
+        type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
+        'bg-slate-800 text-slate-300 border border-slate-700'
+      }">
+        ${type === 'loading' ? '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>' : ''}
+        ${msg}
+      </div>
+    `;
+  }
+
+  function updateDashboard(sim, events, photos) {
+    el.emptyState.classList.add("hidden");
+    el.skeletonLoader.classList.add("hidden");
+    el.statsDashboard.classList.remove("hidden");
+    el.resultsContainer.classList.remove("hidden");
+    el.copySummaryBtn.classList.remove("hidden"); // Show copy btn
+    
+    // Init filters
+    el.timelineFilters.classList.remove("hidden");
+    el.timelineFilters.classList.add("flex");
+    initFilters();
+    
+    // Show AI Button if events > 0
+    if (events > 0) {
+        el.btnAiReport.classList.remove("hidden");
+        el.btnAiReport.classList.add("flex");
+    } else {
+        el.btnAiReport.classList.add("hidden");
+    }
+
+    el.scoreVal.textContent = sim + "%";
+    el.scoreBar.style.width = sim + "%";
+    el.scoreBar.className = `h-full transition-all duration-1000 ${
+      sim > 80 ? 'bg-emerald-500' : 
+      sim > 50 ? 'bg-yellow-500' : 
+      'bg-red-500'
+    }`;
+    el.eventCountVal.textContent = events;
+    el.photoCountVal.textContent = photos;
+  }
+
+  function get(obj, key, fallback = "") {
+    if (!obj) return fallback;
+    const v = obj[key];
+    return isNonEmpty(v) ? v : fallback;
+  }
+
+  function buildEventSummary(item) {
+    const form = get(item, "form_type", "");
+    const data = item.data || {};
+    const district = get(item, "district", get(data, "district", ""));
+    const vidhansabha = get(item, "vidhansabha", get(data, "vidhansabha", ""));
+    const createdAtIso = prettyIso(get(item, "created_at_iso", ""));
+    const withLabel = get(item, "with_label", "");
+    const faceCount = Number(get(item, "face_count", 0) || 0);
+
+    let title = form || "Event";
+    let subtitle = "";
+    let icon = "fa-calendar-check";
+    const highlights = [];
+    const footer = [];
+
+    if (withLabel) highlights.push(withLabel);
+    if (faceCount) highlights.push(`${faceCount} faces`);
+
+    if (form === "president_tour_form") {
+      title = get(data, "program_name", get(data, "program_type", "President Tour"));
+      icon = "fa-plane-departure";
+      const date = get(data, "tour_date", "");
+      const venue = get(data, "tour_venue", "");
+      subtitle = [date, venue].filter(isNonEmpty).join(" • ");
+      if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests", get(data,"guests","")]);
+    } else if (form === "mandal_reporting") {
+      title = get(data, "venue", "Mandal Report");
+      icon = "fa-clipboard-list";
+      subtitle = get(data, "event_date", "");
+      if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests", get(data,"guests","")]);
+    } else if (form === "visitor_form") {
+      title = get(item, "name", get(data, "name", "Visitor"));
+      icon = "fa-user-clock";
+      subtitle = get(data, "reason", "");
+    } else if (form === "party_attendance") {
+      title = "Party Attendance";
+      icon = "fa-users-line";
+      subtitle = get(data, "designation", "");
+    }
+
+    const locBits = [district, vidhansabha].filter(isNonEmpty);
+    if (locBits.length) footer.push(locBits.join(", "));
+    if (isNonEmpty(createdAtIso)) footer.push(createdAtIso);
+
+    // Full details
+    const details = [];
+    const pushD = (k, v) => { if (isNonEmpty(v)) details.push([k, String(v)]); };
+    pushD("Form Type", form);
+    pushD("District", district);
+    pushD("Vidhansabha", vidhansabha);
+    pushD("Created", createdAtIso);
+    Object.keys(data).forEach(k => { if(typeof data[k] !== 'object') pushD(k, data[k]); });
+
+    return { title, subtitle, highlights, footer, details, rawData: data, icon };
+  }
+
+  function makeKVTable(rows) {
+    const div = document.createElement("div");
+    div.className = "space-y-3 p-4";
+    rows.forEach(([k, v]) => {
+      const row = document.createElement("div");
+      row.className = "flex flex-col sm:flex-row sm:justify-between border-b border-slate-700/50 pb-2 last:border-0";
+      row.innerHTML = `
+        <span class="text-xs text-slate-500 font-medium uppercase tracking-wide">${k}</span>
+        <span class="text-sm text-slate-200 font-medium text-left sm:text-right mt-1 sm:mt-0 break-words">${v}</span>
+      `;
+      div.appendChild(row);
+    });
+    return div;
+  }
+
+  function parseS3KeyFromUrl(url) {
+    try {
+      const u = new URL(url);
+      const p = u.pathname || "";
+      return p.startsWith("/") ? p.slice(1) : p;
+    } catch (e) { return ""; }
+  }
+
+  // --------- Render Timeline ----------
+  function renderTimeline(timeline, photoUrlByKey) {
+    el.viewTimeline.innerHTML = "";
+    if (!Array.isArray(timeline) || timeline.length === 0) {
+      el.viewTimeline.innerHTML = `<div class="text-center py-10 text-slate-500">No events found for filter: ${currentFilter}.</div>`;
+      return;
+    }
+
+    const sorted = [...timeline].sort((a, b) => (parseInt(b.created_at || "0", 10) - parseInt(a.created_at || "0", 10)));
+
+    sorted.forEach((item, index) => {
+      const sum = buildEventSummary(item);
+      const s3Key = get(item, "s3_key", "");
+      const photoUrl = isNonEmpty(s3Key) ? (photoUrlByKey.get(s3Key) || "") : "";
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "relative pl-8 group animate-[pulse-slow_0.5s_ease-out]";
+      wrapper.style.animationDelay = `${index * 50}ms`; // faster stagger
+
+      const dot = document.createElement("div");
+      dot.className = "absolute left-[13px] top-6 w-4 h-4 rounded-full bg-slate-900 border-2 border-slate-600 group-hover:border-orange-500 group-hover:bg-orange-900 transition-colors z-10";
+      wrapper.appendChild(dot);
+
+      const card = document.createElement("div");
+      card.className = "glass-card rounded-xl p-4 lg:p-5 hover:bg-slate-800/80 transition-all cursor-pointer group-hover:translate-x-1 duration-300 active:scale-[0.98]";
+
+      // Title Section
+      const titleBlock = document.createElement("div");
+      titleBlock.className = "mb-3";
+      titleBlock.innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+           <div class="flex items-center gap-2">
+             <span class="text-orange-500 bg-orange-500/10 p-1.5 rounded-md text-xs shrink-0"><i class="fa-solid ${sum.icon}"></i></span>
+             <h3 class="font-bold text-white text-base lg:text-lg leading-tight line-clamp-2">${sum.title}</h3>
+           </div>
+           ${sum.subtitle ? `<span class="text-slate-400 text-xs shrink-0 bg-slate-800/50 px-2 py-1 rounded">${sum.subtitle.split('•')[0]}</span>` : ''}
+        </div>
+      `;
+      card.appendChild(titleBlock);
+
+      // Highlights Grid (Compact)
+      if(sum.highlights.length > 0) {
+        const grid = document.createElement("div");
+        grid.className = "grid grid-cols-2 gap-2 mb-3";
+        sum.highlights.forEach(([k,v]) => {
+          grid.innerHTML += `
+            <div class="bg-slate-950/30 rounded px-2 py-1.5 border border-slate-800/50">
+              <div class="text-[10px] uppercase text-slate-500">${k}</div>
+              <div class="text-xs font-medium text-slate-200 truncate">${v}</div>
+            </div>
+          `;
+        });
+        card.appendChild(grid);
+      }
+
+
+      // Thumbnails strip (for event cards)
+      const eventPhotoUrls = Array.isArray(item.photo_urls) ? item.photo_urls : (isNonEmpty(photoUrl) ? [photoUrl] : []);
+      if (eventPhotoUrls.length > 0) {
+        const strip = document.createElement("div");
+        strip.className = "flex flex-wrap gap-2 mb-3";
+        const maxShow = 8;
+        eventPhotoUrls.slice(0, maxShow).forEach((u) => {
+          const im = document.createElement("img");
+          setImgSrcWithRetry(im, u);
+          im.className = "w-12 h-12 rounded object-cover border border-slate-700/70";
+          strip.appendChild(im);
+        });
+        if (eventPhotoUrls.length > maxShow) {
+          const more = document.createElement("div");
+          more.className = "w-12 h-12 rounded flex items-center justify-center text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-200";
+          more.textContent = `+${eventPhotoUrls.length - maxShow}`;
+          strip.appendChild(more);
+        }
+        card.appendChild(strip);
+      }
+
+      // Footer
+      const footerRow = document.createElement("div");
+      footerRow.className = "pt-3 border-t border-slate-800 flex items-center justify-between";
+      footerRow.innerHTML = `<div class="text-[10px] text-slate-500 font-mono truncate mr-2">${sum.footer.join(" • ")}</div>`;
+      
+      if (isNonEmpty(photoUrl)) {
+        const thumb = document.createElement("img");
+        setImgSrcWithRetry(thumb, getBestThumbUrl(item, photoUrl));
+        thumb.className = "w-8 h-8 rounded object-cover border border-slate-600 shrink-0";
+        footerRow.appendChild(thumb);
+      }
+      card.appendChild(footerRow);
+
+      card.addEventListener("click", () => {
+        const body = document.createElement("div");
+        const eventPhotoUrls = Array.isArray(item.photo_urls) ? item.photo_urls : (isNonEmpty(photoUrl) ? [photoUrl] : []);
+        if (eventPhotoUrls.length > 0) {
+          const imgCont = document.createElement("div");
+          imgCont.className = "w-full bg-black aspect-video flex items-center justify-center relative";
+          const img = document.createElement("img");
+          const firstUrl = eventPhotoUrls[0];
+          setImgSrcWithRetry(img, firstUrl);
+          img.src = firstUrl;
+          img.className = "max-w-full max-h-full object-contain";
+          imgCont.appendChild(img);
+          body.appendChild(imgCont);
+
+          // thumbnails inside modal
+          if (eventPhotoUrls.length > 1) {
+            const grid = document.createElement("div");
+            grid.className = "grid grid-cols-4 gap-2 p-3 bg-slate-950/20";
+            eventPhotoUrls.slice(0, 24).forEach((u) => {
+              const t = document.createElement("img");
+              setImgSrcWithRetry(t, u);
+              t.className = "w-full aspect-square rounded object-cover border border-slate-800 cursor-pointer";
+              t.addEventListener("click", () => { img.src = u; setImgSrcWithRetry(img, u); });
+              grid.appendChild(t);
+            });
+            body.appendChild(grid);
+          }
+        }
+        body.appendChild(makeKVTable(sum.details));
+        modal.open(sum.title, body, false);
+      });
+
+      wrapper.appendChild(card);
+      el.viewTimeline.appendChild(wrapper);
+    });
+  }
+
+  // --------- Render Photos (Gallery Grid) ----------
+  function renderPhotos(photoUrls, timeline) {
+    el.photosGrid.innerHTML = "";
+    galleryImages = [];
+
+    if (!Array.isArray(photoUrls) || photoUrls.length === 0) {
+      el.photosGrid.innerHTML = "<div class='col-span-full text-center text-slate-500'>No photos found</div>";
+      return;
+    }
+
+    const byKey = new Map();
+    photoUrls.forEach((u) => {
+      const k = parseS3KeyFromUrl(u);
+      if (isNonEmpty(k) && !byKey.has(k)) byKey.set(k, u);
+    });
+
+    const labelByKey = new Map();
+    (timeline || []).forEach((t) => {
+      if (isNonEmpty(t.s3_key)) labelByKey.set(t.s3_key, buildEventSummary(t).title);
+    });
+
+    Array.from(byKey.entries()).forEach(([k, url], idx) => {
+      // Store for slideshow
+      galleryImages.push({ url, title: labelByKey.get(k) || "Event Photo", id: k });
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "group relative aspect-square rounded-xl overflow-hidden bg-slate-900 border border-slate-700 cursor-pointer active:scale-95 transition-transform";
+      
+      const img = document.createElement("img");
+      setImgSrcWithRetry(img, url);
+      img.loading = "lazy";
+      img.className = "w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100";
+      
+      wrapper.appendChild(img);
+      wrapper.addEventListener("click", () => {
+         modal.open("Gallery", null, true); // True triggers gallery mode
+         modal.showGalleryImage(idx);
+      });
+
+      el.photosGrid.appendChild(wrapper);
+    });
+  }
+
+  // --------- API Logic ----------
+  async function apiCall(action, payload, tokenOpt) {
+    const isPublic = !!tokenOpt;
+    const url = isPublic ? `${BASE_URL}/political/public/search` : `${BASE_URL}/political/search`;
+    const body = { action, payload: payload || {} };
+    if (isPublic) body.token = tokenOpt;
+    const headers = { "Content-Type": "application/json" };
+    if (!isPublic) {
+      const idToken = localStorage.getItem("id_token") || localStorage.getItem("idToken") || "";
+      if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
+    }
+    const resp = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
+    const txt = await resp.text();
+    let json = {};
+    try { json = JSON.parse(txt); } catch (e) { json = { message: txt || "Invalid JSON" }; }
+    if (!resp.ok) throw new Error(json.message || `HTTP ${resp.status}`);
+    return json;
+  }
+
+  // --------- Main Events ----------
+  if (el.searchBtn) {
+    el.searchBtn.addEventListener("click", async () => {
+      const file = el.selfieInput && el.selfieInput.files && el.selfieInput.files[0];
+      if (!file) {
+        setStatus("कृपया पहले फोटो चुनें (Please select a photo)", "error");
+        return;
+      }
+
+      el.searchBtn.disabled = true;
+      el.searchBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+      setStatus("Analyzing...", "loading");
+      
+      // Toggle views: Show skeleton, Hide others
+      el.emptyState.classList.add("hidden");
+      el.statsDashboard.classList.add("hidden");
+      el.resultsContainer.classList.add("hidden");
+      el.skeletonLoader.classList.remove("hidden");
+
+      try {
+        const init = await apiCall("init_search", { mime_type: file.type || "image/jpeg" }, token);
+        const uploadUrl = init.upload_url || init.url;
+        const searchId = init.search_id || init.searchId;
+        
+        await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+        setStatus("Searching...", "loading");
+        const res = await apiCall("run_search", { search_id: searchId }, token);
+
+        const sim = isNonEmpty(res.similarity) ? Number(res.similarity).toFixed(0) : "0";
+        const tCount = Array.isArray(res.timeline) ? res.timeline.length : 0;
+        const pCount = Array.isArray(res.photo_urls) ? res.photo_urls.length : 0;
+
+        if (res.message === "NO_MATCH" || tCount === 0) {
+          setStatus("No Match Found", "error");
+          el.skeletonLoader.classList.add("hidden");
+          el.emptyState.classList.remove("hidden");
+          el.emptyState.querySelector("h3").textContent = "No Matches Found";
+          el.emptyState.querySelector("p").textContent = "The uploaded face does not match any records.";
+        } else {
+          setStatus("Success", "success");
+          
+          // Store global data for filters
+          globalTimelineData = (res.events && Array.isArray(res.events) && res.events.length) ? res.events : (res.timeline || []);
+          
+          // Process photos map
+          globalPhotoMap = new Map();
+          (res.photo_urls || []).forEach((u) => {
+            const k = parseS3KeyFromUrl(u);
+            if (isNonEmpty(k)) globalPhotoMap.set(k, u);
+          });
+
+          // Render with default 'All' filter
+          currentFilter = 'all';
+          updateDashboard(sim, tCount, pCount);
+          applyFilter(); 
+          renderPhotos(res.photo_urls || [], res.timeline || []);
+          
+          // Default to Timeline tab
+          switchTab('timeline');
+          
+          if(window.innerWidth < 1024) {
+             el.statsDashboard.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+
+      } catch (err) {
+        console.error(err);
+        setStatus(err.message || "Connection Error", "error");
+        el.skeletonLoader.classList.add("hidden"); // hide skeleton on error
+      } finally {
+        el.searchBtn.disabled = false;
+        el.searchBtn.innerHTML = '<span class="relative flex items-center justify-center gap-2"><i class="fa-solid fa-magnifying-glass"></i> Search Database</span>';
+      }
+    });
+  }
+})();
+</script>
+
+<script>
+// ===== EventLens Patch: Timeline grouping by event_id (v2) =====
+let globalTimelineGroups = [];
+
+// Build groups so 10 photos in same event show as 1 event card.
+function buildTimelineGroups(timelineArr){
+  const timeline = Array.isArray(timelineArr) ? timelineArr : [];
+  const map = new Map();
+  for (const it of timeline){
+    if(!it || typeof it !== 'object') continue;
+    const eid = (it.event_id || it.eventId || it.event_key || it.eventKey || it.entry_id || it.entryId || '').toString().trim();
+    const gid = eid || (it.entry_id || it.entryId || '').toString().trim() || Math.random().toString(36).slice(2);
+    if(!map.has(gid)){
+      map.set(gid, {
+        group_id: gid,
+        event_id: eid || gid,
+        form_type: it.form_type || it.ft || 'unknown',
+        created_at: it.created_at || '0',
+        created_at_iso: it.created_at_iso || '',
+        district: it.district || (it.data||{}).district || '',
+        vidhansabha: it.vidhansabha || (it.data||{}).vidhansabha || '',
+        mandal: it.mandal || (it.data||{}).mandal || '',
+        items: [it],
+      });
+    } else {
+      const g = map.get(gid);
+      g.items.push(it);
+      // keep latest time
+      const ca = Number(it.created_at || 0);
+      const ga = Number(g.created_at || 0);
+      if(ca > ga){
+        g.created_at = it.created_at || g.created_at;
+        g.created_at_iso = it.created_at_iso || g.created_at_iso;
+        g.district = it.district || g.district;
+        g.vidhansabha = it.vidhansabha || g.vidhansabha;
+        g.mandal = it.mandal || g.mandal;
+        g.form_type = it.form_type || it.ft || g.form_type;
+      }
+    }
+  }
+  const groups = Array.from(map.values());
+  groups.sort((a,b)=> Number(b.created_at||0) - Number(a.created_at||0));
+  return groups;
+}
+
+// Override dashboard counts to show EVENT count (not photo count)
+function updateDashboard(similarity, timelineCount, photoCount){
+  el.similarityText.textContent = `${similarity}%`;
+  el.timelineCount.textContent = `${timelineCount}`;
+  el.photoCount.textContent = `${photoCount}`;
+}
+
+// Render grouped timeline (one card per event)
+function renderTimelineGroups(groups){
+  el.timelineGrid.innerHTML = "";
+  if(!Array.isArray(groups) || groups.length===0){
+    el.timelineGrid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10">No timeline entries.</div>';
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  for(const g of groups){
+    const rep = (g.items && g.items[0]) ? g.items[0] : {};
+    const ft = g.form_type || rep.form_type || rep.ft || 'unknown';
+    const title = getFormTypeLabel(ft);
+    const dt = formatDate(g.created_at_iso || rep.created_at_iso || "");
+    const locParts = [];
+    if(g.district) locParts.push(g.district);
+    if(g.vidhansabha) locParts.push(g.vidhansabha);
+    if(g.mandal) locParts.push(g.mandal);
+    const loc = locParts.join(" • ");
+
+    const meta = [];
+    if(dt) meta.push(dt);
+    if(loc) meta.push(loc);
+
+    const countTxt = (g.items && g.items.length>1) ? `${g.items.length} records merged` : "1 record";
+    const sub = meta.join(" • ");
+
+    const card = document.createElement("div");
+    card.className = "group bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 hover:bg-slate-800/80 transition cursor-pointer";
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h3 class="font-semibold text-slate-100 truncate">${escapeHtml(title)}</h3>
+          <p class="text-xs text-slate-400 mt-1">${escapeHtml(sub || '')}</p>
+        </div>
+        <span class="shrink-0 text-[11px] px-2 py-1 rounded-full bg-slate-700/60 text-slate-200 border border-slate-600/50">${escapeHtml(countTxt)}</span>
+      </div>
+      ${rep.reason ? `<p class="text-sm text-slate-200/90 mt-3 line-clamp-2">${escapeHtml(rep.reason)}</p>` : ``}
+      <div class="mt-3 flex items-center justify-between text-xs text-slate-400">
+        <span class="truncate">Event ID: ${escapeHtml(g.event_id || g.group_id)}</span>
+        <span class="text-orange-300/90">View</span>
+      </div>
+    `;
+    card.addEventListener("click", ()=> openGroupModal(g));
+    frag.appendChild(card);
+  }
+  el.timelineGrid.appendChild(frag);
+}
+
+// Show group details (all merged items)
+function openGroupModal(group){
+  const items = (group && group.items) ? group.items : [];
+  const rep = items[0] || {};
+  const ft = group.form_type || rep.form_type || rep.ft || 'unknown';
+  const title = `${getFormTypeLabel(ft)} (Event)`;
+  const dt = formatDate(group.created_at_iso || rep.created_at_iso || "");
+  const locParts = [];
+  if(group.district) locParts.push(group.district);
+  if(group.vidhansabha) locParts.push(group.vidhansabha);
+  if(group.mandal) locParts.push(group.mandal);
+
+  const headerHtml = `
+    <div class="space-y-1">
+      <div class="text-lg font-semibold text-slate-100">${escapeHtml(title)}</div>
+      <div class="text-sm text-slate-400">${escapeHtml([dt, locParts.join(" • ")].filter(Boolean).join(" • "))}</div>
+      <div class="text-xs text-slate-500">Event ID: ${escapeHtml(group.event_id || group.group_id || '')}</div>
+    </div>
+  `;
+
+  const rows = items.map((it, idx)=>{
+    const p = it.data && typeof it.data==='object' ? it.data : (it.data || it.payload || {});
+    const name = it.name || (p && p.name) || '';
+    const mobile = it.mobile || (p && p.mobile) || '';
+    const reason = it.reason || (p && (p.reason || p.visit_reason)) || '';
+    const when = formatDate(it.created_at_iso || '');
+    return `
+      <div class="rounded-xl border border-slate-700/60 bg-slate-900/30 p-3">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="font-medium text-slate-100 truncate">${escapeHtml(name || '—')}</div>
+            <div class="text-xs text-slate-400 mt-0.5">${escapeHtml(mobile || '')}</div>
+          </div>
+          <div class="text-[11px] text-slate-400 shrink-0">${escapeHtml(when || '')}</div>
+        </div>
+        ${reason ? `<div class="text-sm text-slate-200/90 mt-2">${escapeHtml(reason)}</div>` : ``}
+      </div>
+    `;
+  }).join("");
+
+  el.detailModalTitle.innerHTML = headerHtml;
+  el.detailModalBody.innerHTML = `
+    <div class="space-y-3">
+      <div class="text-xs text-slate-400">Merged records: <span class="text-slate-200">${items.length}</span></div>
+      <div class="grid grid-cols-1 gap-3">${rows}</div>
+    </div>
+  `;
+  el.detailModal.classList.remove("hidden");
+}
+
+// Override filter to work on groups
+function applyFilter() {
+  const groups = Array.isArray(globalTimelineGroups) ? globalTimelineGroups : [];
+  if (currentFilter === 'all') {
+    renderTimelineGroups(groups);
+    return;
+  }
+  const filtered = groups.filter(g => {
+    const ft = (g.form_type || '').toString();
+    return ft === currentFilter;
+  });
+  renderTimelineGroups(filtered);
+}
+
+// Patch search submit: after globalTimelineData set, also set globalTimelineGroups and counts
+(function patchSearchSubmitHook(){
+  // We hook into existing code by wrapping renderPhotos call when data exists.
+  const _origRenderPhotos = window.renderPhotos;
+  window.renderPhotos = function(photoUrls, timeline){
+    try{
+      globalTimelineGroups = buildTimelineGroups(globalTimelineData || timeline || []);
+      // Update counts again with grouped count
+      const simText = (el.similarityText && el.similarityText.textContent) ? el.similarityText.textContent.replace('%','') : '0';
+      const sim = Number(simText || 0).toFixed(0);
+      const tCount = globalTimelineGroups.length;
+      const pCount = Array.isArray(photoUrls) ? photoUrls.length : 0;
+      updateDashboard(sim, tCount, pCount);
+      // Apply filter re-render
+      applyFilter();
+    }catch(e){
+      console.warn('timeline grouping patch failed', e);
+    }
+    return _origRenderPhotos ? _origRenderPhotos(photoUrls, timeline) : undefined;
+  };
+})();
+</script>
+
+</body>
+</html>
