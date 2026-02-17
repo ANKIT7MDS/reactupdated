@@ -285,59 +285,80 @@
       <!-- On mobile, this stays on top but becomes more compact after search -->
       <div class="lg:col-span-4 space-y-4 lg:space-y-6">
         
-        <!-- Search Card -->
-        <div class="glass-panel rounded-2xl p-1 shadow-2xl overflow-hidden relative group">
+        <!-- ── Step 1: Camera / Upload Card ── -->
+        <div id="step1Card" class="glass-panel rounded-2xl p-1 shadow-2xl overflow-hidden relative">
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600"></div>
-          
           <div class="p-5 lg:p-6 bg-slate-900/40">
             <h2 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
-              <i class="fa-solid fa-face-viewfinder text-orange-500"></i> Face Search
+              <i class="fa-solid fa-face-viewfinder text-orange-500"></i> सेल्फी सर्च
             </h2>
-            <p class="text-slate-400 text-xs mb-4 lg:mb-6">Upload a selfie to scan the karyakarta database.</p>
+            <p class="text-slate-400 text-xs mb-4">चेहरे से कार्यकर्ता खोजें</p>
 
-            <!-- Upload Area -->
-            <div class="relative w-full aspect-[4/5] lg:aspect-[4/5] bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-700 hover:border-orange-500/50 transition-all duration-300 overflow-hidden group/upload cursor-pointer touch-manipulation">
-              <input id="selfieInput" accept="image/*" type="file" class="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer" onchange="previewImage(this)" />
-              
-              <!-- Placeholder State -->
-              <div id="uploadPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 group-hover/upload:text-orange-400 transition-colors pointer-events-none">
-                <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-3 shadow-inner">
-                  <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+            <!-- Camera Button (Primary) -->
+            <button id="cameraBtn" class="relative w-full py-5 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-dashed border-orange-500/40 hover:border-orange-500 transition-all duration-200 cursor-pointer active:scale-[0.98] mb-3 group/cam overflow-hidden">
+              <input id="selfieInput" accept="image/*" capture="user" type="file" class="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer" onchange="previewImage(this)" />
+              <div id="uploadPlaceholder" class="flex flex-col items-center justify-center text-slate-400 group-hover/cam:text-orange-400 transition-colors pointer-events-none">
+                <div class="w-16 h-16 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center mb-2">
+                  <i class="fa-solid fa-camera text-3xl text-orange-400"></i>
                 </div>
-                <span class="text-sm font-medium">Click to Upload Selfie</span>
-                <span class="text-xs opacity-60 mt-1">Supports JPG, PNG</span>
+                <span class="text-base font-bold text-white">📸 सेल्फी लें</span>
+                <span class="text-xs text-slate-400 mt-1">Camera खुलेगा</span>
               </div>
-
-              <!-- Preview State -->
-              <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover z-10" />
-              
-              <!-- Scanning Animation -->
+              <!-- Preview -->
+              <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover z-10 rounded-xl" />
               <div id="scanLine" class="hidden absolute left-0 w-full h-1 bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,1)] z-10 animate-scan pointer-events-none"></div>
-            </div>
+            </button>
 
-            <!-- Action Buttons -->
-            <div class="mt-4 lg:mt-6 space-y-3">
-              <button id="searchBtn" class="relative w-full py-3.5 lg:py-4 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold shadow-lg shadow-orange-900/40 transition-all active:scale-[0.98] group/btn overflow-hidden">
-                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
-                <span class="relative flex items-center justify-center gap-2">
-                  <i class="fa-solid fa-magnifying-glass"></i> Search Database
-                </span>
-              </button>
-            </div>
-            
-            <!-- Status Text -->
-            <div id="statusBox" class="hidden mt-4 text-center"></div>
+            <!-- Upload (Secondary - small) -->
+            <label class="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:border-slate-600 text-xs cursor-pointer transition-all mb-4">
+              <input id="uploadInput" accept="image/*" type="file" class="hidden" onchange="previewImage(this)" />
+              <i class="fa-solid fa-upload text-[11px]"></i> गैलरी से अपलोड करें
+            </label>
+
+            <!-- Search Button -->
+            <button id="searchBtn" class="relative w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold shadow-lg shadow-orange-900/40 transition-all active:scale-[0.98] overflow-hidden">
+              <span class="relative flex items-center justify-center gap-2">
+                <i class="fa-solid fa-magnifying-glass"></i> खोजें
+              </span>
+            </button>
+
+            <div id="statusBox" class="hidden mt-3 text-center"></div>
           </div>
         </div>
 
-        <!-- Instructions (Desktop Only) -->
-        <div class="hidden lg:block p-5 rounded-2xl border border-slate-800 bg-slate-900/30 text-xs text-slate-400 leading-relaxed">
-          <strong class="text-slate-300 block mb-2"><i class="fa-regular fa-lightbulb text-yellow-500 mr-1"></i> Pro Tips:</strong>
-          <ul class="list-disc pl-4 space-y-1">
-             <li>Ensure good lighting on the face.</li>
-             <li>Avoid wearing sunglasses or masks.</li>
-             <li>Results show timeline events and grouped photos.</li>
-          </ul>
+        <!-- ── Step 2: Match Found → Name/Mobile form ── -->
+        <div id="step2Card" class="hidden glass-panel rounded-2xl p-1 shadow-2xl overflow-hidden relative">
+          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+          <div class="p-5 bg-slate-900/40">
+            <!-- Match Summary -->
+            <div id="matchSummary" class="mb-5 text-center">
+              <div class="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-circle-check text-2xl text-emerald-400"></i>
+              </div>
+              <div class="text-white font-bold text-base" id="matchTitle">मैच मिला!</div>
+              <div class="text-slate-400 text-xs mt-1" id="matchSubtitle"></div>
+              <!-- Stats pills -->
+              <div class="flex justify-center gap-3 mt-3" id="matchPills"></div>
+            </div>
+
+            <!-- Name + Mobile -->
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs text-slate-400 font-medium block mb-1">नाम (Name)</label>
+                <input id="nameInput" type="text" placeholder="कार्यकर्ता का नाम" class="w-full rounded-lg px-3 py-2.5 text-sm bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 font-medium block mb-1">मोबाइल (Mobile)</label>
+                <input id="mobileInput" type="tel" placeholder="10 अंक" class="w-full rounded-lg px-3 py-2.5 text-sm bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none" />
+              </div>
+              <button id="confirmBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold transition-all active:scale-[0.98]">
+                <i class="fa-solid fa-eye mr-2"></i> रिजल्ट देखें
+              </button>
+              <button id="skipBtn" class="w-full py-2 rounded-xl border border-slate-700 text-slate-400 hover:text-white text-xs transition-all">
+                बिना नाम के देखें
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -408,13 +429,16 @@
         <!-- Main Content Area -->
         <div id="resultsContainer" class="hidden flex flex-col min-h-[500px]">
            
-           <!-- Tabs (Mobile Optimized) -->
-           <div class="flex items-center gap-2 border-b border-slate-700/50 mb-4 sticky top-16 lg:top-0 bg-[#020617] lg:bg-transparent z-30 pt-4 lg:pt-0">
-              <button id="btnTabTimeline" class="flex-1 lg:flex-none text-center lg:text-left font-bold border-b-2 pb-3 px-4 transition-all tab-active">
-                  <i class="fa-solid fa-timeline mr-2"></i> Timeline
+           <!-- Tabs -->
+           <div class="flex items-center gap-1 border-b border-slate-700/50 mb-4 sticky top-16 lg:top-0 bg-[#020617] lg:bg-transparent z-30 pt-4 lg:pt-0">
+              <button id="btnTabPhotos" class="flex-1 text-center font-bold border-b-2 pb-3 px-3 transition-all tab-active text-sm">
+                  <i class="fa-regular fa-images mr-1"></i> गैलरी
               </button>
-              <button id="btnTabPhotos" class="flex-1 lg:flex-none text-center lg:text-left font-medium border-b-2 pb-3 px-4 transition-all tab-inactive">
-                  <i class="fa-regular fa-images mr-2"></i> Photos
+              <button id="btnTabTimeline" class="flex-1 text-center font-medium border-b-2 pb-3 px-3 transition-all tab-inactive text-sm">
+                  <i class="fa-solid fa-timeline mr-1"></i> Timeline
+              </button>
+              <button id="btnAllSlideshow" class="flex-none px-3 pb-3 pt-0 text-orange-400 hover:text-orange-300 text-xs font-bold flex items-center gap-1 border-b-2 border-transparent">
+                  <i class="fa-solid fa-play text-[10px]"></i> सभी
               </button>
            </div>
 
@@ -435,12 +459,12 @@
            </div>
 
            <!-- Timeline View -->
-           <div id="viewTimeline" class="relative pl-4 timeline-line space-y-6 lg:space-y-8 animate-fade-in">
+           <div id="viewTimeline" class="hidden relative pl-4 timeline-line space-y-6 lg:space-y-8 animate-fade-in">
               <!-- Timeline Items injected here -->
            </div>
 
            <!-- Photos View (Grid) -->
-           <div id="viewPhotos" class="hidden">
+           <div id="viewPhotos" class="">
               <div id="photosGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 lg:gap-4">
                  <!-- Photos injected here -->
               </div>
@@ -560,29 +584,39 @@
     searchBtn: document.getElementById("searchBtn"),
     copySummaryBtn: document.getElementById("copySummaryBtn"),
     btnAiReport: document.getElementById("btnAiReport"),
+    // New 2-step elements
+    step1Card: document.getElementById("step1Card"),
+    step2Card: document.getElementById("step2Card"),
+    uploadInput: document.getElementById("uploadInput"),
+    matchTitle: document.getElementById("matchTitle"),
+    matchSubtitle: document.getElementById("matchSubtitle"),
+    matchPills: document.getElementById("matchPills"),
+    confirmBtn: document.getElementById("confirmBtn"),
+    skipBtn: document.getElementById("skipBtn"),
+    nameInput: document.getElementById("nameInput"),
+    mobileInput: document.getElementById("mobileInput"),
+    btnAllSlideshow: document.getElementById("btnAllSlideshow"),
   };
 
   // --------- Tab Logic ----------
   function switchTab(tab) {
     if (tab === 'timeline') {
         el.viewTimeline.classList.remove('hidden');
-        el.timelineFilters.classList.remove('hidden');
-        el.timelineFilters.classList.add('flex');
+        if (el.timelineFilters) { el.timelineFilters.classList.remove('hidden'); el.timelineFilters.classList.add('flex'); }
         el.viewPhotos.classList.add('hidden');
-        el.btnTabTimeline.className = "flex-1 lg:flex-none text-center lg:text-left font-bold border-b-2 pb-3 px-4 transition-all tab-active";
-        el.btnTabPhotos.className = "flex-1 lg:flex-none text-center lg:text-left font-medium border-b-2 pb-3 px-4 transition-all tab-inactive";
+        if(el.btnTabTimeline) el.btnTabTimeline.className = "flex-1 text-center font-bold border-b-2 pb-3 px-3 transition-all tab-active text-sm";
+        if(el.btnTabPhotos) el.btnTabPhotos.className = "flex-1 text-center font-medium border-b-2 pb-3 px-3 transition-all tab-inactive text-sm";
     } else {
         el.viewTimeline.classList.add('hidden');
-        el.timelineFilters.classList.add('hidden');
-        el.timelineFilters.classList.remove('flex');
+        if (el.timelineFilters) { el.timelineFilters.classList.add('hidden'); el.timelineFilters.classList.remove('flex'); }
         el.viewPhotos.classList.remove('hidden');
-        el.btnTabTimeline.className = "flex-1 lg:flex-none text-center lg:text-left font-medium border-b-2 pb-3 px-4 transition-all tab-inactive";
-        el.btnTabPhotos.className = "flex-1 lg:flex-none text-center lg:text-left font-bold border-b-2 pb-3 px-4 transition-all tab-active";
+        if(el.btnTabTimeline) el.btnTabTimeline.className = "flex-1 text-center font-medium border-b-2 pb-3 px-3 transition-all tab-inactive text-sm";
+        if(el.btnTabPhotos) el.btnTabPhotos.className = "flex-1 text-center font-bold border-b-2 pb-3 px-3 transition-all tab-active text-sm";
     }
   }
 
-  el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
-  el.btnTabPhotos.addEventListener('click', () => switchTab('photos'));
+  if(el.btnTabTimeline) el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
+  if(el.btnTabPhotos) el.btnTabPhotos.addEventListener('click', () => switchTab('photos'));
 
   // --------- Filter Logic ----------
   function initFilters() {
@@ -901,12 +935,14 @@
 
     // Form की actual date निकालो (form में जो date डाली थी)
     function getFormDate(form, data) {
-      // हर form type की अपनी date field है
-      if (form === "president_tour_form") return get(data, "tour_date", "");
-      if (form === "mandal_reporting" || form === "mandal_reporting_form") return get(data, "report_date", get(data, "event_date", ""));
-      if (form === "party_attendance") return get(data, "attendance_date", "");
-      // visitor, coordinator — इनमें अलग date field नहीं है, created_at दिखाओ
-      return "";
+      const pick = (...keys) => { for(const k of keys){ if(data && data[k]) return data[k]; } return ""; };
+      if (form === "president_tour_form")
+        return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+      if (form === "mandal_reporting" || form === "mandal_reporting_form")
+        return pick("report_date","event_date","दिनांक","date","program_date");
+      if (form === "party_attendance")
+        return pick("attendance_date","event_date","दिनांक","date");
+      return pick("event_date","program_date","दिनांक","date");
     }
     const formDate = getFormDate(form, data);
     // अगर form की date मिली तो वो दिखाओ, नहीं तो created_at fallback
@@ -915,29 +951,34 @@
     if (withLabel) highlights.push(withLabel);
     if (faceCount) highlights.push(`${faceCount} faces`);
 
+    // Hindi+English field names दोनों check
+    const bsPName = data.program_name || data["कार्यक्रम_का_नाम"] || data.name_of_program || "";
+    const bsPType = data.program_type || data["कार्यक्रम_का_प्रकार"] || "";
     if (form === "president_tour_form") {
-      title = get(data, "program_name", get(data, "program_type", "President Tour"));
+      title = bsPName || bsPType || data.tour_title || "President Tour";
       icon = "fa-plane-departure";
-      const venue = get(data, "tour_location", get(data, "tour_venue", ""));
+      const venue = data.tour_location || data.tour_venue || data.venue || data["स्थान"] || "";
       subtitle = [formDate, venue].filter(isNonEmpty).join(" • ");
       if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests", get(data,"guests","")]);
     } else if (form === "mandal_reporting" || form === "mandal_reporting_form") {
-      title = get(data, "program_name", get(data, "venue", "Mandal Report"));
+      title = bsPName || data.venue || data["स्थान"] || "Mandal Report";
       icon = "fa-clipboard-list";
       subtitle = formDate;
       if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests", get(data,"guests","")]);
     } else if (form === "visitor_form") {
-      title = get(item, "name", get(data, "name", "Visitor"));
+      title = get(item, "name", get(data, "name", data["नाम"] || "Visitor"));
       icon = "fa-user-clock";
       subtitle = get(data, "reason", get(data, "visit_reason", ""));
     } else if (form === "party_attendance") {
-      title = get(data, "program_name", "Party Attendance");
+      title = bsPName || bsPType || "Party Attendance";
       icon = "fa-users-line";
       subtitle = [formDate, get(data, "designation", "")].filter(isNonEmpty).join(" • ");
     } else if (form === "coordinator_entry" || form === "coordinator_form") {
-      title = get(data, "name", "Coordinator Entry");
+      title = get(data, "name", data["नाम"] || bsPName || "Coordinator Entry");
       icon = "fa-id-badge";
       subtitle = get(data, "designation", "");
+    } else if (bsPName) {
+      title = bsPName;
     }
 
     const locBits = [district, vidhansabha].filter(isNonEmpty);
@@ -985,10 +1026,16 @@
   // ── Form date helper (global, used everywhere) ──
   function getEventFormDate(formType, data) {
     if (!data) return "";
-    if (formType === "president_tour_form") return data.tour_date || "";
-    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return data.report_date || data.event_date || "";
-    if (formType === "party_attendance") return data.attendance_date || "";
-    return "";
+    // Hindi + English field names दोनों check
+    const pick = (...keys) => { for(const k of keys){ if(data[k]) return data[k]; } return ""; };
+    if (formType === "president_tour_form")
+      return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+    if (formType === "mandal_reporting" || formType === "mandal_reporting_form")
+      return pick("report_date","event_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+    if (formType === "party_attendance")
+      return pick("attendance_date","event_date","दिनांक","date");
+    // किसी भी form में common date fields
+    return pick("event_date","program_date","दिनांक","date");
   }
 
   // ── Event photos: server 'photos' या 'photo_urls' दोनों check करो ──
@@ -1013,10 +1060,23 @@
     }
 
     // Sort by form date first, fallback created_at
+    // Sort by form date (newest first)
     const sorted = [...timeline].sort((a, b) => {
-      const da = getEventFormDate(a.form_type || a.ft || "", a.data || {}) || (a.created_at_iso || "");
-      const db = getEventFormDate(b.form_type || b.ft || "", b.data || {}) || (b.created_at_iso || "");
-      return db.localeCompare(da);
+      const parseDate = (item) => {
+        const fd = getEventFormDate(item.form_type || item.ft || "", item.data || {});
+        if (fd) {
+          // DD/MM/YYYY or YYYY-MM-DD
+          const parts = fd.split(/[-/]/);
+          if (parts.length === 3) {
+            const d = parts[0].length === 4
+              ? new Date(parts[0], parts[1]-1, parts[2])    // YYYY-MM-DD
+              : new Date(parts[2], parts[1]-1, parts[0]);   // DD/MM/YYYY
+            if (!isNaN(d)) return d.getTime();
+          }
+        }
+        return parseInt(item.created_at || "0", 10);
+      };
+      return parseDate(b) - parseDate(a);
     });
 
     sorted.forEach((item, index) => {
@@ -1027,24 +1087,29 @@
       const formDate = getEventFormDate(form, data);
       const displayDate = formDate || prettyIso(item.created_at_iso || "");
 
-      // ── 2. Title ──
+      // ── 2. Title (Hindi + English field names दोनों check करो) ──
+      // program_name के सभी possible field names
+      const pName = data.program_name || data["कार्यक्रम_का_नाम"] || data.name_of_program || data.karyakram_name || "";
+      const pType = data.program_type || data["कार्यक्रम_का_प्रकार"] || data.type || "";
       let title = form || "Event";
       let icon = "fa-calendar-check";
       if (form === "president_tour_form") {
-        title = data.program_name || data.program_type || "President Tour";
+        title = pName || pType || data.tour_title || "President Tour";
         icon = "fa-plane-departure";
       } else if (form === "mandal_reporting" || form === "mandal_reporting_form") {
-        title = data.program_name || data.venue || "Mandal Report";
+        title = pName || data.venue || data["स्थान"] || "Mandal Report";
         icon = "fa-clipboard-list";
       } else if (form === "visitor_form") {
-        title = item.name || data.name || "Visitor";
+        title = item.name || data.name || data["नाम"] || "Visitor";
         icon = "fa-user-clock";
       } else if (form === "party_attendance") {
-        title = data.program_name || "Party Attendance";
+        title = pName || pType || "Party Attendance";
         icon = "fa-users-line";
       } else if (form === "coordinator_entry" || form === "coordinator_form") {
-        title = data.name || "Coordinator Entry";
+        title = data.name || data["नाम"] || pName || "Coordinator Entry";
         icon = "fa-id-badge";
+      } else if (pName) {
+        title = pName;  // Unknown form type but has program name
       }
 
       // ── 3. Location ──
@@ -1365,95 +1430,157 @@
     return json;
   }
 
-  // --------- Main Events ----------
-  if (el.searchBtn) {
-    el.searchBtn.addEventListener("click", async () => {
-      const file = el.selfieInput && el.selfieInput.files && el.selfieInput.files[0];
-      if (!file) {
-        setStatus("कृपया पहले फोटो चुनें (Please select a photo)", "error");
-        return;
-      }
+  // ── State for 2-step flow ──
+  let pendingSearchRes = null;  // Step 1 result store होता है यहाँ
 
-      el.searchBtn.disabled = true;
-      el.searchBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-      setStatus("Analyzing...", "loading");
-      
-      // Toggle views: Show skeleton, Hide others
-      el.emptyState.classList.add("hidden");
-      el.statsDashboard.classList.add("hidden");
-      el.resultsContainer.classList.add("hidden");
-      el.skeletonLoader.classList.remove("hidden");
-
-      try {
-        // ── Photo SHA256 compute (cache के लिए) ──
-        let photoSha256 = "";
+  // ── uploadInput भी selfieInput की तरह काम करे ──
+  if (el.uploadInput) {
+    el.uploadInput.addEventListener("change", function() {
+      if (this.files && this.files[0] && el.selfieInput) {
+        // DataTransfer trick: uploadInput की file selfieInput में copy करो
         try {
-          const buf = await file.arrayBuffer();
-          const hashBuf = await crypto.subtle.digest("SHA-256", buf);
-          photoSha256 = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,"0")).join("");
-        } catch(e) { photoSha256 = ""; }
-
-        const init = await apiCall("init_search", { mime_type: file.type || "image/jpeg", sha256: photoSha256 }, token);
-        const uploadUrl = init.upload_url || init.url;
-        const searchId  = init.search_id || init.searchId;
-
-        // Cache hit → upload skip, directly search
-        if (init.cache_hit) {
-          setStatus("Cache से मिल रहा है...", "loading");
-        } else {
-          await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
-        }
-
-        setStatus("Searching...", "loading");
-        const res = await apiCall("run_search", { search_id: searchId }, token);
-
-        const sim = isNonEmpty(res.similarity) ? Number(res.similarity).toFixed(0) : "0";
-        const tCount = Array.isArray(res.timeline) ? res.timeline.length : 0;
-        const pCount = Array.isArray(res.photo_urls) ? res.photo_urls.length : 0;
-
-        if (res.message === "NO_MATCH" || tCount === 0) {
-          setStatus("No Match Found", "error");
-          el.skeletonLoader.classList.add("hidden");
-          el.emptyState.classList.remove("hidden");
-          el.emptyState.querySelector("h3").textContent = "No Matches Found";
-          el.emptyState.querySelector("p").textContent = "The uploaded face does not match any records.";
-        } else {
-          setStatus("Success", "success");
-          
-          // Store global data for filters
-          globalTimelineData = (res.events && Array.isArray(res.events) && res.events.length) ? res.events : (res.timeline || []);
-          
-          // Process photos map
-          globalPhotoMap = new Map();
-          (res.photo_urls || []).forEach((u) => {
-            const k = parseS3KeyFromUrl(u);
-            if (isNonEmpty(k)) globalPhotoMap.set(k, u);
-          });
-
-          // Render with default 'All' filter
-          currentFilter = 'all';
-          updateDashboard(sim, tCount, pCount);
-          applyFilter(); 
-          renderPhotos(res.photo_urls || [], res.timeline || []);
-          
-          // Default to Timeline tab
-          switchTab('timeline');
-          
-          if(window.innerWidth < 1024) {
-             el.statsDashboard.scrollIntoView({ behavior: 'smooth' });
-          }
-        }
-
-      } catch (err) {
-        console.error(err);
-        setStatus(err.message || "Connection Error", "error");
-        el.skeletonLoader.classList.add("hidden"); // hide skeleton on error
-      } finally {
-        el.searchBtn.disabled = false;
-        el.searchBtn.innerHTML = '<span class="relative flex items-center justify-center gap-2"><i class="fa-solid fa-magnifying-glass"></i> Search Database</span>';
+          const dt = new DataTransfer();
+          dt.items.add(this.files[0]);
+          el.selfieInput.files = dt.files;
+        } catch(e) {}
+        previewImage(this);
       }
     });
   }
+
+  // ── Step 1: Search (face match only) ──
+  async function doFaceSearch() {
+    const file = (el.selfieInput && el.selfieInput.files && el.selfieInput.files[0])
+               || (el.uploadInput && el.uploadInput.files && el.uploadInput.files[0]);
+    if (!file) {
+      setStatus("कृपया पहले सेल्फी लें", "error");
+      return;
+    }
+
+    el.searchBtn.disabled = true;
+    el.searchBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>खोज रहे हैं...';
+    setStatus("चेहरा पहचान हो रहा है...", "loading");
+    el.emptyState.classList.add("hidden");
+    el.statsDashboard.classList.add("hidden");
+    el.resultsContainer.classList.add("hidden");
+    el.skeletonLoader.classList.remove("hidden");
+
+    try {
+      let photoSha256 = "";
+      try {
+        const buf = await file.arrayBuffer();
+        const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+        photoSha256 = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,"0")).join("");
+      } catch(e) {}
+
+      const init = await apiCall("init_search", { mime_type: file.type || "image/jpeg", sha256: photoSha256 }, token);
+      const uploadUrl = init.upload_url || init.url;
+      const searchId  = init.search_id || init.searchId;
+
+      if (!init.cache_hit) {
+        await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      }
+
+      setStatus("डेटाबेस में खोज हो रही है...", "loading");
+      const res = await apiCall("run_search", { search_id: searchId }, token);
+
+      el.skeletonLoader.classList.add("hidden");
+
+      const tCount = Array.isArray(res.events || res.timeline) ? (res.events || res.timeline).length : 0;
+      const pCount = Array.isArray(res.photo_urls) ? res.photo_urls.length : 0;
+
+      if (res.message === "NO_MATCH" || tCount === 0) {
+        setStatus("कोई मैच नहीं मिला", "error");
+        el.emptyState.classList.remove("hidden");
+        el.emptyState.querySelector("h3").textContent = "कोई मैच नहीं मिला";
+        el.emptyState.querySelector("p").textContent = "इस चेहरे का कोई रिकॉर्ड नहीं है।";
+      } else {
+        // ── Step 2 दिखाओ: match summary + name/mobile form ──
+        pendingSearchRes = res;
+        setStatus("", "info");
+
+        // Match pills
+        const sim = isNonEmpty(res.similarity) ? Number(res.similarity).toFixed(0) : "0";
+        if (el.matchPills) {
+          el.matchPills.innerHTML = `
+            <span class="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-300 text-xs font-bold">
+              <i class="fa-solid fa-images mr-1"></i>${pCount} फोटो
+            </span>
+            <span class="px-3 py-1 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-bold">
+              <i class="fa-solid fa-calendar-check mr-1"></i>${tCount} इवेंट
+            </span>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+              ${sim}% मैच
+            </span>
+          `;
+        }
+        if (el.matchTitle) el.matchTitle.textContent = "✅ मैच मिला!";
+        if (el.matchSubtitle) el.matchSubtitle.textContent = "नाम/मोबाइल डालें या सीधे देखें";
+
+        // Profile से name/mobile pre-fill करो अगर पहले से है
+        const profile = res.profile || {};
+        if (el.nameInput && profile.name) el.nameInput.value = profile.name;
+        if (el.mobileInput && profile.mobile) el.mobileInput.value = profile.mobile;
+
+        // Step 1 hide, Step 2 show
+        if (el.step1Card) el.step1Card.classList.add("hidden");
+        if (el.step2Card) el.step2Card.classList.remove("hidden");
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus(err.message || "Connection Error", "error");
+      el.skeletonLoader.classList.add("hidden");
+    } finally {
+      el.searchBtn.disabled = false;
+      el.searchBtn.innerHTML = '<span class="relative flex items-center justify-center gap-2"><i class="fa-solid fa-magnifying-glass"></i> खोजें</span>';
+    }
+  }
+
+  // ── Step 2: Show Results ──
+  function showResults(name, mobile) {
+    if (!pendingSearchRes) return;
+    const res = pendingSearchRes;
+    const sim = isNonEmpty(res.similarity) ? Number(res.similarity).toFixed(0) : "0";
+    const timeline = (res.events && Array.isArray(res.events) && res.events.length) ? res.events : (res.timeline || []);
+    const tCount = timeline.length;
+    const pCount = Array.isArray(res.photo_urls) ? res.photo_urls.length : 0;
+
+    globalTimelineData = timeline;
+    globalPhotoMap = new Map();
+    (res.photo_urls || []).forEach((u) => {
+      const k = parseS3KeyFromUrl(u);
+      if (isNonEmpty(k)) globalPhotoMap.set(k, u);
+    });
+
+    if (el.step2Card) el.step2Card.classList.add("hidden");
+    currentFilter = "all";
+    updateDashboard(sim, tCount, pCount);
+    applyFilter();
+    renderPhotos(res.photo_urls || [], timeline);
+    switchTab("photos"); // Gallery पहले दिखाओ
+    if(window.innerWidth < 1024) el.statsDashboard.scrollIntoView({ behavior: "smooth" });
+  }
+
+  // ── "सभी Slideshow" button ──
+  function openAllSlideshow() {
+    const allPhotos = [];
+    const seen = new Set();
+    (globalTimelineData || []).forEach(item => {
+      const photos = getEventPhotos(item, globalPhotoMap);
+      photos.forEach(u => { if (!seen.has(u)) { seen.add(u); allPhotos.push({ url: u }); } });
+    });
+    // photo_urls से भी
+    globalPhotoMap.forEach((u) => { if (!seen.has(u)) { seen.add(u); allPhotos.push({ url: u }); } });
+    if (allPhotos.length) SS.open("सभी फोटो", allPhotos, [["कुल फोटो", allPhotos.length]]);
+  }
+
+  // ── Event listeners ──
+  if (el.searchBtn) el.searchBtn.addEventListener("click", doFaceSearch);
+  if (el.confirmBtn) el.confirmBtn.addEventListener("click", () => {
+    showResults(el.nameInput ? el.nameInput.value.trim() : "", el.mobileInput ? el.mobileInput.value.trim() : "");
+  });
+  if (el.skipBtn) el.skipBtn.addEventListener("click", () => showResults("", ""));
+  if (el.btnAllSlideshow) el.btnAllSlideshow.addEventListener("click", openAllSlideshow);
 })();
 </script>
 
