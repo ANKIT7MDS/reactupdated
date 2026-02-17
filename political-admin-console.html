@@ -426,6 +426,7 @@
                             
                             <h2 id="previewTitle" class="text-2xl font-bold text-white mb-1">Title</h2>
                             <p id="previewSubtitle" class="text-sm text-slate-300">Subtitle</p>
+                            <p id="previewTagline" class="text-xs text-slate-400 mt-1">Tagline</p>
                             <div class="mt-6 flex gap-2 justify-center">
                                <div id="sw1" class="w-4 h-4 rounded-full bg-orange-500"></div>
                                <div id="sw2" class="w-4 h-4 rounded-full bg-red-500"></div>
@@ -962,9 +963,9 @@ function collectBrandFromUI() {
   if (!state.config) return;
   const target = state.target || "__defaults__";
 
-  const title = ($("b_title") && $("b_title").value) ? $("b_title").value.trim() : "";
-  const subtitle = ($("b_subtitle") && $("b_subtitle").value) ? $("b_subtitle").value.trim() : "";
-  const tagline = ($("b_tagline") && $("b_tagline").value) ? $("b_tagline").value.trim() : "";
+  const title = ($("b_title") && $("b_title").value !== undefined) ? $("b_title").value.trim() : "";
+  const subtitle = ($("b_subtitle") && $("b_subtitle").value !== undefined) ? $("b_subtitle").value.trim() : "";
+  const tagline = ($("b_tagline") && $("b_tagline").value !== undefined) ? $("b_tagline").value.trim() : "";
   const color1 = ($("b_c1") && $("b_c1").value) ? $("b_c1").value.trim() : "#f97316";
   const color2 = ($("b_c2") && $("b_c2").value) ? $("b_c2").value.trim() : "#ef4444";
 
@@ -973,27 +974,26 @@ function collectBrandFromUI() {
   if (!state.config.forms) state.config.forms = {};
   if (!state.config.global) state.config.global = { tagline: "Powered by EventLens" };
 
-  const applyTo = (obj) => {
-    if (!obj) return;
-    obj.title = title || obj.title || "";
-    obj.subtitle = subtitle || obj.subtitle || "";
-    obj.tagline = tagline || obj.tagline || "";
-    if (!obj.theme) obj.theme = {};
-    if (!obj.theme.gradient) obj.theme.gradient = "from-orange-500 to-red-500";
-    // keep gradient but set colors for preview + defaults
-    state.config.defaults.branding.color1 = color1 || state.config.defaults.branding.color1 || "#f97316";
-    state.config.defaults.branding.color2 = color2 || state.config.defaults.branding.color2 || "#ef4444";
-  };
-
   if (target === "__defaults__") {
-    // Update defaults + global fallback
-    applyTo(state.config.defaults);
-    state.config.defaults.branding.color1 = color1;
-    state.config.defaults.branding.color2 = color2;
+    // Defaults live in defaults.branding (getEffectiveForm reads from branding.*)
+    const b = state.config.defaults.branding;
+    b.title = title;
+    b.subtitle = subtitle;
+    b.tagline = tagline;
+    b.color1 = color1;
+    b.color2 = color2;
   } else {
+    // Per-form text is stored at the form root, but colors live in form.branding
     if (!state.config.forms[target]) state.config.forms[target] = {};
-    applyTo(state.config.forms[target]);
+    const f = state.config.forms[target];
+    f.title = title;
+    f.subtitle = subtitle;
+    f.tagline = tagline;
+    if (!f.branding) f.branding = {};
+    f.branding.color1 = color1;
+    f.branding.color2 = color2;
   }
+
   return { color1, color2 };
 }
 
@@ -1046,39 +1046,63 @@ function renderBrandInputsFromConfig() {
 
 function renderBrandPreview() {
   if(!state.config) return;
+
+  const liveOn = $("livePreviewToggle") ? $("livePreviewToggle").checked : true;
+  const overlay = $("customPreviewOverlay");
+  if (overlay) overlay.style.opacity = liveOn ? "1" : "0";
+
   const eff = getEffectiveForm(state.target || "visitor_form");
 
-  const headerImg = $("previewHeaderImg");
-  const logoImg = $("previewLogoImg");
-  const bgImg = $("previewBgImg");
+  // Text
   const titleEl = $("previewTitle");
   const subtitleEl = $("previewSubtitle");
   const taglineEl = $("previewTagline");
-  const btn = $("previewBtn");
+  if(titleEl) titleEl.textContent = eff.title || "";
+  if(subtitleEl) subtitleEl.textContent = eff.subtitle || "";
+  if(taglineEl) taglineEl.textContent = eff.tagline || "";
 
+  // Gradient + swatches
+  const headerBar = $("previewHeaderBar");
+  if(headerBar) headerBar.style.backgroundImage = `linear-gradient(90deg, ${eff.color1}, ${eff.color2})`;
+  const sw1 = $("sw1"); const sw2 = $("sw2");
+  if(sw1) sw1.style.backgroundColor = eff.color1;
+  if(sw2) sw2.style.backgroundColor = eff.color2;
+
+  // Background image (previewBg is a DIV, not an IMG)
+  const bgEl = $("previewBg");
   const bg = eff.bgUrl ? withCacheBust(eff.bgUrl) : "";
-  if(bgImg) bgImg.src = bg || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230f172a'/%3E%3Cstop offset='1' stop-color='%23111827'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E";
+  if(bgEl) bgEl.style.backgroundImage = bg ? `url("${bg}")` : "";
 
+  // Header image
+  const headerWrap = $("previewHeaderImgWrap");
+  const headerImg = $("previewHeaderImg");
   const header = eff.headerUrl ? withCacheBust(eff.headerUrl) : "";
+  if(headerWrap) headerWrap.classList.remove("hidden");
   if(headerImg) {
     if(header) headerImg.src = header;
     else {
-      const c1 = eff.color1.replace("#","%23");
-      const c2 = eff.color2.replace("#","%23");
+      const c1 = (eff.color1 || "#0f172a").replace("#","%23");
+      const c2 = (eff.color2 || "#111827").replace("#","%23");
       headerImg.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='240'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='${c1}'/%3E%3Cstop offset='1' stop-color='${c2}'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E`;
     }
   }
 
+  // Logo
+  const logoImg = $("previewLogo");
+  const logoIcon = $("previewLogoIcon");
   const logo = eff.logoUrl ? withCacheBust(eff.logoUrl) : "";
-  if(logoImg) logoImg.src = logo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='100%25' height='100%25' rx='16' fill='%23111827'/%3E%3Ctext x='50%25' y='54%25' font-size='22' text-anchor='middle' fill='%2394a3b8' font-family='Arial'%3ELOGO%3C/text%3E%3C/svg%3E";
-
-  if(titleEl) titleEl.textContent = eff.title || "";
-  if(subtitleEl) subtitleEl.textContent = eff.subtitle || "";
-  if(taglineEl) taglineEl.textContent = eff.tagline || "";
-  if(btn) btn.style.backgroundImage = `linear-gradient(90deg, ${eff.color1}, ${eff.color2})`;
+  if(logoImg) {
+    if(logo) {
+      logoImg.src = logo;
+      logoImg.classList.remove("hidden");
+      if(logoIcon) logoIcon.classList.add("hidden");
+    } else {
+      logoImg.classList.add("hidden");
+      if(logoIcon) logoIcon.classList.remove("hidden");
+    }
+  }
 
   renderPreviewTabs();
-  // // // renderAllFormsGrid(); // disabled // disabled // disabled (use dropdown preview)
 }
 
 
