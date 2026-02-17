@@ -1434,6 +1434,10 @@ function setPending(kind, file, uiKey) {
     if (!resp.ok) throw new Error(json.message || json.error || `HTTP ${resp.status}`);
     return json;
   }
+  
+  // Gallery module के लिए expose करो
+  window._adminApiCall = apiCall;
+  window._adminState = state;
 
   
   async function apiCallCandidates(actions, payload){
@@ -2189,20 +2193,28 @@ function renderTable() {
 
   // ── helpers ──
   function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-  function getCid() { return (new URLSearchParams(window.location.search)).get("cid") || (new URLSearchParams(window.location.search)).get("collection_id") || ""; }
-  function getIdToken() { return localStorage.getItem("id_token") || localStorage.getItem("idToken") || ""; }
 
   async function adminApi(action, payload) {
+    // Main console का apiCall use करो (window पर exposed है)
+    const cid = (window._adminState && window._adminState.cid)
+      ? window._adminState.cid
+      : (new URLSearchParams(window.location.search)).get("cid") || "";
+
+    const fullPayload = { collection_id: cid, ...payload };
+
+    if (window._adminApiCall) {
+      return window._adminApiCall(action, fullPayload);
+    }
+    // Fallback: direct fetch
     const API_ID = "vxid0yoovj";
     const REGION = "ap-south-1";
     const url = `https://${API_ID}.execute-api.${REGION}.amazonaws.com/prod/political/forms`;
     const headers = { "Content-Type": "application/json" };
-    const tok = getIdToken();
+    const tok = localStorage.getItem("id_token") || localStorage.getItem("idToken") || "";
     if (tok) headers["Authorization"] = `Bearer ${tok}`;
     const resp = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ action, payload: { collection_id: getCid(), ...payload } })
+      method: "POST", headers,
+      body: JSON.stringify({ action, payload: fullPayload })
     });
     return resp.json();
   }
@@ -2212,6 +2224,13 @@ function renderTable() {
     if (reset) { facesData = []; facesLastKey = null; }
     const showUnnamed = document.getElementById("showUnnamed")?.checked !== false;
     document.getElementById("facesGrid").innerHTML = '<div class="text-slate-500 text-sm py-4"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Loading...</div>';
+
+    // CID check
+    const cid = (typeof state !== "undefined" && state.cid) ? state.cid : (new URLSearchParams(window.location.search)).get("cid") || "";
+    if (!cid) {
+      document.getElementById("facesGrid").innerHTML = '<div class="text-amber-400 text-sm py-4">⚠️ CID missing — URL में ?cid=... add करें</div>';
+      return;
+    }
 
     try {
       const res = await adminApi("admin_list_faces", {
