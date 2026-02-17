@@ -94,6 +94,80 @@
         border-bottom-color: #334155;
     }
 
+    /* ── PPT Slideshow Modal ── */
+    #slideshowOverlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #000;
+      display: none;
+      flex-direction: column;
+    }
+    #slideshowOverlay.active { display: flex; }
+    #slideshowTopBar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(15,23,42,0.95);
+      border-bottom: 1px solid rgba(249,115,22,0.3);
+      flex-shrink: 0;
+    }
+    #slideshowTitle {
+      font-size: 14px; font-weight: 700; color: #f97316;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60vw;
+    }
+    #slideshowCounter { font-size: 12px; color: #94a3b8; flex-shrink: 0; }
+    #slideshowMain {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; background: #000;
+    }
+    #slideshowImg {
+      max-width: 100%; max-height: 100%;
+      object-fit: contain;
+      transition: opacity 0.25s ease;
+    }
+    #slideshowImg.fading { opacity: 0; }
+    .ss-nav-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(15,23,42,0.8); border: 1px solid rgba(249,115,22,0.4);
+      color: #f97316; font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 10; transition: background 0.2s;
+    }
+    .ss-nav-btn:hover { background: rgba(249,115,22,0.2); }
+    #ssPrev { left: 12px; } #ssNext { right: 12px; }
+    #slideshowBottom {
+      background: rgba(15,23,42,0.97);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    #slideshowDetails {
+      padding: 10px 16px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+      max-height: 140px; overflow-y: auto;
+      font-size: 12px;
+    }
+    .ss-detail-row { display: flex; flex-direction: column; }
+    .ss-detail-key { color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .ss-detail-val { color: #e2e8f0; font-weight: 500; }
+    #slideshowThumbBar {
+      display: flex; gap: 6px; padding: 8px 12px;
+      overflow-x: auto; background: rgba(2,6,23,0.8);
+      scrollbar-width: thin;
+    }
+    .ss-thumb {
+      width: 48px; height: 48px; border-radius: 6px; object-fit: cover;
+      border: 2px solid transparent; cursor: pointer; flex-shrink: 0;
+      transition: border-color 0.2s;
+    }
+    .ss-thumb.active { border-color: #f97316; }
+    #slideshowProgress {
+      height: 3px; background: rgba(249,115,22,0.2);
+    }
+    #slideshowProgressBar {
+      height: 100%; background: #f97316;
+      transition: width 0.25s ease;
+    }
+
     /* Skeleton Shimmer */
     .skeleton {
       background: #1e293b;
@@ -381,6 +455,38 @@
   </div>
 
   <!-- Detail Modal -->
+  <!-- ── PPT Slideshow Overlay ── -->
+  <div id="slideshowOverlay">
+    <!-- Top Bar -->
+    <div id="slideshowTopBar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <button id="ssClose" style="width:32px;height:32px;border-radius:50%;background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.4);color:#f97316;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div id="slideshowTitle">Event</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+        <div id="slideshowCounter" style="font-size:12px;color:#94a3b8;"></div>
+        <button id="ssAutoplay" title="Auto Play" style="width:32px;height:32px;border-radius:50%;background:rgba(15,23,42,0.8);border:1px solid rgba(249,115,22,0.3);color:#f97316;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <i class="fa-solid fa-play"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Progress Bar -->
+    <div id="slideshowProgress"><div id="slideshowProgressBar" style="width:0%"></div></div>
+    <!-- Main Image -->
+    <div id="slideshowMain">
+      <button class="ss-nav-btn" id="ssPrev"><i class="fa-solid fa-chevron-left"></i></button>
+      <img id="slideshowImg" src="" alt="Event Photo" />
+      <button class="ss-nav-btn" id="ssNext"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <!-- Bottom: Details + Thumbs -->
+    <div id="slideshowBottom">
+      <div id="slideshowDetails"></div>
+      <div id="slideshowThumbBar"></div>
+    </div>
+  </div>
+
   <div id="detailModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-slate-950/90 backdrop-blur-md transition-opacity opacity-0" id="modalBackdrop"></div>
     
@@ -961,40 +1067,161 @@
       card.appendChild(footerRow);
 
       card.addEventListener("click", () => {
-        const body = document.createElement("div");
-        const eventPhotoUrls = Array.isArray(item.photo_urls) ? item.photo_urls : (isNonEmpty(photoUrl) ? [photoUrl] : []);
-        if (eventPhotoUrls.length > 0) {
-          const imgCont = document.createElement("div");
-          imgCont.className = "w-full bg-black aspect-video flex items-center justify-center relative";
-          const img = document.createElement("img");
-          const firstUrl = eventPhotoUrls[0];
-          setImgSrcWithRetry(img, firstUrl);
-          img.src = firstUrl;
-          img.className = "max-w-full max-h-full object-contain";
-          imgCont.appendChild(img);
-          body.appendChild(imgCont);
-
-          // thumbnails inside modal
-          if (eventPhotoUrls.length > 1) {
-            const grid = document.createElement("div");
-            grid.className = "grid grid-cols-4 gap-2 p-3 bg-slate-950/20";
-            eventPhotoUrls.slice(0, 24).forEach((u) => {
-              const t = document.createElement("img");
-              setImgSrcWithRetry(t, u);
-              t.className = "w-full aspect-square rounded object-cover border border-slate-800 cursor-pointer";
-              t.addEventListener("click", () => { img.src = u; setImgSrcWithRetry(img, u); });
-              grid.appendChild(t);
-            });
-            body.appendChild(grid);
-          }
-        }
-        body.appendChild(makeKVTable(sum.details));
-        modal.open(sum.title, body, false);
+        openEventSlideshow(item, sum);
       });
 
       wrapper.appendChild(card);
       el.viewTimeline.appendChild(wrapper);
     });
+  }
+
+  // ─────────────── PPT Slideshow ───────────────
+  const SS = (() => {
+    let photos = [], idx = 0, autoTimer = null, isPlaying = false;
+    const overlay  = document.getElementById("slideshowOverlay");
+    const img      = document.getElementById("slideshowImg");
+    const counter  = document.getElementById("slideshowCounter");
+    const titleEl  = document.getElementById("slideshowTitle");
+    const detailEl = document.getElementById("slideshowDetails");
+    const thumbBar = document.getElementById("slideshowThumbBar");
+    const progBar  = document.getElementById("slideshowProgressBar");
+    const autoBtn  = document.getElementById("ssAutoplay");
+
+    function goTo(i, animate = true) {
+      if (!photos.length) return;
+      idx = ((i % photos.length) + photos.length) % photos.length;
+      // progress
+      progBar.style.width = `${((idx + 1) / photos.length) * 100}%`;
+      counter.textContent = `${idx + 1} / ${photos.length}`;
+      // fade
+      if (animate) {
+        img.classList.add("fading");
+        setTimeout(() => {
+          img.src = photos[idx].url;
+          img.onload = () => img.classList.remove("fading");
+          img.onerror = () => img.classList.remove("fading");
+        }, 200);
+      } else {
+        img.src = photos[idx].url;
+      }
+      // thumbs
+      thumbBar.querySelectorAll(".ss-thumb").forEach((t, ti) => {
+        t.classList.toggle("active", ti === idx);
+      });
+      if (thumbBar.children[idx]) {
+        thumbBar.children[idx].scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }
+    }
+
+    function stopAuto() {
+      clearInterval(autoTimer); autoTimer = null; isPlaying = false;
+      autoBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+    }
+
+    function startAuto() {
+      isPlaying = true;
+      autoBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+      autoTimer = setInterval(() => goTo(idx + 1), 3000);
+    }
+
+    document.getElementById("ssPrev").addEventListener("click", () => { stopAuto(); goTo(idx - 1); });
+    document.getElementById("ssNext").addEventListener("click", () => { stopAuto(); goTo(idx + 1); });
+    document.getElementById("ssClose").addEventListener("click", close);
+    autoBtn.addEventListener("click", () => { isPlaying ? stopAuto() : startAuto(); });
+
+    // Keyboard nav
+    document.addEventListener("keydown", e => {
+      if (!overlay.classList.contains("active")) return;
+      if (e.key === "ArrowLeft")  { stopAuto(); goTo(idx - 1); }
+      if (e.key === "ArrowRight") { stopAuto(); goTo(idx + 1); }
+      if (e.key === "Escape")     { close(); }
+      if (e.key === " ")          { isPlaying ? stopAuto() : startAuto(); e.preventDefault(); }
+    });
+
+    function open(title, photoList, details) {
+      photos = photoList || [];
+      if (!photos.length) return;
+      titleEl.textContent = title || "Event";
+      // build thumbs
+      thumbBar.innerHTML = "";
+      photos.forEach((p, i) => {
+        const t = document.createElement("img");
+        t.src = p.url; t.className = "ss-thumb"; t.alt = "";
+        t.addEventListener("click", () => { stopAuto(); goTo(i); });
+        thumbBar.appendChild(t);
+      });
+      // build details
+      detailEl.innerHTML = "";
+      (details || []).forEach(([k, v]) => {
+        detailEl.innerHTML += `<div class="ss-detail-row"><span class="ss-detail-key">${k}</span><span class="ss-detail-val">${v}</span></div>`;
+      });
+      overlay.classList.add("active");
+      goTo(0, false);
+    }
+
+    function close() {
+      stopAuto();
+      overlay.classList.remove("active");
+      img.src = "";
+    }
+
+    return { open, close };
+  })();
+
+  // ─── Form date helper (form में जो date डाली वो दिखाओ) ───
+  function getFormDate(formType, data) {
+    if (!data) return "";
+    if (formType === "president_tour_form") return data.tour_date || "";
+    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return data.report_date || data.event_date || "";
+    if (formType === "party_attendance") return data.attendance_date || "";
+    return "";
+  }
+
+  // ─── Open event in PPT slideshow ───
+  function openEventSlideshow(item, sum) {
+    const photoUrl = (() => {
+      const s3Key = get(item, "s3_key", "");
+      return isNonEmpty(s3Key) ? (globalPhotoMap ? globalPhotoMap.get(s3Key) || "" : "") : "";
+    })();
+    const eventPhotoUrls = Array.isArray(item.photo_urls) ? item.photo_urls : (isNonEmpty(photoUrl) ? [photoUrl] : []);
+
+    if (eventPhotoUrls.length === 0) {
+      // फोटो नहीं है — सिर्फ details modal में खोलो
+      const body = document.createElement("div");
+      body.appendChild(makeKVTable(sum.details));
+      modal.open(sum.title, body, false);
+      return;
+    }
+
+    const data = item.data || {};
+    const formType = item.form_type || item.ft || "";
+
+    // Form date (जो date form में डाली)
+    const formDt = getFormDate(formType, data);
+    const displayDate = formDt || prettyIso(item.created_at_iso || "");
+
+    // Details rows (important fields पहले)
+    const details = [];
+    if (displayDate) details.push(["दिनांक", displayDate]);
+    if (data.district || item.district) details.push(["जिला", data.district || item.district || ""]);
+    if (data.vidhansabha || item.vidhansabha) details.push(["विधानसभा", data.vidhansabha || item.vidhansabha || ""]);
+    if (data.mandal || item.mandal) details.push(["मंडल", data.mandal || item.mandal || ""]);
+    if (data.program_name) details.push(["कार्यक्रम", data.program_name]);
+    if (data.program_type) details.push(["प्रकार", data.program_type]);
+    if (data.tour_location || data.venue || data.tour_venue) details.push(["स्थान", data.tour_location || data.venue || data.tour_venue || ""]);
+    if (data.total_attendance) details.push(["उपस्थिति", data.total_attendance]);
+    if (data.other_speakers) details.push(["वक्ता", data.other_speakers]);
+    if (data.program_details || data.report_summary) details.push(["विवरण", data.program_details || data.report_summary || ""]);
+    // बाकी fields
+    Object.keys(data).forEach(k => {
+      const skip = ["district","vidhansabha","mandal","program_name","program_type","tour_location","venue","tour_venue","total_attendance","other_speakers","program_details","report_summary","tour_date","report_date","attendance_date","event_date","name","mobile","level","program_level"];
+      if (!skip.includes(k) && typeof data[k] !== "object" && isNonEmpty(data[k])) {
+        details.push([k, String(data[k])]);
+      }
+    });
+
+    const photoList = eventPhotoUrls.map(u => ({ url: u }));
+    SS.open(sum.title, photoList, details);
   }
 
   // --------- Render Photos (Gallery Grid) ----------
