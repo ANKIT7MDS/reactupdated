@@ -2251,6 +2251,7 @@ function renderTable() {
     }
   }
 
+  // ── Face Grid Render — simple circular, full photo with object-fit cover ──
   function renderFacesGrid() {
     const grid = document.getElementById("facesGrid");
     if (!grid) return;
@@ -2260,65 +2261,56 @@ function renderTable() {
     }
     grid.innerHTML = "";
     facesData.forEach(face => {
+      const named = !!face.name;
+      const borderCls = named ? "border-orange-500" : "border-slate-600";
+
       const div = document.createElement("div");
-      div.className = "flex flex-col items-center gap-1.5 cursor-pointer group w-20";
+      div.className = "flex flex-col items-center gap-1 cursor-pointer group w-[72px]";
 
-      // BoundingBox से CSS crop style बनाओ
-      const bbStyle = buildFaceCropStyle(face.bounding_box, face.thumb_url);
+      // Circular photo — simple object-cover, no canvas, no CSS tricks
+      const circle = document.createElement("div");
+      circle.className = `relative w-14 h-14 rounded-full overflow-hidden border-2 ${borderCls} bg-slate-800 group-hover:border-orange-400 transition shrink-0`;
 
-      div.innerHTML = `
-        <div class="relative w-16 h-16">
-          <div class="w-16 h-16 rounded-full overflow-hidden border-2 ${face.name ? 'border-orange-500/60' : 'border-slate-700'} group-hover:border-orange-400 transition bg-slate-800">
-            <img src="${esc(face.thumb_url)}" onerror="this.src=''"
-                 style="${esc(bbStyle)}"
-                 class="absolute max-w-none" />
-          </div>
-          ${!face.name ? '<div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center"><i class="fa-solid fa-question text-[8px] text-slate-400"></i></div>' : ''}
-          <div class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <i class="fa-solid fa-pen text-white text-xs"></i>
-          </div>
-        </div>
-        <div class="text-center w-full">
-          <div class="text-[11px] font-medium truncate w-full text-center ${face.name ? 'text-slate-200' : 'text-slate-500'}">${esc(face.name || 'अज्ञात')}</div>
-          <div class="text-[10px] text-slate-600">${face.entry_count || 0} photos</div>
-        </div>
+      if (face.thumb_url) {
+        const img = document.createElement("img");
+        img.src = face.thumb_url;
+        img.className = "w-full h-full object-cover object-top";
+        img.alt = face.name || "";
+        circle.appendChild(img);
+      } else {
+        // No photo — show initials
+        circle.innerHTML = `<div class="w-full h-full flex items-center justify-center text-slate-400 text-lg font-bold">${esc((face.name || "?")[0].toUpperCase())}</div>`;
+      }
+
+      // Hover overlay
+      const overlay = document.createElement("div");
+      overlay.className = "absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center opacity-0 group-hover:opacity-100";
+      overlay.innerHTML = '<i class="fa-solid fa-pen text-white text-xs"></i>';
+      circle.appendChild(overlay);
+
+      // Unknown badge
+      if (!named) {
+        const badge = document.createElement("div");
+        badge.className = "absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center";
+        badge.innerHTML = '<i class="fa-solid fa-question text-[7px] text-slate-400"></i>';
+        circle.appendChild(badge);
+      }
+
+      const label = document.createElement("div");
+      label.className = "text-center w-full";
+      label.innerHTML = `
+        <div class="text-[11px] font-medium truncate ${named ? "text-slate-200" : "text-slate-500"}">${esc(face.name || "अज्ञात")}</div>
+        <div class="text-[10px] text-slate-600">${face.entry_count || 0} 📸</div>
       `;
+
+      div.appendChild(circle);
+      div.appendChild(label);
       div.addEventListener("click", () => openFacePanel(face));
       grid.appendChild(div);
     });
   }
 
-  // BoundingBox से CSS position/size calculate करो
-  // Container = 64x64px (w-16 h-16), face को center में zoom करके दिखाओ
-  function buildFaceCropStyle(bb, imgUrl) {
-    if (!bb || !bb.L) {
-      // No BoundingBox — simple cover
-      return "width:100%;height:100%;object-fit:cover;object-position:center;top:0;left:0;";
-    }
-    const L = parseFloat(bb.L) || 0;
-    const T = parseFloat(bb.T) || 0;
-    const W = parseFloat(bb.W) || 0.3;
-    const H = parseFloat(bb.H) || 0.3;
-
-    // Face center
-    const cx = L + W / 2;
-    const cy = T + H / 2;
-
-    // Zoom: container = 64px, face should fill ~70% of container
-    const containerPx = 64;
-    const faceSizeFrac = Math.max(W, H) * 1.5; // 1.5x padding around face
-    const scale = Math.min(1 / faceSizeFrac, 8); // max 8x zoom
-    const imgSizePx = containerPx * scale;
-
-    // Offset: move image so face center aligns with container center
-    const offsetX = containerPx / 2 - cx * imgSizePx;
-    const offsetY = containerPx / 2 - cy * imgSizePx;
-
-    return `width:${imgSizePx.toFixed(1)}px;height:${imgSizePx.toFixed(1)}px;` +
-           `left:${offsetX.toFixed(1)}px;top:${offsetY.toFixed(1)}px;position:absolute;`;
-  }
-
-  // ── Load Photos ──
+    // ── Load Photos ──
   async function loadPhotos(reset = true) {
     if (reset) { photosData = []; photosLastKey = null; }
     const grid = document.getElementById("galleryGrid");
@@ -2405,33 +2397,16 @@ function renderTable() {
   function openFacePanel(face) {
     currentFaceId = face.face_id;
     document.getElementById("facePanelTitle").textContent = face.name || "अज्ञात व्यक्ति";
-
-    // Panel thumb — BoundingBox crop
-    const thumbEl = document.getElementById("facePanelThumb");
-    const bbStyle = buildFaceCropStyle(face.bounding_box, face.thumb_url);
-    if (face.bounding_box && face.bounding_box.L) {
-      // Use a div container with overflow hidden for cropped view
-      thumbEl.style.display = "none";
-      let cropDiv = document.getElementById("facePanelThumbCrop");
-      if (!cropDiv) {
-        cropDiv = document.createElement("div");
-        cropDiv.id = "facePanelThumbCrop";
-        cropDiv.className = "w-20 h-20 rounded-full overflow-hidden border-2 border-orange-500/50 bg-slate-800 relative shrink-0";
-        thumbEl.parentNode.insertBefore(cropDiv, thumbEl);
-      }
-      cropDiv.innerHTML = `<img src="${face.thumb_url}" style="${bbStyle.replace('64px', '80px').replace('64px', '80px')}" />`;
-      cropDiv.style.display = "block";
-    } else {
-      document.getElementById("facePanelThumbCrop") && (document.getElementById("facePanelThumbCrop").style.display = "none");
-      thumbEl.style.display = "block";
-      thumbEl.src = face.thumb_url || "";
-    }
-
     document.getElementById("facePanelName").value = face.name || "";
     document.getElementById("facePanelMobile").value = face.mobile || "";
     document.getElementById("facePanelSaveStatus").textContent = "";
 
-    // Face की photos दिखाओ
+    // Simple photo — no canvas tricks
+    const thumbEl = document.getElementById("facePanelThumb");
+    thumbEl.src = face.thumb_url || "";
+    thumbEl.className = "w-20 h-20 rounded-full object-cover object-top border-2 border-slate-600 bg-slate-800 shrink-0";
+
+    // इस face की photos
     const photosForFace = photosData.filter(p =>
       p.face_id === face.face_id ||
       (Array.isArray(p.face_ids) && p.face_ids.includes(face.face_id))
@@ -2446,7 +2421,7 @@ function renderTable() {
         pGrid.appendChild(img);
       });
     } else {
-      pGrid.innerHTML = '<div class="col-span-3 text-slate-500 text-xs text-center py-4">Photos gallery से load करें</div>';
+      pGrid.innerHTML = '<div class="col-span-3 text-slate-500 text-xs text-center py-4">Gallery से photos पहले load करें</div>';
     }
 
     document.getElementById("facePanelOverlay").classList.remove("hidden");
