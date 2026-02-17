@@ -977,6 +977,29 @@
   }
 
   // --------- Render Timeline ----------
+  // ── Form date helper (global, used everywhere) ──
+  function getEventFormDate(formType, data) {
+    if (!data) return "";
+    if (formType === "president_tour_form") return data.tour_date || "";
+    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return data.report_date || data.event_date || "";
+    if (formType === "party_attendance") return data.attendance_date || "";
+    return "";
+  }
+
+  // ── Event photos: server 'photos' या 'photo_urls' दोनों check करो ──
+  function getEventPhotos(item, photoUrlByKey) {
+    // grouped events में 'photos' field होता है (presigned URLs array)
+    if (Array.isArray(item.photos) && item.photos.length) return item.photos;
+    if (Array.isArray(item.photo_urls) && item.photo_urls.length) return item.photo_urls;
+    // single entry → s3_key से URL निकालो
+    const s3Key = item.s3_key || "";
+    if (isNonEmpty(s3Key) && photoUrlByKey) {
+      const u = photoUrlByKey.get(s3Key);
+      if (u) return [u];
+    }
+    return [];
+  }
+
   function renderTimeline(timeline, photoUrlByKey) {
     el.viewTimeline.innerHTML = "";
     if (!Array.isArray(timeline) || timeline.length === 0) {
@@ -984,95 +1007,171 @@
       return;
     }
 
-    const sorted = [...timeline].sort((a, b) => (parseInt(b.created_at || "0", 10) - parseInt(a.created_at || "0", 10)));
+    // Sort by form date first, fallback created_at
+    const sorted = [...timeline].sort((a, b) => {
+      const da = getEventFormDate(a.form_type || a.ft || "", a.data || {}) || (a.created_at_iso || "");
+      const db = getEventFormDate(b.form_type || b.ft || "", b.data || {}) || (b.created_at_iso || "");
+      return db.localeCompare(da);
+    });
 
     sorted.forEach((item, index) => {
-      const sum = buildEventSummary(item);
-      const s3Key = get(item, "s3_key", "");
-      const photoUrl = isNonEmpty(s3Key) ? (photoUrlByKey.get(s3Key) || "") : "";
+      const form = item.form_type || item.ft || "";
+      const data = item.data || {};
 
+      // ── 1. Date: form में जो डाली वो ──
+      const formDate = getEventFormDate(form, data);
+      const displayDate = formDate || prettyIso(item.created_at_iso || "");
+
+      // ── 2. Title ──
+      let title = form || "Event";
+      let icon = "fa-calendar-check";
+      if (form === "president_tour_form") {
+        title = data.program_name || data.program_type || "President Tour";
+        icon = "fa-plane-departure";
+      } else if (form === "mandal_reporting" || form === "mandal_reporting_form") {
+        title = data.program_name || data.venue || "Mandal Report";
+        icon = "fa-clipboard-list";
+      } else if (form === "visitor_form") {
+        title = item.name || data.name || "Visitor";
+        icon = "fa-user-clock";
+      } else if (form === "party_attendance") {
+        title = data.program_name || "Party Attendance";
+        icon = "fa-users-line";
+      } else if (form === "coordinator_entry" || form === "coordinator_form") {
+        title = data.name || "Coordinator Entry";
+        icon = "fa-id-badge";
+      }
+
+      // ── 3. Location ──
+      const district = item.district || data.district || "";
+      const vidhansabha = item.vidhansabha || data.vidhansabha || "";
+      const venue = data.tour_location || data.venue || data.tour_venue || "";
+      const locStr = [district, vidhansabha].filter(Boolean).join(", ");
+
+      // ── 4. Photos ──
+      const eventPhotos = getEventPhotos(item, photoUrlByKey);
+
+      // ── 5. with_label (साथ में कौन थे) ──
+      const withLabel = item.with_label || "";
+      const faceCount = Number(item.face_count || 0);
+
+      // ── Card build ──
       const wrapper = document.createElement("div");
-      wrapper.className = "relative pl-8 group animate-[pulse-slow_0.5s_ease-out]";
-      wrapper.style.animationDelay = `${index * 50}ms`; // faster stagger
+      wrapper.className = "relative pl-8 group";
+      wrapper.style.animationDelay = `${index * 40}ms`;
 
       const dot = document.createElement("div");
       dot.className = "absolute left-[13px] top-6 w-4 h-4 rounded-full bg-slate-900 border-2 border-slate-600 group-hover:border-orange-500 group-hover:bg-orange-900 transition-colors z-10";
       wrapper.appendChild(dot);
 
       const card = document.createElement("div");
-      card.className = "glass-card rounded-xl p-4 lg:p-5 hover:bg-slate-800/80 transition-all cursor-pointer group-hover:translate-x-1 duration-300 active:scale-[0.98]";
+      card.className = "glass-card rounded-xl p-4 hover:bg-slate-800/80 transition-all cursor-pointer group-hover:translate-x-1 duration-300 active:scale-[0.98]";
 
-      // Title Section
-      const titleBlock = document.createElement("div");
-      titleBlock.className = "mb-3";
-      titleBlock.innerHTML = `
-        <div class="flex items-start justify-between gap-2">
-           <div class="flex items-center gap-2">
-             <span class="text-orange-500 bg-orange-500/10 p-1.5 rounded-md text-xs shrink-0"><i class="fa-solid ${sum.icon}"></i></span>
-             <h3 class="font-bold text-white text-base lg:text-lg leading-tight line-clamp-2">${sum.title}</h3>
-           </div>
-           ${sum.subtitle ? `<span class="text-slate-400 text-xs shrink-0 bg-slate-800/50 px-2 py-1 rounded">${sum.subtitle.split('•')[0]}</span>` : ''}
+      // ── Row 1: Icon + Title + Date badge ──
+      card.innerHTML += `
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-orange-500 bg-orange-500/10 p-1.5 rounded-md text-xs shrink-0"><i class="fa-solid ${icon}"></i></span>
+            <h3 class="font-bold text-white text-sm leading-tight line-clamp-2">${escapeHtml(title)}</h3>
+          </div>
+          ${displayDate ? `<span class="text-orange-300 text-xs shrink-0 bg-orange-500/10 border border-orange-500/20 px-2 py-1 rounded-md font-medium whitespace-nowrap">${escapeHtml(displayDate)}</span>` : ""}
         </div>
       `;
-      card.appendChild(titleBlock);
 
-      // Highlights Grid (Compact)
-      if(sum.highlights.length > 0) {
-        const grid = document.createElement("div");
-        grid.className = "grid grid-cols-2 gap-2 mb-3";
-        sum.highlights.forEach(([k,v]) => {
-          grid.innerHTML += `
-            <div class="bg-slate-950/30 rounded px-2 py-1.5 border border-slate-800/50">
-              <div class="text-[10px] uppercase text-slate-500">${k}</div>
-              <div class="text-xs font-medium text-slate-200 truncate">${v}</div>
-            </div>
-          `;
-        });
-        card.appendChild(grid);
+      // ── Row 2: Location + Venue ──
+      if (locStr || venue) {
+        card.innerHTML += `
+          <div class="flex items-center gap-2 text-xs text-slate-400 mb-2">
+            <i class="fa-solid fa-location-dot text-slate-500 text-[10px]"></i>
+            <span class="truncate">${escapeHtml([locStr, venue].filter(Boolean).join(" • "))}</span>
+          </div>
+        `;
       }
 
+      // ── Row 3: Program details ──
+      const detailParts = [];
+      if (data.program_type && form === "president_tour_form") detailParts.push(data.program_type);
+      if (data.total_attendance) detailParts.push(`${data.total_attendance} उपस्थित`);
+      if (data.attendance_count) detailParts.push(`${data.attendance_count} उपस्थित`);
+      if (data.level || data.program_level) detailParts.push(data.level || data.program_level);
+      if (detailParts.length) {
+        card.innerHTML += `<div class="text-xs text-slate-300 mb-2 flex flex-wrap gap-2">${detailParts.map(d => `<span class="bg-slate-800 px-2 py-0.5 rounded">${escapeHtml(d)}</span>`).join("")}</div>`;
+      }
 
-      // Thumbnails strip (for event cards)
-      const eventPhotoUrls = Array.isArray(item.photo_urls) ? item.photo_urls : (isNonEmpty(photoUrl) ? [photoUrl] : []);
-      if (eventPhotoUrls.length > 0) {
+      // ── Row 4: with_label (साथ में कौन थे) ──
+      if (withLabel) {
+        card.innerHTML += `
+          <div class="flex items-center gap-1.5 text-xs text-sky-400 mb-3 bg-sky-500/5 border border-sky-500/15 rounded-lg px-2.5 py-1.5">
+            <i class="fa-solid fa-users text-[10px]"></i>
+            <span>${escapeHtml(withLabel)}</span>
+          </div>
+        `;
+      } else if (faceCount > 1) {
+        card.innerHTML += `
+          <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
+            <i class="fa-solid fa-users text-[10px]"></i>
+            <span>${faceCount} लोग इस event में</span>
+          </div>
+        `;
+      }
+
+      // ── Row 5: Photo thumbnails (सभी photos) ──
+      if (eventPhotos.length > 0) {
         const strip = document.createElement("div");
-        strip.className = "flex flex-wrap gap-2 mb-3";
-        const maxShow = 8;
-        eventPhotoUrls.slice(0, maxShow).forEach((u) => {
+        strip.className = "flex flex-wrap gap-1.5 mb-3";
+        const maxShow = 6;
+        eventPhotos.slice(0, maxShow).forEach((u, pi) => {
           const im = document.createElement("img");
           setImgSrcWithRetry(im, u);
-          im.className = "w-12 h-12 rounded object-cover border border-slate-700/70";
+          im.className = "w-14 h-14 rounded-lg object-cover border border-slate-700/70 hover:border-orange-500/50 transition-colors";
+          im.title = `Photo ${pi + 1}`;
           strip.appendChild(im);
         });
-        if (eventPhotoUrls.length > maxShow) {
+        if (eventPhotos.length > maxShow) {
           const more = document.createElement("div");
-          more.className = "w-12 h-12 rounded flex items-center justify-center text-xs font-semibold bg-slate-900 border border-slate-700 text-slate-200";
-          more.textContent = `+${eventPhotoUrls.length - maxShow}`;
+          more.className = "w-14 h-14 rounded-lg flex flex-col items-center justify-center text-xs font-semibold bg-slate-900 border border-slate-700 text-orange-400 gap-0.5 cursor-pointer";
+          more.innerHTML = `<i class="fa-solid fa-images text-base"></i><span>+${eventPhotos.length - maxShow}</span>`;
           strip.appendChild(more);
         }
         card.appendChild(strip);
       }
 
-      // Footer
-      const footerRow = document.createElement("div");
-      footerRow.className = "pt-3 border-t border-slate-800 flex items-center justify-between";
-      footerRow.innerHTML = `<div class="text-[10px] text-slate-500 font-mono truncate mr-2">${sum.footer.join(" • ")}</div>`;
-      
-      if (isNonEmpty(photoUrl)) {
-        const thumb = document.createElement("img");
-        setImgSrcWithRetry(thumb, getBestThumbUrl(item, photoUrl));
-        thumb.className = "w-8 h-8 rounded object-cover border border-slate-600 shrink-0";
-        footerRow.appendChild(thumb);
-      }
-      card.appendChild(footerRow);
+      // ── Row 6: Footer (slideshow hint) ──
+      const footer = document.createElement("div");
+      footer.className = "pt-2 border-t border-slate-800/60 flex items-center justify-between";
+      footer.innerHTML = `
+        <span class="text-[10px] text-slate-500">${escapeHtml(locStr || "—")}</span>
+        <span class="text-[10px] text-orange-400 flex items-center gap-1"><i class="fa-solid fa-play text-[8px]"></i> Slideshow</span>
+      `;
+      card.appendChild(footer);
 
-      card.addEventListener("click", () => {
-        openEventSlideshow(item, sum);
-      });
-
+      card.addEventListener("click", () => openEventSlideshow(item, { title, icon, details: buildEventDetails(item, form, data, displayDate, formDate) }));
       wrapper.appendChild(card);
       el.viewTimeline.appendChild(wrapper);
     });
+  }
+
+  // ── Event details array for slideshow ──
+  function buildEventDetails(item, form, data, displayDate, formDate) {
+    const details = [];
+    const push = (k, v) => { if (v) details.push([k, String(v)]); };
+    push("दिनांक", displayDate);
+    push("जिला", item.district || data.district);
+    push("विधानसभा", item.vidhansabha || data.vidhansabha);
+    push("मंडल", item.mandal || data.mandal);
+    push("कार्यक्रम", data.program_name);
+    push("प्रकार", data.program_type);
+    push("स्तर", data.level || data.program_level);
+    push("स्थान", data.tour_location || data.venue || data.tour_venue);
+    push("उपस्थिति", data.total_attendance || data.attendance_count);
+    push("वक्ता", data.other_speakers);
+    if (item.with_label) push("साथ में", item.with_label);
+    push("विवरण", data.program_details || data.report_summary);
+    const skip = new Set(["district","vidhansabha","mandal","program_name","program_type","level","program_level","tour_location","venue","tour_venue","total_attendance","attendance_count","other_speakers","program_details","report_summary","tour_date","report_date","attendance_date","event_date","name","mobile"]);
+    Object.keys(data).forEach(k => {
+      if (!skip.has(k) && typeof data[k] !== "object" && isNonEmpty(data[k])) push(k, data[k]);
+    });
+    return details;
   }
 
   // ─────────────── PPT Slideshow ───────────────
@@ -1179,49 +1278,24 @@
 
   // ─── Open event in PPT slideshow ───
   function openEventSlideshow(item, sum) {
-    const photoUrl = (() => {
-      const s3Key = get(item, "s3_key", "");
-      return isNonEmpty(s3Key) ? (globalPhotoMap ? globalPhotoMap.get(s3Key) || "" : "") : "";
-    })();
-    const eventPhotoUrls = Array.isArray(item.photo_urls) ? item.photo_urls : (isNonEmpty(photoUrl) ? [photoUrl] : []);
+    const form = item.form_type || item.ft || "";
+    const data = item.data || {};
+    const eventPhotos = getEventPhotos(item, globalPhotoMap);
 
-    if (eventPhotoUrls.length === 0) {
-      // फोटो नहीं है — सिर्फ details modal में खोलो
+    if (eventPhotos.length === 0) {
       const body = document.createElement("div");
-      body.appendChild(makeKVTable(sum.details));
-      modal.open(sum.title, body, false);
+      const det = sum.details || buildEventDetails(item, form, data,
+        getEventFormDate(form, data) || prettyIso(item.created_at_iso || ""),
+        getEventFormDate(form, data));
+      body.appendChild(makeKVTable(det));
+      modal.open(sum.title || "Event", body, false);
       return;
     }
 
-    const data = item.data || {};
-    const formType = item.form_type || item.ft || "";
-
-    // Form date (जो date form में डाली)
-    const formDt = getFormDate(formType, data);
-    const displayDate = formDt || prettyIso(item.created_at_iso || "");
-
-    // Details rows (important fields पहले)
-    const details = [];
-    if (displayDate) details.push(["दिनांक", displayDate]);
-    if (data.district || item.district) details.push(["जिला", data.district || item.district || ""]);
-    if (data.vidhansabha || item.vidhansabha) details.push(["विधानसभा", data.vidhansabha || item.vidhansabha || ""]);
-    if (data.mandal || item.mandal) details.push(["मंडल", data.mandal || item.mandal || ""]);
-    if (data.program_name) details.push(["कार्यक्रम", data.program_name]);
-    if (data.program_type) details.push(["प्रकार", data.program_type]);
-    if (data.tour_location || data.venue || data.tour_venue) details.push(["स्थान", data.tour_location || data.venue || data.tour_venue || ""]);
-    if (data.total_attendance) details.push(["उपस्थिति", data.total_attendance]);
-    if (data.other_speakers) details.push(["वक्ता", data.other_speakers]);
-    if (data.program_details || data.report_summary) details.push(["विवरण", data.program_details || data.report_summary || ""]);
-    // बाकी fields
-    Object.keys(data).forEach(k => {
-      const skip = ["district","vidhansabha","mandal","program_name","program_type","tour_location","venue","tour_venue","total_attendance","other_speakers","program_details","report_summary","tour_date","report_date","attendance_date","event_date","name","mobile","level","program_level"];
-      if (!skip.includes(k) && typeof data[k] !== "object" && isNonEmpty(data[k])) {
-        details.push([k, String(data[k])]);
-      }
-    });
-
-    const photoList = eventPhotoUrls.map(u => ({ url: u }));
-    SS.open(sum.title, photoList, details);
+    const formDate = getEventFormDate(form, data);
+    const displayDate = formDate || prettyIso(item.created_at_iso || "");
+    const details = sum.details || buildEventDetails(item, form, data, displayDate, formDate);
+    SS.open(sum.title || "Event", eventPhotos.map(u => ({ url: u })), details);
   }
 
   // --------- Render Photos (Gallery Grid) ----------
@@ -1306,11 +1380,25 @@
       el.skeletonLoader.classList.remove("hidden");
 
       try {
-        const init = await apiCall("init_search", { mime_type: file.type || "image/jpeg" }, token);
+        // ── Photo SHA256 compute (cache के लिए) ──
+        let photoSha256 = "";
+        try {
+          const buf = await file.arrayBuffer();
+          const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+          photoSha256 = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,"0")).join("");
+        } catch(e) { photoSha256 = ""; }
+
+        const init = await apiCall("init_search", { mime_type: file.type || "image/jpeg", sha256: photoSha256 }, token);
         const uploadUrl = init.upload_url || init.url;
-        const searchId = init.search_id || init.searchId;
-        
-        await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+        const searchId  = init.search_id || init.searchId;
+
+        // Cache hit → upload skip, directly search
+        if (init.cache_hit) {
+          setStatus("Cache से मिल रहा है...", "loading");
+        } else {
+          await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+        }
+
         setStatus("Searching...", "loading");
         const res = await apiCall("run_search", { search_id: searchId }, token);
 
@@ -1429,46 +1517,66 @@ function renderTimelineGroups(groups){
     const rep = (g.items && g.items[0]) ? g.items[0] : {};
     const ft = g.form_type || rep.form_type || rep.ft || 'unknown';
     const title = getFormTypeLabel(ft);
-    // Form की actual date दिखाओ, created_at नहीं
     const repData = rep.data || {};
-    function pickFormDate(formType, d) {
-      if (formType === "president_tour_form") return d.tour_date || "";
-      if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return d.report_date || d.event_date || "";
-      if (formType === "party_attendance") return d.attendance_date || "";
-      return "";
-    }
-    const formDt = pickFormDate(ft, repData);
+
+    // Form date (form में जो date डाली)
+    const formDt = getEventFormDate(ft, repData);
     const dt = formDt || formatDate(g.created_at_iso || rep.created_at_iso || "");
+
     const locParts = [];
     if(g.district) locParts.push(g.district);
     if(g.vidhansabha) locParts.push(g.vidhansabha);
     if(g.mandal) locParts.push(g.mandal);
     const loc = locParts.join(" • ");
 
-    const meta = [];
-    if(dt) meta.push(dt);
-    if(loc) meta.push(loc);
+    // with_label
+    const withLabel = g.with_label || rep.with_label || "";
+    const faceCount = Number(g.face_count || rep.face_count || 0);
 
-    const countTxt = (g.items && g.items.length>1) ? `${g.items.length} records merged` : "1 record";
-    const sub = meta.join(" • ");
+    // Photos
+    const gPhotos = getEventPhotos(g, globalPhotoMap);
 
     const card = document.createElement("div");
     card.className = "group bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 hover:bg-slate-800/80 transition cursor-pointer";
+
+    // Title + Date
     card.innerHTML = `
-      <div class="flex items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h3 class="font-semibold text-slate-100 truncate">${escapeHtml(title)}</h3>
-          <p class="text-xs text-slate-400 mt-1">${escapeHtml(sub || '')}</p>
-        </div>
-        <span class="shrink-0 text-[11px] px-2 py-1 rounded-full bg-slate-700/60 text-slate-200 border border-slate-600/50">${escapeHtml(countTxt)}</span>
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <h3 class="font-semibold text-slate-100 truncate text-sm">${escapeHtml(title)}</h3>
+        ${dt ? `<span class="text-orange-300 text-xs shrink-0 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded font-medium">${escapeHtml(dt)}</span>` : ""}
       </div>
-      ${rep.reason ? `<p class="text-sm text-slate-200/90 mt-3 line-clamp-2">${escapeHtml(rep.reason)}</p>` : ``}
-      <div class="mt-3 flex items-center justify-between text-xs text-slate-400">
-        <span class="truncate">Event ID: ${escapeHtml(g.event_id || g.group_id)}</span>
-        <span class="text-orange-300/90">View</span>
+      ${loc ? `<p class="text-xs text-slate-400 mb-2"><i class="fa-solid fa-location-dot text-[10px] mr-1"></i>${escapeHtml(loc)}</p>` : ""}
+      ${withLabel ? `<div class="text-xs text-sky-400 bg-sky-500/5 border border-sky-500/15 rounded px-2 py-1 mb-2 flex items-center gap-1"><i class="fa-solid fa-users text-[10px]"></i>${escapeHtml(withLabel)}</div>` : (faceCount > 1 ? `<div class="text-xs text-slate-400 mb-2">${faceCount} लोग</div>` : "")}
+    `;
+
+    // Thumbnails
+    if (gPhotos.length > 0) {
+      const strip = document.createElement("div");
+      strip.className = "flex flex-wrap gap-1.5 mb-2";
+      const maxShow = 5;
+      gPhotos.slice(0, maxShow).forEach(u => {
+        const im = document.createElement("img");
+        setImgSrcWithRetry(im, u);
+        im.className = "w-12 h-12 rounded-lg object-cover border border-slate-700/70";
+        strip.appendChild(im);
+      });
+      if (gPhotos.length > maxShow) {
+        const m = document.createElement("div");
+        m.className = "w-12 h-12 rounded-lg flex flex-col items-center justify-center text-xs font-semibold bg-slate-900 border border-slate-700 text-orange-400 gap-0.5";
+        m.innerHTML = `<i class="fa-solid fa-images text-sm"></i><span>+${gPhotos.length - maxShow}</span>`;
+        strip.appendChild(m);
+      }
+      card.appendChild(strip);
+    }
+
+    card.innerHTML += `
+      <div class="flex items-center justify-between text-xs text-slate-500 border-t border-slate-700/40 pt-2 mt-1">
+        <span>${(g.items && g.items.length > 1) ? g.items.length + " records" : "1 record"}</span>
+        <span class="text-orange-400 flex items-center gap-1"><i class="fa-solid fa-play text-[8px]"></i> Slideshow</span>
       </div>
     `;
-    card.addEventListener("click", ()=> openGroupModal(g));
+
+    card.addEventListener("click", () => openEventSlideshow(g, { title, icon: "fa-calendar-check", details: buildEventDetails(rep, ft, repData, dt, formDt) }));
     frag.appendChild(card);
   }
   el.timelineGrid.appendChild(frag);
