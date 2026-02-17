@@ -453,7 +453,7 @@
               </div>
               <button id="btnRefreshSignedUrls" class="px-3 py-2 text-xs rounded-lg bg-white/10 hover:bg-white/15">Refresh Preview</button>
             </div>
-            <div id="allFormsGrid" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div id="allFormsGrid" style="display:none" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"></div>
           </div>
 
         </section>
@@ -1049,22 +1049,15 @@ function renderBrandPreview() {
   const eff = getEffectiveForm(state.target || "visitor_form");
 
   const headerImg = $("previewHeaderImg");
-  const logoImg = $("previewLogo");
-  const logoIcon = $("previewLogoIcon");
-  const bgWrap = $("previewBg");
+  const logoImg = $("previewLogoImg");
+  const bgImg = $("previewBgImg");
   const titleEl = $("previewTitle");
   const subtitleEl = $("previewSubtitle");
   const taglineEl = $("previewTagline");
   const btn = $("previewBtn");
-  const sw1 = $("sw1");
-  const sw2 = $("sw2");
-  const headerWrap = $("previewHeaderImgWrap");
 
   const bg = eff.bgUrl ? withCacheBust(eff.bgUrl) : "";
-  if(bgWrap){
-    if(bg) bgWrap.style.backgroundImage = `url("${bg}")`;
-    else bgWrap.style.backgroundImage = "";
-  }
+  if(bgImg) bgImg.src = bg || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230f172a'/%3E%3Cstop offset='1' stop-color='%23111827'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E";
 
   const header = eff.headerUrl ? withCacheBust(eff.headerUrl) : "";
   if(headerImg) {
@@ -1076,32 +1069,15 @@ function renderBrandPreview() {
     }
   }
 
-  
-  if(headerWrap){
-    // header available? show image wrap else hide
-    if(header) headerWrap.classList.remove("hidden");
-    else headerWrap.classList.add("hidden");
-  }
-const logo = eff.logoUrl ? withCacheBust(eff.logoUrl) : "";
-  if(logoImg){
-    if(logo){
-      logoImg.src = logo;
-      logoImg.classList.remove("hidden");
-      if(logoIcon) logoIcon.classList.add("hidden");
-    } else {
-      logoImg.removeAttribute("src");
-      logoImg.classList.add("hidden");
-      if(logoIcon) logoIcon.classList.remove("hidden");
-    }
-  }
+  const logo = eff.logoUrl ? withCacheBust(eff.logoUrl) : "";
+  if(logoImg) logoImg.src = logo || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='100%25' height='100%25' rx='16' fill='%23111827'/%3E%3Ctext x='50%25' y='54%25' font-size='22' text-anchor='middle' fill='%2394a3b8' font-family='Arial'%3ELOGO%3C/text%3E%3C/svg%3E";
 
   if(titleEl) titleEl.textContent = eff.title || "";
   if(subtitleEl) subtitleEl.textContent = eff.subtitle || "";
   if(taglineEl) taglineEl.textContent = eff.tagline || "";
   if(btn) btn.style.backgroundImage = `linear-gradient(90deg, ${eff.color1}, ${eff.color2})`;
-  if(sw1) sw1.style.background = eff.color1;
-  if(sw2) sw2.style.background = eff.color2;
-renderPreviewTabs();
+
+  renderPreviewTabs();
   // // // renderAllFormsGrid(); // disabled // disabled // disabled (use dropdown preview)
 }
 
@@ -1216,68 +1192,16 @@ function buildPreviewSrcDoc(ft) {
 </html>`;
 }
 
-function buildRealFormPreviewUrl(ft) {
-  try{
-    const realFt = (ft && ft !== "__defaults__") ? ft : "visitor_form";
-    const meta = FORM_META[realFt] || FORM_META.visitor_form || {};
-    const file = meta.file || "";
-    if(!file) return "";
-    const base = (window.location && window.location.origin && window.location.origin.startsWith("http"))
-      ? (window.location.origin + "/")
-      : (window.location.href || "");
-    const u = new URL(file, base);
-    const cid = (state.cid || "").trim();
-    const tok = (new URLSearchParams(window.location.search)).get("token") || "";
-    if(cid){
-      u.searchParams.set("cid", cid);
-      u.searchParams.set("collection_id", cid);
-    }
-    if(tok) u.searchParams.set("token", tok);
-    u.searchParams.set("form_type", realFt);
-    u.searchParams.set("embed", "1");
-    u.searchParams.set("admin_preview", "1");
-    u.searchParams.set("cb", String(state.cacheBust || Date.now()));
-    return u.toString();
-  }catch(e){
-    return "";
-  }
-}
-
 function renderFormPreviewIframe() {
   const iframe = $("formPreviewIframe");
   if (!iframe) return;
-
-  const realFt = (state.target === "__defaults__") ? "visitor_form" : (state.target || "visitor_form");
-  const url = buildRealFormPreviewUrl(realFt);
-
-  // Label
-  const urlTxt = $("formPreviewUrlTxt");
-  if(urlTxt) urlTxt.textContent = url ? url : "(preview stub)";
-
-  // Prefer real form in iframe (same-origin), fallback to stub preview when URL can't be built.
-  if(url){
-    iframe.removeAttribute("srcdoc");
-    iframe.src = url;
-    return;
-  }
-
-  const doc = buildPreviewSrcDoc(realFt);
+  const doc = buildPreviewSrcDoc(state.target || "visitor_form");
   state.lastPreviewDoc = doc;
 
   // Use a Blob URL (same-origin) instead of srcdoc so blob: preview images also work reliably.
   try{
     if (state._previewBlobUrl) URL.revokeObjectURL(state._previewBlobUrl);
   }catch(e){}
-  try{
-    const blob = new Blob([doc], { type: "text/html" });
-    const blobUrl = URL.createObjectURL(blob);
-    state._previewBlobUrl = blobUrl;
-    iframe.removeAttribute("srcdoc");
-    iframe.src = blobUrl;
-  }catch(e){
-    iframe.srcdoc = doc;
-  }
-}
   try{
     const blob = new Blob([doc], { type: "text/html" });
     const url = URL.createObjectURL(blob);
@@ -1291,13 +1215,7 @@ function renderFormPreviewIframe() {
 }
 
 function openCurrentPreviewInNewTab() {
-  const realFt = (state.target === "__defaults__") ? "visitor_form" : (state.target || "visitor_form");
-  const realUrl = buildRealFormPreviewUrl(realFt);
-  if(realUrl){
-    window.open(realUrl, "_blank", "noopener");
-    return;
-  }
-  const doc = state.lastPreviewDoc || buildPreviewSrcDoc(realFt);
+  const doc = state.lastPreviewDoc || buildPreviewSrcDoc(state.target || "visitor_form");
   const blob = new Blob([doc], { type: "text/html" });
   const url = URL.createObjectURL(blob);
   window.open(url, "_blank", "noopener");
@@ -1674,11 +1592,10 @@ function setPending(kind, file, uiKey) {
   // --- Rendering & Logic ---
 
   function renderAll() {
-      renderBrandPreview();
-      renderPrograms();
-      renderLevels();
-      renderAllFormsGrid();
-   }
+     renderBrandPreview();
+     renderPrograms();
+     renderLevels();
+  }
 
   function renderPrograms() {
      const ft = state.target === "__defaults__" ? "__defaults__" : state.target;
@@ -2489,6 +2406,202 @@ function renderTable() {
   // Refresh + Load more
   document.getElementById("galleryRefreshBtn")?.addEventListener("click", () => loadPhotos(true));
   document.getElementById("loadMorePhotosBtn")?.addEventListener("click", () => loadPhotos(false));
+
+  // Gallery tab click पर auto-load
+  document.addEventListener("click", e => {
+    const btn = e.target.closest("[data-tab]");
+    if (btn && btn.dataset.tab === "gallery" && !photosData.length) {
+      setTimeout(() => loadPhotos(true), 200);
+    }
+  });
+})();
+</script>
+
+</body>
+</html// ═══════════════════════════════════════════════
+//  Photo Gallery — Admin Console Module
+// ═══════════════════════════════════════════════
+(function () {
+  let photosData = [];
+  let photosLastKey = null;
+  let slideIdx = 0;
+
+  function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+  // Main console का apiCall use करो (window पर exposed)
+  async function adminApi(action, payload) {
+    const cid = (window._adminState && window._adminState.cid)
+      ? window._adminState.cid
+      : (new URLSearchParams(window.location.search)).get("cid") || "";
+    const fullPayload = { collection_id: cid, ...payload };
+    if (window._adminApiCall) return window._adminApiCall(action, fullPayload);
+    throw new Error("Admin API not ready");
+  }
+
+  // ── Photos Load ──
+  async function loadPhotos(reset = true) {
+    if (reset) { photosData = []; photosLastKey = null; }
+    const grid = document.getElementById("galleryGrid");
+    if (!grid) return;
+
+    const cid = (window._adminState && window._adminState.cid) || "";
+    if (!cid) {
+      grid.innerHTML = '<div class="col-span-full text-amber-400 text-sm text-center py-8">⚠️ CID missing — URL में ?cid= add करें</div>';
+      return;
+    }
+
+    if (reset) grid.innerHTML = '<div class="col-span-full text-slate-500 text-sm text-center py-8"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Loading photos...</div>';
+
+    try {
+      const res = await adminApi("admin_list_photos", { limit: 100, last_key: photosLastKey || undefined });
+      const newP = (res.photos || []).filter(p => p.url);
+      photosData = reset ? newP : [...photosData, ...newP];
+      photosLastKey = res.last_key || null;
+      renderGrid(reset);
+      const tot = document.getElementById("photosTotal");
+      if (tot) tot.textContent = `${photosData.length}${photosLastKey ? "+" : ""} photos`;
+      const btn = document.getElementById("loadMorePhotosBtn");
+      if (btn) btn.classList.toggle("hidden", !photosLastKey);
+    } catch(e) {
+      if (grid) grid.innerHTML = `<div class="col-span-full text-red-400 text-sm text-center py-8">Error: ${esc(e.message)}</div>`;
+    }
+  }
+
+  function renderGrid(reset = true) {
+    const grid = document.getElementById("galleryGrid");
+    if (!grid) return;
+    if (reset) grid.innerHTML = "";
+    const startIdx = reset ? 0 : grid.children.length;
+
+    photosData.slice(startIdx).forEach((photo, rel) => {
+      const idx = startIdx + rel;
+      const div = document.createElement("div");
+      div.className = "relative aspect-square bg-slate-800 rounded-lg overflow-hidden cursor-pointer group";
+
+      const img = document.createElement("img");
+      img.src = photo.url;
+      img.loading = "lazy";
+      img.className = "w-full h-full object-cover group-hover:scale-110 transition-transform duration-300";
+      img.onerror = () => { div.classList.add("hidden"); };
+
+      const ov = document.createElement("div");
+      ov.className = "absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-1.5";
+      ov.innerHTML = `
+        <span class="text-[9px] text-white font-medium leading-tight truncate">${esc(photo.program_name || photo.form_type || "")}</span>
+        <span class="text-[8px] text-white/60">${esc(photo.form_date || (photo.created_at_iso||"").slice(0,10) || "")}</span>
+      `;
+
+      div.appendChild(img);
+      div.appendChild(ov);
+      div.addEventListener("click", () => openSlide(idx));
+      grid.appendChild(div);
+    });
+
+    if (!photosData.length && reset)
+      grid.innerHTML = '<div class="col-span-full text-slate-500 text-sm text-center py-8">कोई photos नहीं मिले</div>';
+  }
+
+  // ── Slideshow ──
+  function openSlide(idx) {
+    slideIdx = idx;
+    showSlide();
+    document.getElementById("photoSlideOverlay").classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeSlide() {
+    document.getElementById("photoSlideOverlay").classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  function showSlide() {
+    const photo = photosData[slideIdx];
+    if (!photo) return;
+
+    document.getElementById("photoSlideImg").src = photo.url;
+    document.getElementById("photoSlideCounter").textContent = `${slideIdx + 1} / ${photosData.length}`;
+    document.getElementById("photoSlideTitle").textContent = photo.program_name || photo.form_type || "Photo";
+
+    // ── Right panel: Event Info ──
+    const info = document.getElementById("photoSlideEventInfo");
+    const rows = [
+      ["📅", "दिनांक", photo.form_date || (photo.created_at_iso||"").slice(0,10)],
+      ["🗺️", "जिला", photo.district],
+      ["📋", "Form", { visitor_form:"Visitor", party_attendance:"Attendance", president_tour_form:"President Tour", mandal_reporting:"Mandal Report", coordinator_form:"Coordinator" }[photo.form_type] || photo.form_type],
+      ["🏷️", "कार्यक्रम", photo.program_name],
+    ].filter(r => r[2]);
+
+    info.innerHTML = rows.map(([ic,k,v]) => `
+      <div class="flex gap-2 items-start">
+        <span class="text-base leading-none">${ic}</span>
+        <div>
+          <div class="text-[9px] text-slate-500 uppercase">${esc(k)}</div>
+          <div class="text-sm text-slate-200 font-medium">${esc(String(v))}</div>
+        </div>
+      </div>
+    `).join("") || '<div class="text-slate-500 text-xs">कोई details नहीं</div>';
+
+    // ── इस इवेंट की और Photos ──
+    const eventPhotos = photosData.filter((p, i) => i !== slideIdx && (
+      (photo.entry_id && p.entry_id === photo.entry_id) ||
+      (photo.form_date && p.form_date === photo.form_date && p.district === photo.district && p.form_type === photo.form_type)
+    )).slice(0, 16);
+
+    const epGrid = document.getElementById("photoSlideEventPhotos");
+    if (eventPhotos.length) {
+      epGrid.innerHTML = "";
+      eventPhotos.forEach(p => {
+        const img = document.createElement("img");
+        img.src = p.url;
+        img.className = "aspect-square w-full object-cover rounded cursor-pointer hover:ring-2 hover:ring-orange-400 transition";
+        img.onclick = () => { slideIdx = photosData.indexOf(p); showSlide(); };
+        epGrid.appendChild(img);
+      });
+    } else {
+      epGrid.innerHTML = '<div class="col-span-4 text-slate-600 text-[10px] text-center py-2">अकेली photo</div>';
+    }
+
+    // ── इस व्यक्ति की Photos (face_ids से match) ──
+    const fids = new Set([photo.face_id, ...(photo.face_ids || [])].filter(Boolean));
+    const personPhotos = fids.size ? photosData.filter((p, i) => i !== slideIdx && (
+      (p.face_id && fids.has(p.face_id)) ||
+      (p.face_ids || []).some(f => fids.has(f))
+    )).slice(0, 16) : [];
+
+    const ppGrid = document.getElementById("photoSlidePersonPhotos");
+    if (personPhotos.length) {
+      ppGrid.innerHTML = "";
+      personPhotos.forEach(p => {
+        const img = document.createElement("img");
+        img.src = p.url;
+        img.className = "aspect-square w-full object-cover rounded cursor-pointer hover:ring-2 hover:ring-sky-400 transition";
+        img.title = p.program_name || p.form_date || "";
+        img.onclick = () => { slideIdx = photosData.indexOf(p); showSlide(); };
+        ppGrid.appendChild(img);
+      });
+    } else {
+      ppGrid.innerHTML = '<div class="col-span-4 text-slate-600 text-[10px] text-center py-2">और photos नहीं मिलीं (gallery और load करें)</div>';
+    }
+  }
+
+  // Navigation
+  document.getElementById("photoSlidePrev")?.addEventListener("click", () => {
+    slideIdx = (slideIdx - 1 + photosData.length) % photosData.length; showSlide();
+  });
+  document.getElementById("photoSlideNext")?.addEventListener("click", () => {
+    slideIdx = (slideIdx + 1) % photosData.length; showSlide();
+  });
+  document.getElementById("photoSlideClose")?.addEventListener("click", closeSlide);
+  document.getElementById("galleryRefreshBtn")?.addEventListener("click", () => loadPhotos(true));
+  document.getElementById("loadMorePhotosBtn")?.addEventListener("click", () => loadPhotos(false));
+
+  // Keyboard
+  document.addEventListener("keydown", e => {
+    if (document.getElementById("photoSlideOverlay")?.classList.contains("hidden")) return;
+    if (e.key === "ArrowLeft") { slideIdx = (slideIdx - 1 + photosData.length) % photosData.length; showSlide(); }
+    if (e.key === "ArrowRight") { slideIdx = (slideIdx + 1) % photosData.length; showSlide(); }
+    if (e.key === "Escape") closeSlide();
+  });
 
   // Gallery tab click पर auto-load
   document.addEventListener("click", e => {
