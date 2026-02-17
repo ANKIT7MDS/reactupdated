@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-
-<!-- EventLens build: 2026-02-17 04:08:31 -->
 <html lang="hi">
 <head>
   <meta charset="UTF-8" />
@@ -129,37 +127,7 @@
     .ai-report-content strong {
         color: #f97316;
     }
-  
-/* ===== EventLens: Light mode visibility fixes (auto) ===== */
-body.mode-light{ color:#0f172a !important; }
-body.mode-light .card,
-body.mode-light .panel,
-body.mode-light .section,
-body.mode-light .container,
-body.mode-light .wrap,
-body.mode-light .box{
-  background: rgba(255,255,255,.92) !important;
-  border-color: rgba(15,23,42,.14) !important;
-}
-body.mode-light input,
-body.mode-light select,
-body.mode-light textarea{
-  background: rgba(255,255,255,.96) !important;
-  color:#0f172a !important;
-  border-color: rgba(15,23,42,.18) !important;
-}
-body.mode-light input::placeholder,
-body.mode-light textarea::placeholder{
-  color: rgba(15,23,42,.45) !important;
-}
-body.mode-light label,
-body.mode-light .label{ color: rgba(15,23,42,.85) !important; }
-body.mode-light .muted,
-body.mode-light .hint,
-body.mode-light .help{ color: rgba(15,23,42,.65) !important; }
-body.mode-light select option{ background:#ffffff; color:#0f172a; }
-/* ===== /EventLens: Light mode visibility fixes ===== */
-</style>
+  </style>
 
   <script>
     // --- Image helpers ---
@@ -208,7 +176,7 @@ body.mode-light select option{ background:#ffffff; color:#0f172a; }
     }
   </script>
 </head>
-<body class="min-h-screen font-sans selection:bg-orange-500/30 pb-20 lg:pb-0 mode-dark">
+<body class="min-h-screen font-sans selection:bg-orange-500/30 pb-20 lg:pb-0">
 
   <!-- Top Navbar -->
   <nav class="sticky top-0 z-40 glass-panel border-b-0 border-b-white/5 shadow-lg shadow-orange-900/5">
@@ -820,34 +788,51 @@ body.mode-light select option{ background:#ffffff; color:#0f172a; }
     const highlights = [];
     const footer = [];
 
+    // Form की actual date निकालो (form में जो date डाली थी)
+    function getFormDate(form, data) {
+      // हर form type की अपनी date field है
+      if (form === "president_tour_form") return get(data, "tour_date", "");
+      if (form === "mandal_reporting" || form === "mandal_reporting_form") return get(data, "report_date", get(data, "event_date", ""));
+      if (form === "party_attendance") return get(data, "attendance_date", "");
+      // visitor, coordinator — इनमें अलग date field नहीं है, created_at दिखाओ
+      return "";
+    }
+    const formDate = getFormDate(form, data);
+    // अगर form की date मिली तो वो दिखाओ, नहीं तो created_at fallback
+    const displayDate = isNonEmpty(formDate) ? formDate : createdAtIso;
+
     if (withLabel) highlights.push(withLabel);
     if (faceCount) highlights.push(`${faceCount} faces`);
 
     if (form === "president_tour_form") {
       title = get(data, "program_name", get(data, "program_type", "President Tour"));
       icon = "fa-plane-departure";
-      const date = get(data, "tour_date", "");
-      const venue = get(data, "tour_venue", "");
-      subtitle = [date, venue].filter(isNonEmpty).join(" • ");
+      const venue = get(data, "tour_location", get(data, "tour_venue", ""));
+      subtitle = [formDate, venue].filter(isNonEmpty).join(" • ");
       if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests", get(data,"guests","")]);
-    } else if (form === "mandal_reporting") {
-      title = get(data, "venue", "Mandal Report");
+    } else if (form === "mandal_reporting" || form === "mandal_reporting_form") {
+      title = get(data, "program_name", get(data, "venue", "Mandal Report"));
       icon = "fa-clipboard-list";
-      subtitle = get(data, "event_date", "");
+      subtitle = formDate;
       if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests", get(data,"guests","")]);
     } else if (form === "visitor_form") {
       title = get(item, "name", get(data, "name", "Visitor"));
       icon = "fa-user-clock";
-      subtitle = get(data, "reason", "");
+      subtitle = get(data, "reason", get(data, "visit_reason", ""));
     } else if (form === "party_attendance") {
-      title = "Party Attendance";
+      title = get(data, "program_name", "Party Attendance");
       icon = "fa-users-line";
+      subtitle = [formDate, get(data, "designation", "")].filter(isNonEmpty).join(" • ");
+    } else if (form === "coordinator_entry" || form === "coordinator_form") {
+      title = get(data, "name", "Coordinator Entry");
+      icon = "fa-id-badge";
       subtitle = get(data, "designation", "");
     }
 
     const locBits = [district, vidhansabha].filter(isNonEmpty);
     if (locBits.length) footer.push(locBits.join(", "));
-    if (isNonEmpty(createdAtIso)) footer.push(createdAtIso);
+    // Footer में form date दिखाओ (created date नहीं)
+    if (isNonEmpty(displayDate)) footer.push(displayDate);
 
     // Full details
     const details = [];
@@ -855,7 +840,8 @@ body.mode-light select option{ background:#ffffff; color:#0f172a; }
     pushD("Form Type", form);
     pushD("District", district);
     pushD("Vidhansabha", vidhansabha);
-    pushD("Created", createdAtIso);
+    pushD("दिनांक (Form)", isNonEmpty(formDate) ? formDate : "—");
+    pushD("Entry Date", createdAtIso);
     Object.keys(data).forEach(k => { if(typeof data[k] !== 'object') pushD(k, data[k]); });
 
     return { title, subtitle, highlights, footer, details, rawData: data, icon };
@@ -1216,7 +1202,16 @@ function renderTimelineGroups(groups){
     const rep = (g.items && g.items[0]) ? g.items[0] : {};
     const ft = g.form_type || rep.form_type || rep.ft || 'unknown';
     const title = getFormTypeLabel(ft);
-    const dt = formatDate(g.created_at_iso || rep.created_at_iso || "");
+    // Form की actual date दिखाओ, created_at नहीं
+    const repData = rep.data || {};
+    function pickFormDate(formType, d) {
+      if (formType === "president_tour_form") return d.tour_date || "";
+      if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return d.report_date || d.event_date || "";
+      if (formType === "party_attendance") return d.attendance_date || "";
+      return "";
+    }
+    const formDt = pickFormDate(ft, repData);
+    const dt = formDt || formatDate(g.created_at_iso || rep.created_at_iso || "");
     const locParts = [];
     if(g.district) locParts.push(g.district);
     if(g.vidhansabha) locParts.push(g.vidhansabha);
@@ -1258,7 +1253,16 @@ function openGroupModal(group){
   const rep = items[0] || {};
   const ft = group.form_type || rep.form_type || rep.ft || 'unknown';
   const title = `${getFormTypeLabel(ft)} (Event)`;
-  const dt = formatDate(group.created_at_iso || rep.created_at_iso || "");
+  // Form की actual date
+  const modalData = rep.data || {};
+  function pickFD(formType, d) {
+    if (formType === "president_tour_form") return d.tour_date || "";
+    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return d.report_date || d.event_date || "";
+    if (formType === "party_attendance") return d.attendance_date || "";
+    return "";
+  }
+  const modalFormDt = pickFD(ft, modalData);
+  const dt = modalFormDt || formatDate(group.created_at_iso || rep.created_at_iso || "");
   const locParts = [];
   if(group.district) locParts.push(group.district);
   if(group.vidhansabha) locParts.push(group.vidhansabha);
