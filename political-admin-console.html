@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+
+<!-- EventLens build: 2026-02-17 04:08:31 -->
 <html lang="hi" class="dark">
 <head>
   <meta charset="utf-8" />
@@ -230,7 +232,7 @@
                   <option value="party_attendance">🚩 Party Attendance</option>
                   <option value="president_tour_form">🚙 President Tour</option>
                   <option value="mandal_reporting">📊 कार्यक्रम रिपोर्टिंग</option>
-                  <option value="coordinator_form">👔 Coordinator</option>
+                  <option value="coordinator_entry">👔 Coordinator</option>
                   <option value="program_info">ℹ️ Program Info</option>
                 </select>
                 <div class="absolute right-3 top-3 text-slate-400 pointer-events-none text-xs">
@@ -553,7 +555,7 @@
                       <option value="party_attendance">Attendance</option>
                       <option value="president_tour_form">Tour</option>
                       <option value="mandal_reporting">Reporting</option>
-                      <option value="coordinator_form">Coordinator</option>
+                      <option value="coordinator_entry">Coordinator</option>
                       <option value="program_info">Program Info</option>
                    </select>
                 </div>
@@ -591,7 +593,7 @@
                           <option value="program_info">Program Info</option>
                           <option value="president_tour_form">President Tour</option>
                           <option value="mandal_reporting">Mandal Reporting</option>
-                          <option value="coordinator_form">Coordinator</option>
+                          <option value="coordinator_entry">Coordinator</option>
                        </select>
                        <select id="filterDistrict" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
                           <option value="">All Districts</option>
@@ -742,7 +744,7 @@
     party_attendance: { file: "political_party_attendance_form.html" },
     president_tour_form: { file: "political_president_tour_form.html" },
     mandal_reporting: { file: "political_mandal_reporting_form.html" },
-    coordinator_form: { file: "political_coordinator_entry_form.html" },
+    coordinator_entry: { file: "political_coordinator_entry_form.html" },
     program_info: { file: "political_program_info_form.html" },
   };
 
@@ -808,7 +810,7 @@
       programs: ["मंडल बैठक","कार्यकर्ता सम्मेलन","जनसंपर्क","बूथ मीटिंग"],
       fixed_levels: {}
     },
-    forms: { visitor_form: {}, party_attendance: {}, president_tour_form: {}, mandal_reporting: {}, coordinator_form: {}, program_info: {} }
+    forms: { visitor_form: {}, party_attendance: {}, president_tour_form: {}, mandal_reporting: {}, coordinator_entry: {}, program_info: {} }
   };
 
   let state = {
@@ -1041,14 +1043,16 @@ function buildPreviewSrcDoc(ft) {
   <style>
     :root{--c1:${c1};--c2:${c2};}
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:#e5e7eb; background:#0b1220; ${bgStyle} background-size:cover; background-position:center;}
-    .overlay{min-height:100vh; background:linear-gradient(180deg, rgba(2,6,23,.92), rgba(2,6,23,.88));}
+    
+    html,body{height:100%;overflow:hidden;}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:#e5e7eb; background:#0b1220; ${bgStyle} background-size:cover; background-position:center;}
+    .overlay{min-height:100vh; overflow:hidden; background:linear-gradient(180deg, rgba(2,6,23,.92), rgba(2,6,23,.88));}
     .wrap{max-width:420px;margin:0 auto; padding:14px;}
     .card{border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.06); border-radius:18px; overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,.35);}
     .header{position:relative;height:150px; overflow:hidden;}
-    .header-img{width:100%;height:100%;object-fit:cover;display:block;}
+    .header-img{width:100%;height:100%;object-fit:contain;display:block;background:rgba(2,6,23,.35);}
     .header-grad{width:100%;height:100%; background:linear-gradient(135deg,var(--c1),var(--c2));}
-    .logo{position:absolute;left:14px;bottom:-26px;width:58px;height:58px;border-radius:16px;border:2px solid rgba(255,255,255,.35); background:rgba(2,6,23,.7); object-fit:cover; box-shadow:0 10px 18px rgba(0,0,0,.35);}
+    .logo{position:absolute;left:14px;bottom:-26px;width:58px;height:58px;border-radius:16px;border:2px solid rgba(255,255,255,.35); background:rgba(2,6,23,.7); object-fit:contain; background:rgba(255,255,255,.92); box-shadow:0 10px 18px rgba(0,0,0,.35);}
     .logo.ph{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#94a3b8;}
     .content{padding:44px 14px 16px;}
     .title{font-size:18px;font-weight:800;line-height:1.2;margin:0;}

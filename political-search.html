@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+
+<!-- EventLens build: 2026-02-17 04:08:31 -->
 <html lang="hi">
 <head>
   <meta charset="UTF-8" />
@@ -127,7 +129,37 @@
     .ai-report-content strong {
         color: #f97316;
     }
-  </style>
+  
+/* ===== EventLens: Light mode visibility fixes (auto) ===== */
+body.mode-light{ color:#0f172a !important; }
+body.mode-light .card,
+body.mode-light .panel,
+body.mode-light .section,
+body.mode-light .container,
+body.mode-light .wrap,
+body.mode-light .box{
+  background: rgba(255,255,255,.92) !important;
+  border-color: rgba(15,23,42,.14) !important;
+}
+body.mode-light input,
+body.mode-light select,
+body.mode-light textarea{
+  background: rgba(255,255,255,.96) !important;
+  color:#0f172a !important;
+  border-color: rgba(15,23,42,.18) !important;
+}
+body.mode-light input::placeholder,
+body.mode-light textarea::placeholder{
+  color: rgba(15,23,42,.45) !important;
+}
+body.mode-light label,
+body.mode-light .label{ color: rgba(15,23,42,.85) !important; }
+body.mode-light .muted,
+body.mode-light .hint,
+body.mode-light .help{ color: rgba(15,23,42,.65) !important; }
+body.mode-light select option{ background:#ffffff; color:#0f172a; }
+/* ===== /EventLens: Light mode visibility fixes ===== */
+</style>
 
   <script>
     // --- Image helpers ---
@@ -176,7 +208,7 @@
     }
   </script>
 </head>
-<body class="min-h-screen font-sans selection:bg-orange-500/30 pb-20 lg:pb-0">
+<body class="min-h-screen font-sans selection:bg-orange-500/30 pb-20 lg:pb-0 mode-dark">
 
   <!-- Top Navbar -->
   <nav class="sticky top-0 z-40 glass-panel border-b-0 border-b-white/5 shadow-lg shadow-orange-900/5">

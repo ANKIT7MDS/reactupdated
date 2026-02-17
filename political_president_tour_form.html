@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+
+<!-- EventLens build: 2026-02-17 04:08:31 -->
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
@@ -141,9 +143,39 @@
       color: rgba(15, 23, 42, 0.45) !important;
     }
 
+
+/* ===== EventLens: Light mode visibility fixes (auto) ===== */
+body.mode-light{ color:#0f172a !important; }
+body.mode-light .card,
+body.mode-light .panel,
+body.mode-light .section,
+body.mode-light .container,
+body.mode-light .wrap,
+body.mode-light .box{
+  background: rgba(255,255,255,.92) !important;
+  border-color: rgba(15,23,42,.14) !important;
+}
+body.mode-light input,
+body.mode-light select,
+body.mode-light textarea{
+  background: rgba(255,255,255,.96) !important;
+  color:#0f172a !important;
+  border-color: rgba(15,23,42,.18) !important;
+}
+body.mode-light input::placeholder,
+body.mode-light textarea::placeholder{
+  color: rgba(15,23,42,.45) !important;
+}
+body.mode-light label,
+body.mode-light .label{ color: rgba(15,23,42,.85) !important; }
+body.mode-light .muted,
+body.mode-light .hint,
+body.mode-light .help{ color: rgba(15,23,42,.65) !important; }
+body.mode-light select option{ background:#ffffff; color:#0f172a; }
+/* ===== /EventLens: Light mode visibility fixes ===== */
 </style>
 </head>
-    <body class="min-h-screen flex items-center justify-center p-4 font-sans">
+    <body class="min-h-screen flex items-center justify-center p-4 font-sans mode-dark">
 
     <div class="w-full max-w-lg glass rounded-2xl p-6 relative overflow-hidden transition-all duration-500" id="main-container">
     <div class="absolute top-0 left-0 w-full h-1 brand-bg"></div>
