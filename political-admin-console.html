@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-
-<!-- EventLens build: 2026-02-17 04:08:31 -->
 <html lang="hi" class="dark">
 <head>
   <meta charset="utf-8" />
@@ -232,7 +230,7 @@
                   <option value="party_attendance">🚩 Party Attendance</option>
                   <option value="president_tour_form">🚙 President Tour</option>
                   <option value="mandal_reporting">📊 कार्यक्रम रिपोर्टिंग</option>
-                  <option value="coordinator_entry">👔 Coordinator</option>
+                  <option value="coordinator_form">👔 Coordinator</option>
                   <option value="program_info">ℹ️ Program Info</option>
                 </select>
                 <div class="absolute right-3 top-3 text-slate-400 pointer-events-none text-xs">
@@ -274,6 +272,10 @@
           <button class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-3 text-slate-300" data-tab="data">
             <span class="w-6 h-6 rounded bg-slate-800/50 flex items-center justify-center text-xs"><i class="fa-solid fa-table text-emerald-400"></i></span>
             Data Records
+          </button>
+          <button class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-3 text-slate-300" data-tab="gallery">
+            <span class="w-6 h-6 rounded bg-slate-800/50 flex items-center justify-center text-xs"><i class="fa-solid fa-images text-pink-400"></i></span>
+            Gallery & Faces
           </button>
           <button class="nav-btn w-full text-left px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-3 text-slate-300" data-tab="analytics">
             <span class="w-6 h-6 rounded bg-slate-800/50 flex items-center justify-center text-xs"><i class="fa-solid fa-chart-pie text-purple-400"></i></span>
@@ -555,7 +557,7 @@
                       <option value="party_attendance">Attendance</option>
                       <option value="president_tour_form">Tour</option>
                       <option value="mandal_reporting">Reporting</option>
-                      <option value="coordinator_entry">Coordinator</option>
+                      <option value="coordinator_form">Coordinator</option>
                       <option value="program_info">Program Info</option>
                    </select>
                 </div>
@@ -593,7 +595,7 @@
                           <option value="program_info">Program Info</option>
                           <option value="president_tour_form">President Tour</option>
                           <option value="mandal_reporting">Mandal Reporting</option>
-                          <option value="coordinator_entry">Coordinator</option>
+                          <option value="coordinator_form">Coordinator</option>
                        </select>
                        <select id="filterDistrict" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-200">
                           <option value="">All Districts</option>
@@ -647,6 +649,125 @@
         </section>
 
         <!-- TAB: Analytics -->
+        <!-- ── Gallery & Faces Tab ── -->
+        <section id="tab-gallery" class="tab-content hidden animate-fade-in space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-images text-pink-400"></i> Gallery & Faces
+            </h2>
+            <div class="flex items-center gap-2">
+              <button id="galleryRefreshBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs hover:text-white transition flex items-center gap-1.5">
+                <i class="fa-solid fa-arrows-rotate"></i> Refresh
+              </button>
+            </div>
+          </div>
+
+          <!-- ── People Section ── -->
+          <div class="glass-panel rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-users text-sky-400"></i> लोग
+                <span id="facesCount" class="text-xs text-slate-500 font-normal ml-1"></span>
+              </h3>
+              <div class="flex items-center gap-2">
+                <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
+                  <input type="checkbox" id="showUnnamed" checked class="w-3 h-3 accent-orange-500">
+                  Unnamed भी दिखाएं
+                </label>
+                <button id="backfillBtn" class="px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs hover:bg-amber-500/25 transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Backfill Names
+                </button>
+              </div>
+            </div>
+            <!-- Faces grid — Google Photos style -->
+            <div id="facesGrid" class="flex flex-wrap gap-3">
+              <div class="text-slate-500 text-sm py-4">Gallery tab click करने पर load होगा...</div>
+            </div>
+            <div class="mt-3 flex justify-center">
+              <button id="loadMoreFacesBtn" class="hidden px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs hover:text-white transition">
+                और चेहरे दिखाएं
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Photos Grid Section ── -->
+          <div class="glass-panel rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-photo-film text-pink-400"></i> सभी Photos
+                <span id="photosTotal" class="text-xs text-slate-500 font-normal ml-1"></span>
+              </h3>
+              <div class="flex items-center gap-2 text-xs text-slate-400">
+                <i class="fa-solid fa-circle-info text-[10px]"></i> Click → Slideshow
+              </div>
+            </div>
+            <div id="galleryGrid" class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-1.5">
+              <!-- Photos injected here -->
+            </div>
+            <div class="mt-4 flex justify-center">
+              <button id="loadMorePhotosBtn" class="hidden px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs hover:text-white transition flex items-center gap-1.5">
+                <i class="fa-solid fa-chevron-down"></i> और Photos लोड करें
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Face Detail Panel (Slideout) ── -->
+        <div id="facePanelOverlay" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" onclick="closeFacePanel()"></div>
+        <div id="facePanel" class="fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-slate-900 border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+          <!-- Panel header -->
+          <div class="flex items-center justify-between p-4 border-b border-slate-800 shrink-0">
+            <h3 class="font-bold text-white text-base" id="facePanelTitle">Face Details</h3>
+            <button onclick="closeFacePanel()" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <!-- Face photo + name edit -->
+          <div class="p-4 border-b border-slate-800 shrink-0">
+            <div class="flex items-start gap-4">
+              <img id="facePanelThumb" src="" class="w-20 h-20 rounded-full object-cover border-2 border-slate-600 bg-slate-800 shrink-0" />
+              <div class="flex-1 space-y-2">
+                <div>
+                  <label class="text-xs text-slate-400 block mb-1">नाम</label>
+                  <input id="facePanelName" type="text" placeholder="नाम डालें..." class="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none" />
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400 block mb-1">Mobile</label>
+                  <input id="facePanelMobile" type="tel" placeholder="Mobile..." class="w-full rounded-lg px-3 py-2 text-sm bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none" />
+                </div>
+                <button id="facePanelSaveBtn" class="w-full py-2 rounded-lg bg-gradient-to-r from-orange-600 to-red-600 text-white text-sm font-bold hover:from-orange-500 hover:to-red-500 transition">
+                  <i class="fa-solid fa-floppy-disk mr-1"></i> Save & Spread
+                </button>
+                <div id="facePanelSaveStatus" class="text-xs text-center text-slate-400"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Face photos timeline -->
+          <div class="flex-1 overflow-y-auto p-4">
+            <div class="text-xs text-slate-500 mb-3">इस व्यक्ति की Photos</div>
+            <div id="facePanelPhotos" class="grid grid-cols-3 gap-1.5">
+              <!-- Photos injected -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Gallery Slideshow ── -->
+        <div id="gallerySlideshowOverlay" class="hidden fixed inset-0 z-[9998] bg-black flex flex-col">
+          <div class="flex items-center justify-between p-3 bg-slate-900/90 border-b border-slate-800 shrink-0">
+            <span id="gallerySlideshowTitle" class="text-sm font-bold text-orange-400 truncate max-w-[60vw]"></span>
+            <div class="flex items-center gap-3">
+              <span id="gallerySlideshowCounter" class="text-xs text-slate-400"></span>
+              <button id="gallerySlideshowClose" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+          </div>
+          <div class="flex-1 flex items-center justify-center relative bg-black">
+            <button id="gallerySlideshowPrev" class="absolute left-3 z-10 w-10 h-10 rounded-full bg-slate-900/80 border border-slate-700 text-orange-400 flex items-center justify-center hover:bg-slate-800"><i class="fa-solid fa-chevron-left"></i></button>
+            <img id="gallerySlideshowImg" src="" class="max-w-full max-h-full object-contain" />
+            <button id="gallerySlideshowNext" class="absolute right-3 z-10 w-10 h-10 rounded-full bg-slate-900/80 border border-slate-700 text-orange-400 flex items-center justify-center hover:bg-slate-800"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+          <div id="gallerySlideshowInfo" class="p-3 bg-slate-900/90 border-t border-slate-800 text-xs text-slate-400 text-center shrink-0"></div>
+        </div>
+
         <section id="tab-analytics" class="tab-content hidden animate-fade-in space-y-6">
           <div class="flex justify-end">
              <button id="btnRefreshCharts" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors border border-slate-700"><i class="fa-solid fa-rotate mr-2"></i>Refresh Charts</button>
@@ -744,7 +865,7 @@
     party_attendance: { file: "political_party_attendance_form.html" },
     president_tour_form: { file: "political_president_tour_form.html" },
     mandal_reporting: { file: "political_mandal_reporting_form.html" },
-    coordinator_entry: { file: "political_coordinator_entry_form.html" },
+    coordinator_form: { file: "political_coordinator_entry_form.html" },
     program_info: { file: "political_program_info_form.html" },
   };
 
@@ -810,7 +931,7 @@
       programs: ["मंडल बैठक","कार्यकर्ता सम्मेलन","जनसंपर्क","बूथ मीटिंग"],
       fixed_levels: {}
     },
-    forms: { visitor_form: {}, party_attendance: {}, president_tour_form: {}, mandal_reporting: {}, coordinator_entry: {}, program_info: {} }
+    forms: { visitor_form: {}, party_attendance: {}, president_tour_form: {}, mandal_reporting: {}, coordinator_form: {}, program_info: {} }
   };
 
   let state = {
@@ -964,9 +1085,6 @@ function renderBrandInputsFromConfig() {
 }
 
 function renderBrandPreview() {
-  // Keep state.config in sync with inputs (so Preview + Save match)
-  try{ collectBrandFromUI(); }catch(e){}
-
   if(!state.config) return;
   const eff = getEffectiveForm(state.target || "visitor_form");
 
@@ -1001,10 +1119,7 @@ function renderBrandPreview() {
 
   renderPreviewTabs();
   // // // renderAllFormsGrid(); // disabled // disabled // disabled (use dropdown preview)
-
-  try{ sendPreviewUpdate(); }catch(e){}
 }
-
 
 
 function buildPreviewSrcDoc(ft) {
@@ -1043,16 +1158,14 @@ function buildPreviewSrcDoc(ft) {
   <style>
     :root{--c1:${c1};--c2:${c2};}
     *{box-sizing:border-box}
-    
-    html,body{height:100%;overflow:hidden;}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:#e5e7eb; background:#0b1220; ${bgStyle} background-size:cover; background-position:center;}
-    .overlay{min-height:100vh; overflow:hidden; background:linear-gradient(180deg, rgba(2,6,23,.92), rgba(2,6,23,.88));}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:#e5e7eb; background:#0b1220; ${bgStyle} background-size:cover; background-position:center;}
+    .overlay{min-height:100vh; background:linear-gradient(180deg, rgba(2,6,23,.92), rgba(2,6,23,.88));}
     .wrap{max-width:420px;margin:0 auto; padding:14px;}
     .card{border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.06); border-radius:18px; overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,.35);}
     .header{position:relative;height:150px; overflow:hidden;}
-    .header-img{width:100%;height:100%;object-fit:contain;display:block;background:rgba(2,6,23,.35);}
+    .header-img{width:100%;height:100%;object-fit:cover;display:block;}
     .header-grad{width:100%;height:100%; background:linear-gradient(135deg,var(--c1),var(--c2));}
-    .logo{position:absolute;left:14px;bottom:-26px;width:58px;height:58px;border-radius:16px;border:2px solid rgba(255,255,255,.35); background:rgba(2,6,23,.7); object-fit:contain; background:rgba(255,255,255,.92); box-shadow:0 10px 18px rgba(0,0,0,.35);}
+    .logo{position:absolute;left:14px;bottom:-26px;width:58px;height:58px;border-radius:16px;border:2px solid rgba(255,255,255,.35); background:rgba(2,6,23,.7); object-fit:cover; box-shadow:0 10px 18px rgba(0,0,0,.35);}
     .logo.ph{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#94a3b8;}
     .content{padding:44px 14px 16px;}
     .title{font-size:18px;font-weight:800;line-height:1.2;margin:0;}
@@ -1119,69 +1232,34 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:#
 </html>`;
 }
 
-
-function sendPreviewUpdate() {
-  const iframe = $("formPreviewIframe");
-  if (!iframe || !iframe.contentWindow) return;
-  const ft0 = state.target || "visitor_form";
-  const ft = (ft0 === "__defaults__") ? "visitor_form" : ft0;
-  if (!state.config) return;
-
-  // Send whole config (forms will pick their own node)
-  const payload = {
-    settings: state.config,
-    form_type: ft,
-    updated_at_ms: String(state.cacheBust || Date.now())
-  };
-
-  try {
-    iframe.contentWindow.postMessage({
-      type: "EL_PREVIEW_SETTINGS",
-      cid: state.cid || "",
-      form_type: ft,
-      payload
-    }, "*");
-  } catch(e) {}
-}
-
 function renderFormPreviewIframe() {
   const iframe = $("formPreviewIframe");
   if (!iframe) return;
+  const doc = buildPreviewSrcDoc(state.target || "visitor_form");
+  state.lastPreviewDoc = doc;
 
-  const ft0 = state.target || "visitor_form";
-  const ft = (ft0 === "__defaults__") ? "visitor_form" : ft0;
-  const meta = FORM_META[ft] || FORM_META.__defaults__ || { file: "political_visitor_form.html" };
-  const file = meta.file || "political_visitor_form.html";
-
-  const cid = (state.cid || qs("cid") || qs("collection_id") || "").trim();
-  const u = new URL(file, window.location.origin);
-  if (cid) u.searchParams.set("cid", cid);
-  u.searchParams.set("form_type", ft);
-  u.searchParams.set("embed", "1");
-  u.searchParams.set("preview", "1");
-  u.searchParams.set("t", String(state.cacheBust || Date.now()));
-
-  const nextUrl = u.toString();
-
-  // Only reload iframe if URL changed (target change / hard refresh)
-  if (state._lastIframeUrl !== nextUrl) {
-    state._lastIframeUrl = nextUrl;
-    iframe.src = nextUrl;
+  // Use a Blob URL (same-origin) instead of srcdoc so blob: preview images also work reliably.
+  try{
+    if (state._previewBlobUrl) URL.revokeObjectURL(state._previewBlobUrl);
+  }catch(e){}
+  try{
+    const blob = new Blob([doc], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    state._previewBlobUrl = url;
+    iframe.removeAttribute("srcdoc");
+    iframe.src = url;
+  }catch(e){
+    // Fallback
+    iframe.srcdoc = doc;
   }
-
-  // When loaded, push current config into iframe
-  iframe.onload = () => {
-    try { sendPreviewUpdate(); } catch(e) {}
-  };
-
-  // Also try immediately (if already loaded)
-  try { sendPreviewUpdate(); } catch(e) {}
 }
 
 function openCurrentPreviewInNewTab() {
-  const iframe = $("formPreviewIframe");
-  const url = iframe?.src || state._lastIframeUrl || "";
-  if (url) window.open(url, "_blank");
+  const doc = state.lastPreviewDoc || buildPreviewSrcDoc(state.target || "visitor_form");
+  const blob = new Blob([doc], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank", "noopener");
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 function renderPreviewTabs() {
@@ -2094,5 +2172,291 @@ function renderTable() {
     </div>
   </div>
 </div>
+
+<script>
+// ═══════════════════════════════════════════
+//  Gallery & Faces — Admin Console Module
+// ═══════════════════════════════════════════
+(function() {
+  // State
+  let facesData = [];
+  let photosData = [];
+  let photosLastKey = null;
+  let facesLastKey = null;
+  let currentFaceId = null;
+  let gallerySlidePhotos = [];
+  let gallerySlideIdx = 0;
+
+  // ── helpers ──
+  function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function getCid() { return (new URLSearchParams(window.location.search)).get("cid") || (new URLSearchParams(window.location.search)).get("collection_id") || ""; }
+  function getIdToken() { return localStorage.getItem("id_token") || localStorage.getItem("idToken") || ""; }
+
+  async function adminApi(action, payload) {
+    const API_ID = "vxid0yoovj";
+    const REGION = "ap-south-1";
+    const url = `https://${API_ID}.execute-api.${REGION}.amazonaws.com/prod/political/forms`;
+    const headers = { "Content-Type": "application/json" };
+    const tok = getIdToken();
+    if (tok) headers["Authorization"] = `Bearer ${tok}`;
+    const resp = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ action, payload: { collection_id: getCid(), ...payload } })
+    });
+    return resp.json();
+  }
+
+  // ── Load Faces ──
+  async function loadFaces(reset = true) {
+    if (reset) { facesData = []; facesLastKey = null; }
+    const showUnnamed = document.getElementById("showUnnamed")?.checked !== false;
+    document.getElementById("facesGrid").innerHTML = '<div class="text-slate-500 text-sm py-4"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Loading...</div>';
+
+    try {
+      const res = await adminApi("admin_list_faces", {
+        limit: 200,
+        show_unnamed: showUnnamed,
+        last_key: facesLastKey || undefined,
+      });
+      if (res.faces) {
+        facesData = reset ? res.faces : [...facesData, ...res.faces];
+        facesLastKey = res.last_key;
+      }
+      renderFacesGrid();
+      document.getElementById("facesCount").textContent = `(${facesData.length} चेहरे)`;
+      const loadMoreBtn = document.getElementById("loadMoreFacesBtn");
+      if (loadMoreBtn) loadMoreBtn.classList.toggle("hidden", !facesLastKey);
+    } catch(e) {
+      document.getElementById("facesGrid").innerHTML = '<div class="text-red-400 text-sm">Load failed: ' + esc(e.message) + '</div>';
+    }
+  }
+
+  function renderFacesGrid() {
+    const grid = document.getElementById("facesGrid");
+    if (!grid) return;
+    if (!facesData.length) {
+      grid.innerHTML = '<div class="text-slate-500 text-sm py-4">कोई faces नहीं मिले</div>';
+      return;
+    }
+    grid.innerHTML = "";
+    facesData.forEach(face => {
+      const div = document.createElement("div");
+      div.className = "flex flex-col items-center gap-1.5 cursor-pointer group w-20";
+      div.innerHTML = `
+        <div class="relative w-16 h-16">
+          <img src="${esc(face.thumb_url)}" onerror="this.src=''" 
+               class="w-16 h-16 rounded-full object-cover border-2 ${face.name ? 'border-orange-500/60' : 'border-slate-700'} group-hover:border-orange-400 transition bg-slate-800" />
+          ${!face.name ? '<div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center"><i class="fa-solid fa-question text-[8px] text-slate-400"></i></div>' : ''}
+          <div class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <i class="fa-solid fa-pen text-white text-xs"></i>
+          </div>
+        </div>
+        <div class="text-center w-full">
+          <div class="text-[11px] font-medium truncate w-full text-center ${face.name ? 'text-slate-200' : 'text-slate-500'}">${esc(face.name || 'अज्ञात')}</div>
+          <div class="text-[10px] text-slate-600">${face.entry_count || 0} photos</div>
+        </div>
+      `;
+      div.addEventListener("click", () => openFacePanel(face));
+      grid.appendChild(div);
+    });
+  }
+
+  // ── Load Photos ──
+  async function loadPhotos(reset = true) {
+    if (reset) { photosData = []; photosLastKey = null; }
+    const grid = document.getElementById("galleryGrid");
+    if (reset && grid) grid.innerHTML = '<div class="col-span-full text-slate-500 text-sm py-4 text-center"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Loading photos...</div>';
+
+    try {
+      const res = await adminApi("admin_list_photos", {
+        limit: 100,
+        last_key: photosLastKey || undefined,
+      });
+      if (res.photos) {
+        const newPhotos = res.photos.filter(p => p.url);
+        photosData = reset ? newPhotos : [...photosData, ...newPhotos];
+        photosLastKey = res.last_key;
+      }
+      renderPhotosGrid(reset);
+      document.getElementById("photosTotal").textContent = `(${photosData.length}${photosLastKey ? "+" : ""} photos)`;
+      const btn = document.getElementById("loadMorePhotosBtn");
+      if (btn) btn.classList.toggle("hidden", !photosLastKey);
+    } catch(e) {
+      if(grid) grid.innerHTML = '<div class="col-span-full text-red-400 text-sm text-center">Load failed: ' + esc(e.message) + '</div>';
+    }
+  }
+
+  function renderPhotosGrid(reset = true) {
+    const grid = document.getElementById("galleryGrid");
+    if (!grid) return;
+    if (reset) grid.innerHTML = "";
+    const startIdx = reset ? 0 : grid.children.length;
+    photosData.slice(startIdx).forEach((photo, relIdx) => {
+      const absIdx = startIdx + relIdx;
+      const div = document.createElement("div");
+      div.className = "relative aspect-square bg-slate-800 rounded overflow-hidden cursor-pointer group";
+      div.innerHTML = `
+        <img src="${esc(photo.url)}" loading="lazy"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-end p-1 opacity-0 group-hover:opacity-100">
+          <span class="text-[9px] text-white/80 truncate w-full">${esc(photo.form_date || photo.created_at_iso?.slice(0,10) || "")}</span>
+        </div>
+      `;
+      div.addEventListener("click", () => openGallerySlideshow(absIdx));
+      grid.appendChild(div);
+    });
+  }
+
+  // ── Gallery Slideshow ──
+  function openGallerySlideshow(startIdx) {
+    gallerySlidePhotos = photosData;
+    gallerySlideIdx = startIdx;
+    showGallerySlide();
+    document.getElementById("gallerySlideshowOverlay").classList.remove("hidden");
+  }
+
+  function showGallerySlide() {
+    const photo = gallerySlidePhotos[gallerySlideIdx];
+    if (!photo) return;
+    document.getElementById("gallerySlideshowImg").src = photo.url;
+    document.getElementById("gallerySlideshowCounter").textContent = `${gallerySlideIdx + 1} / ${gallerySlidePhotos.length}`;
+    const info = [photo.program_name, photo.form_date, photo.district].filter(Boolean).join(" • ");
+    document.getElementById("gallerySlideshowInfo").textContent = info || photo.form_type || "";
+    document.getElementById("gallerySlideshowTitle").textContent = photo.program_name || photo.form_type || "Photo";
+  }
+
+  document.getElementById("gallerySlideshowPrev")?.addEventListener("click", () => {
+    gallerySlideIdx = (gallerySlideIdx - 1 + gallerySlidePhotos.length) % gallerySlidePhotos.length;
+    showGallerySlide();
+  });
+  document.getElementById("gallerySlideshowNext")?.addEventListener("click", () => {
+    gallerySlideIdx = (gallerySlideIdx + 1) % gallerySlidePhotos.length;
+    showGallerySlide();
+  });
+  document.getElementById("gallerySlideshowClose")?.addEventListener("click", () => {
+    document.getElementById("gallerySlideshowOverlay").classList.add("hidden");
+  });
+  document.addEventListener("keydown", e => {
+    if (!document.getElementById("gallerySlideshowOverlay")?.classList.contains("hidden")) {
+      if (e.key === "ArrowLeft") { gallerySlideIdx = (gallerySlideIdx - 1 + gallerySlidePhotos.length) % gallerySlidePhotos.length; showGallerySlide(); }
+      if (e.key === "ArrowRight") { gallerySlideIdx = (gallerySlideIdx + 1) % gallerySlidePhotos.length; showGallerySlide(); }
+      if (e.key === "Escape") document.getElementById("gallerySlideshowOverlay").classList.add("hidden");
+    }
+  });
+
+  // ── Face Panel ──
+  function openFacePanel(face) {
+    currentFaceId = face.face_id;
+    document.getElementById("facePanelTitle").textContent = face.name || "अज्ञात व्यक्ति";
+    document.getElementById("facePanelThumb").src = face.thumb_url || "";
+    document.getElementById("facePanelName").value = face.name || "";
+    document.getElementById("facePanelMobile").value = face.mobile || "";
+    document.getElementById("facePanelSaveStatus").textContent = "";
+
+    // Face की photos दिखाओ
+    const photosForFace = photosData.filter(p =>
+      p.face_id === face.face_id ||
+      (Array.isArray(p.face_ids) && p.face_ids.includes(face.face_id))
+    );
+    const pGrid = document.getElementById("facePanelPhotos");
+    pGrid.innerHTML = "";
+    if (photosForFace.length) {
+      photosForFace.slice(0, 30).forEach(ph => {
+        const img = document.createElement("img");
+        img.src = ph.url;
+        img.className = "w-full aspect-square object-cover rounded cursor-pointer hover:opacity-80";
+        pGrid.appendChild(img);
+      });
+    } else {
+      pGrid.innerHTML = '<div class="col-span-3 text-slate-500 text-xs text-center py-4">Photos load हो रहे हैं...</div>';
+    }
+
+    document.getElementById("facePanelOverlay").classList.remove("hidden");
+    document.getElementById("facePanel").classList.remove("translate-x-full");
+  }
+
+  window.closeFacePanel = function() {
+    document.getElementById("facePanelOverlay").classList.add("hidden");
+    document.getElementById("facePanel").classList.add("translate-x-full");
+    currentFaceId = null;
+  };
+
+  document.getElementById("facePanelSaveBtn")?.addEventListener("click", async () => {
+    if (!currentFaceId) return;
+    const name = document.getElementById("facePanelName").value.trim();
+    const mobile = document.getElementById("facePanelMobile").value.trim();
+    const statusEl = document.getElementById("facePanelSaveStatus");
+    statusEl.textContent = "Saving...";
+    statusEl.className = "text-xs text-center text-slate-400";
+    try {
+      const res = await adminApi("admin_set_face_name", {
+        face_id: currentFaceId,
+        name, mobile,
+        spread_cluster: true,
+      });
+      if (res.message === "OK") {
+        statusEl.textContent = `✅ Saved! ${res.spread_count} face IDs updated`;
+        statusEl.className = "text-xs text-center text-emerald-400";
+        // Local update
+        const faceObj = facesData.find(f => f.face_id === currentFaceId);
+        if (faceObj) { faceObj.name = name; faceObj.mobile = mobile; }
+        renderFacesGrid();
+        document.getElementById("facePanelTitle").textContent = name || "अज्ञात व्यक्ति";
+      } else {
+        statusEl.textContent = "❌ " + (res.message || "Error");
+        statusEl.className = "text-xs text-center text-red-400";
+      }
+    } catch(e) {
+      statusEl.textContent = "❌ " + e.message;
+      statusEl.className = "text-xs text-center text-red-400";
+    }
+  });
+
+  // ── Backfill ──
+  document.getElementById("backfillBtn")?.addEventListener("click", async () => {
+    const btn = document.getElementById("backfillBtn");
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Running...';
+    try {
+      // पहले dry_run
+      const dr = await adminApi("admin_backfill_identities", { dry_run: true, limit: 1000 });
+      const msg = `${dr.processed || 0} entries मिले। Run करें?`;
+      if (confirm(msg)) {
+        const res = await adminApi("admin_backfill_identities", { dry_run: false, limit: 1000 });
+        alert(`✅ Done!\nProcessed: ${res.processed}\nFilled: ${res.filled}\nSkipped: ${res.skipped}\nErrors: ${res.errors}`);
+        loadFaces(true);
+      }
+    } catch(e) {
+      alert("Error: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Backfill Names';
+    }
+  });
+
+  // ── Refresh ──
+  document.getElementById("galleryRefreshBtn")?.addEventListener("click", () => {
+    loadFaces(true);
+    loadPhotos(true);
+  });
+  document.getElementById("loadMoreFacesBtn")?.addEventListener("click", () => loadFaces(false));
+  document.getElementById("loadMorePhotosBtn")?.addEventListener("click", () => loadPhotos(false));
+  document.getElementById("showUnnamed")?.addEventListener("change", () => loadFaces(true));
+
+  // ── Tab switch पर auto-load ──
+  document.addEventListener("click", e => {
+    const btn = e.target.closest("[data-tab]");
+    if (btn && btn.dataset.tab === "gallery") {
+      // थोड़ी देर बाद load करो (tab animation के बाद)
+      setTimeout(() => {
+        if (!facesData.length) loadFaces(true);
+        if (!photosData.length) loadPhotos(true);
+      }, 200);
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
