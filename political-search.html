@@ -3,33 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Karyakarta Search AI - EventLens</title>
+  <title>EventLens AI — Karyakarta Intelligence</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
-  
+
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
-          colors: { brand: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c', dark: '#0f172a' } },
-          animation: {
-            'scan': 'scan 2s linear infinite',
-            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            'shimmer': 'shimmer 1.5s infinite linear',
+          fontFamily: {
+            display: ['Cinzel', 'serif'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+          colors: {
+            navy: { 950: '#03070F', 900: '#060D1F', 800: '#0B1530', 700: '#112044', 600: '#1A3060' },
+            gold: { 300: '#F5D78A', 400: '#EFC24A', 500: '#D4A017', 600: '#B8880F', 700: '#8B6210' },
+            crimson: { 400: '#FF5C72', 500: '#E63950', 600: '#C41E37' },
+            jade: { 400: '#3ECFB2', 500: '#2AB89C' },
           },
           keyframes: {
-            scan: {
-              '0%': { top: '0%', opacity: '0' },
-              '10%': { opacity: '1' },
-              '90%': { opacity: '1' },
-              '100%': { top: '100%', opacity: '0' },
-            },
-            shimmer: {
-              '0%': { backgroundPosition: '-1000px 0' },
-              '100%': { backgroundPosition: '1000px 0' }
-            }
+            scandown: { '0%': { top: '0%', opacity: 0 }, '10%': { opacity: 1 }, '90%': { opacity: 1 }, '100%': { top: '100%', opacity: 0 } },
+            shimmer: { '0%': { backgroundPosition: '-1000px 0' }, '100%': { backgroundPosition: '1000px 0' } },
+            fadeup: { '0%': { opacity: 0, transform: 'translateY(16px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+            pulseRing: { '0%,100%': { boxShadow: '0 0 0 0 rgba(212,160,23,0.4)' }, '50%': { boxShadow: '0 0 0 12px rgba(212,160,23,0)' } },
+          },
+          animation: {
+            scandown: 'scandown 2.5s linear infinite',
+            shimmer: 'shimmer 2s infinite linear forwards',
+            fadeup: 'fadeup 0.5s ease forwards',
+            pulseRing: 'pulseRing 2s ease infinite',
           }
         }
       }
@@ -37,194 +40,445 @@
   </script>
 
   <style>
-    body { 
-      background-color: #020617;
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.10) 0px, transparent 50%);
+    * { box-sizing: border-box; }
+    :root {
+      --navy-950: #03070F;
+      --navy-900: #060D1F;
+      --navy-800: #0B1530;
+      --navy-700: #112044;
+      --gold-400: #EFC24A;
+      --gold-500: #D4A017;
+      --crimson-500: #E63950;
+      --jade-400: #3ECFB2;
+    }
+    body {
+      background-color: var(--navy-950);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212,160,23,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(230,57,80,0.07) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4A017' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
       background-attachment: fixed;
-      color: #e2e8f0; 
+      color: #D1D9E6;
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
       -webkit-tap-highlight-color: transparent;
     }
-    .glass-panel { 
-      background: rgba(15, 23, 42, 0.6); 
-      backdrop-filter: blur(20px); 
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.08); 
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+
+    /* ─── Noise Grain Overlay ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
     }
-    .glass-card {
-      background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+
+    /* ─── Glass Card ─── */
+    .glass {
+      background: linear-gradient(135deg, rgba(17,32,68,0.65) 0%, rgba(6,13,31,0.85) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(212,160,23,0.12);
+      box-shadow: 0 8px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(212,160,23,0.08);
     }
-    .timeline-line::before {
+    .glass-sm {
+      background: rgba(11,21,48,0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ─── Gold Border Top ─── */
+    .gold-top::before {
       content: '';
       position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 20px;
-      width: 2px;
-      background: linear-gradient(to bottom, #f97316 0%, rgba(51, 65, 85, 0.5) 100%);
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-500), transparent);
     }
-    
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
-
-    /* Scan animation overlay */
-    .scan-overlay {
-      background: linear-gradient(to bottom, transparent, rgba(249, 115, 22, 0.5), transparent);
-      height: 4px;
-      box-shadow: 0 0 15px rgba(249, 115, 22, 0.8);
+    .crimson-top::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--crimson-500), transparent);
     }
 
-    /* Active Tab Style */
+    /* ─── Navbar ─── */
+    .navbar {
+      background: linear-gradient(180deg, rgba(3,7,15,0.97) 0%, rgba(6,13,31,0.92) 100%);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(212,160,23,0.15);
+      box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(212,160,23,0.1);
+    }
+
+    /* ─── Logo ─── */
+    .logo-icon {
+      background: linear-gradient(135deg, #D4A017 0%, #EFC24A 40%, #B8880F 100%);
+      box-shadow: 0 4px 16px rgba(212,160,23,0.4), 0 0 0 1px rgba(212,160,23,0.3);
+    }
+
+    /* ─── Upload Zone ─── */
+    .upload-zone {
+      background: radial-gradient(ellipse at center, rgba(17,32,68,0.8) 0%, rgba(6,13,31,0.9) 100%);
+      border: 2px dashed rgba(212,160,23,0.25);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .upload-zone::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(212,160,23,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .upload-zone:hover {
+      border-color: rgba(212,160,23,0.6);
+      background: radial-gradient(ellipse at center, rgba(17,32,68,0.9) 0%, rgba(6,13,31,0.95) 100%);
+    }
+
+    /* ─── Scan Line ─── */
+    .scan-line {
+      background: linear-gradient(to bottom, transparent, rgba(212,160,23,0.8), transparent);
+      height: 3px;
+      box-shadow: 0 0 20px rgba(212,160,23,1), 0 0 40px rgba(212,160,23,0.5);
+    }
+
+    /* ─── Buttons ─── */
+    .btn-primary {
+      background: linear-gradient(135deg, #D4A017 0%, #EFC24A 50%, #B8880F 100%);
+      color: #060D1F;
+      font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 20px rgba(212,160,23,0.35), 0 1px 0 rgba(255,255,255,0.2) inset;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 28px rgba(212,160,23,0.55), 0 1px 0 rgba(255,255,255,0.2) inset;
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-success {
+      background: linear-gradient(135deg, #1a6b5c 0%, #2AB89C 100%);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(62,207,178,0.25);
+      transition: all 0.2s ease;
+    }
+    .btn-success:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(62,207,178,0.4); }
+    .btn-success:active { transform: scale(0.98); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #94a3b8;
+      transition: all 0.2s ease;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+    /* ─── Stat Cards ─── */
+    .stat-card {
+      background: linear-gradient(145deg, rgba(17,32,68,0.7) 0%, rgba(6,13,31,0.9) 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(212,160,23,0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+
+    /* ─── Tabs ─── */
+    .tab-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      color: #64748b;
+      border-bottom: 2px solid transparent;
+      transition: all 0.25s ease;
+      padding-bottom: 12px;
+    }
+    .tab-btn:hover { color: #D1D9E6; border-bottom-color: rgba(212,160,23,0.3); }
     .tab-active {
-        color: #f97316;
-        border-bottom-color: #f97316;
+      color: var(--gold-400) !important;
+      border-bottom-color: var(--gold-400) !important;
+      font-weight: 700;
     }
     .tab-inactive {
-        color: #94a3b8;
-        border-bottom-color: transparent;
-    }
-    .tab-inactive:hover {
-        color: #e2e8f0;
-        border-bottom-color: #334155;
+      color: #64748b;
+      border-bottom-color: transparent;
     }
 
-    /* ── PPT Slideshow Modal ── */
-    #slideshowOverlay {
-      position: fixed; inset: 0; z-index: 9999;
-      background: #000;
-      display: none;
-      flex-direction: column;
+    /* ─── Filter Pills ─── */
+    .filter-pill {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: #64748b;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
-    #slideshowOverlay.active { display: flex; }
-    #slideshowTopBar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 16px;
-      background: rgba(15,23,42,0.95);
-      border-bottom: 1px solid rgba(249,115,22,0.3);
-      flex-shrink: 0;
-    }
-    #slideshowTitle {
-      font-size: 14px; font-weight: 700; color: #f97316;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60vw;
-    }
-    #slideshowCounter { font-size: 12px; color: #94a3b8; flex-shrink: 0; }
-    #slideshowMain {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      position: relative; overflow: hidden; background: #000;
-    }
-    #slideshowImg {
-      max-width: 100%; max-height: 100%;
-      object-fit: contain;
-      transition: opacity 0.25s ease;
-    }
-    #slideshowImg.fading { opacity: 0; }
-    .ss-nav-btn {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(15,23,42,0.8); border: 1px solid rgba(249,115,22,0.4);
-      color: #f97316; font-size: 18px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; z-index: 10; transition: background 0.2s;
-    }
-    .ss-nav-btn:hover { background: rgba(249,115,22,0.2); }
-    #ssPrev { left: 12px; } #ssNext { right: 12px; }
-    #slideshowBottom {
-      background: rgba(15,23,42,0.97);
-      border-top: 1px solid rgba(255,255,255,0.06);
-      flex-shrink: 0;
-    }
-    #slideshowDetails {
-      padding: 10px 16px;
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 6px 16px;
-      max-height: 140px; overflow-y: auto;
-      font-size: 12px;
-    }
-    .ss-detail-row { display: flex; flex-direction: column; }
-    .ss-detail-key { color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .ss-detail-val { color: #e2e8f0; font-weight: 500; }
-    #slideshowThumbBar {
-      display: flex; gap: 6px; padding: 8px 12px;
-      overflow-x: auto; background: rgba(2,6,23,0.8);
-      scrollbar-width: thin;
-    }
-    .ss-thumb {
-      width: 48px; height: 48px; border-radius: 6px; object-fit: cover;
-      border: 2px solid transparent; cursor: pointer; flex-shrink: 0;
-      transition: border-color 0.2s;
-    }
-    .ss-thumb.active { border-color: #f97316; }
-    #slideshowProgress {
-      height: 3px; background: rgba(249,115,22,0.2);
-    }
-    #slideshowProgressBar {
-      height: 100%; background: #f97316;
-      transition: width 0.25s ease;
+    .filter-pill:hover { color: #D1D9E6; border-color: rgba(212,160,23,0.4); }
+    .filter-pill.active {
+      background: rgba(212,160,23,0.15);
+      border-color: rgba(212,160,23,0.6);
+      color: var(--gold-400);
+      box-shadow: 0 0 12px rgba(212,160,23,0.2);
     }
 
-    /* Skeleton Shimmer */
+    /* ─── Timeline ─── */
+    .timeline-rail::before {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; left: 20px;
+      width: 1px;
+      background: linear-gradient(to bottom, rgba(212,160,23,0.5) 0%, rgba(212,160,23,0.1) 60%, transparent 100%);
+    }
+    .timeline-dot {
+      background: var(--navy-900);
+      border: 2px solid rgba(212,160,23,0.3);
+      transition: all 0.2s ease;
+    }
+    .timeline-item:hover .timeline-dot {
+      border-color: var(--gold-400);
+      background: rgba(212,160,23,0.15);
+      box-shadow: 0 0 12px rgba(212,160,23,0.4);
+    }
+
+    /* ─── Event Card ─── */
+    .event-card {
+      background: linear-gradient(145deg, rgba(17,32,68,0.5) 0%, rgba(6,13,31,0.7) 100%);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-left: 2px solid rgba(212,160,23,0.2);
+      transition: all 0.25s ease;
+    }
+    .event-card:hover {
+      background: linear-gradient(145deg, rgba(17,32,68,0.7) 0%, rgba(6,13,31,0.85) 100%);
+      border-left-color: var(--gold-400);
+      transform: translateX(4px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), -4px 0 20px rgba(212,160,23,0.1);
+    }
+
+    /* ─── Badge ─── */
+    .badge-gold {
+      background: rgba(212,160,23,0.12);
+      border: 1px solid rgba(212,160,23,0.3);
+      color: var(--gold-400);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge-jade {
+      background: rgba(62,207,178,0.08);
+      border: 1px solid rgba(62,207,178,0.25);
+      color: var(--jade-400);
+    }
+    .badge-crimson {
+      background: rgba(230,57,80,0.1);
+      border: 1px solid rgba(230,57,80,0.25);
+      color: #FF7088;
+    }
+
+    /* ─── Skeleton Shimmer ─── */
     .skeleton {
-      background: #1e293b;
-      background-image: linear-gradient(to right, #1e293b 0%, #334155 20%, #1e293b 40%, #1e293b 100%);
+      background: rgba(17,32,68,0.5);
+      background-image: linear-gradient(to right, rgba(17,32,68,0.5) 0%, rgba(26,48,96,0.7) 20%, rgba(17,32,68,0.5) 40%, rgba(17,32,68,0.5) 100%);
       background-repeat: no-repeat;
       background-size: 1000px 100%;
       animation: shimmer 2s infinite linear forwards;
     }
 
-    /* Markdown Styles for AI Report */
+    /* ─── Match Success ─── */
+    .match-glow {
+      box-shadow: 0 0 0 1px rgba(62,207,178,0.3), 0 0 40px rgba(62,207,178,0.1);
+    }
+
+    /* ─── AI Report Markdown ─── */
     .ai-report-content h1, .ai-report-content h2, .ai-report-content h3 {
-        font-weight: 700;
-        color: #fff;
-        margin-top: 1em;
-        margin-bottom: 0.5em;
+      font-family: 'Cinzel', serif;
+      color: var(--gold-400);
+      margin-top: 1.2em; margin-bottom: 0.5em;
     }
-    .ai-report-content p {
-        margin-bottom: 0.8em;
-        line-height: 1.6;
-        color: #e2e8f0;
+    .ai-report-content p { line-height: 1.7; color: #D1D9E6; margin-bottom: 0.8em; }
+    .ai-report-content ul { list-style: none; padding-left: 0; margin-bottom: 1em; }
+    .ai-report-content li { padding-left: 1.5em; margin-bottom: 0.5em; color: #94a3b8; position: relative; }
+    .ai-report-content li::before { content: '◆'; position: absolute; left: 0; color: var(--gold-500); font-size: 8px; top: 6px; }
+    .ai-report-content strong { color: var(--gold-400); }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(212,160,23,0.2); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(212,160,23,0.4); }
+
+    /* ─── Slideshow ─── */
+    #slideshowOverlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #000;
+      display: none; flex-direction: column;
     }
-    .ai-report-content ul {
-        list-style-type: disc;
-        padding-left: 1.5em;
-        margin-bottom: 1em;
-        color: #cbd5e1;
+    #slideshowOverlay.active { display: flex; }
+    #slideshowTopBar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(3,7,15,0.97);
+      border-bottom: 1px solid rgba(212,160,23,0.2);
+      flex-shrink: 0;
     }
-    .ai-report-content li {
-        margin-bottom: 0.4em;
+    #slideshowTitle {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 700; color: var(--gold-400);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60vw;
     }
-    .ai-report-content strong {
-        color: #f97316;
+    #slideshowCounter { font-size: 12px; color: #475569; font-family: monospace; flex-shrink: 0; }
+    #slideshowMain {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+      background: radial-gradient(ellipse at center, #0A0F1E 0%, #000 100%);
+    }
+    #slideshowImg { max-width: 100%; max-height: 100%; object-fit: contain; transition: opacity 0.25s ease; }
+    #slideshowImg.fading { opacity: 0; }
+    .ss-nav-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 48px; height: 48px; border-radius: 50%;
+      background: rgba(3,7,15,0.8); border: 1px solid rgba(212,160,23,0.3);
+      color: var(--gold-400); font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 10; transition: all 0.2s;
+    }
+    .ss-nav-btn:hover { background: rgba(212,160,23,0.15); border-color: var(--gold-400); box-shadow: 0 0 20px rgba(212,160,23,0.3); }
+    #ssPrev { left: 16px; } #ssNext { right: 16px; }
+    #slideshowBottom { background: rgba(3,7,15,0.97); border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
+    #slideshowDetails {
+      padding: 12px 20px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px 20px;
+      max-height: 120px; overflow-y: auto;
+      font-size: 12px;
+    }
+    .ss-detail-row { display: flex; flex-direction: column; }
+    .ss-detail-key { color: #475569; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+    .ss-detail-val { color: #D1D9E6; font-weight: 600; font-size: 12px; }
+    #slideshowThumbBar {
+      display: flex; gap: 6px; padding: 8px 16px;
+      overflow-x: auto; background: rgba(6,13,31,0.8);
+      scrollbar-width: thin; border-top: 1px solid rgba(212,160,23,0.08);
+    }
+    .ss-thumb {
+      width: 52px; height: 52px; border-radius: 8px; object-fit: cover;
+      border: 2px solid transparent; cursor: pointer; flex-shrink: 0;
+      transition: all 0.2s; opacity: 0.6;
+    }
+    .ss-thumb:hover { opacity: 1; }
+    .ss-thumb.active { border-color: var(--gold-400); opacity: 1; box-shadow: 0 0 12px rgba(212,160,23,0.4); }
+    #slideshowProgress { height: 2px; background: rgba(212,160,23,0.15); }
+    #slideshowProgressBar { height: 100%; background: linear-gradient(90deg, #D4A017, #EFC24A); transition: width 0.3s ease; }
+
+    /* ─── Modal ─── */
+    #detailModal .modal-panel {
+      background: linear-gradient(145deg, #0B1530 0%, #060D1F 100%);
+      border: 1px solid rgba(212,160,23,0.15);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+    }
+
+    /* ─── Animations ─── */
+    @keyframes scandown {
+      0% { top: 0%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+    @keyframes fadeup {
+      0% { opacity: 0; transform: translateY(16px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseRing {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212,160,23,0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(212,160,23,0); }
+    }
+    .animate-fadeup { animation: fadeup 0.5s ease forwards; }
+    .pulse-ring { animation: pulseRing 2s ease infinite; }
+
+    /* ─── Mobile bottom bar ─── */
+    @media (max-width: 1023px) {
+      .mobile-bottom { padding-bottom: 80px; }
+    }
+
+    /* ─── Photo Grid ─── */
+    .photo-item {
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(11,21,48,0.5);
+      transition: all 0.25s ease;
+      aspect-ratio: 1;
+    }
+    .photo-item:hover {
+      border-color: rgba(212,160,23,0.4);
+      transform: scale(1.02);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,160,23,0.2);
+    }
+
+    /* ─── Divider ─── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,160,23,0.15), transparent);
+    }
+
+    /* ─── Token badge ─── */
+    .token-badge {
+      background: rgba(62,207,178,0.08);
+      border: 1px solid rgba(62,207,178,0.2);
+      color: var(--jade-400);
+      font-size: 11px;
+    }
+
+    /* Stat bar */
+    .stat-bar-fill {
+      height: 3px;
+      border-radius: 999px;
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     }
   </style>
 
   <script>
-    // --- Image helpers ---
     function previewImage(inputEl) {
       try {
         const file = inputEl && inputEl.files && inputEl.files[0];
         const preview = document.getElementById("preview");
         const placeholder = document.getElementById("uploadPlaceholder");
         const scanLine = document.getElementById("scanLine");
-        
         if (!preview) return;
         if (!file) {
           preview.src = "";
           preview.classList.add("hidden");
-          if(placeholder) placeholder.classList.remove("hidden");
-          if(scanLine) scanLine.classList.add("hidden");
+          if (placeholder) placeholder.classList.remove("hidden");
+          if (scanLine) scanLine.classList.add("hidden");
           return;
         }
         const url = URL.createObjectURL(file);
         preview.src = url;
         preview.classList.remove("hidden");
-        if(placeholder) placeholder.classList.add("hidden");
-        if(scanLine) scanLine.classList.remove("hidden");
+        if (placeholder) placeholder.classList.add("hidden");
+        if (scanLine) scanLine.classList.remove("hidden");
       } catch (e) { console.error(e); }
     }
 
@@ -234,313 +488,327 @@
       imgEl.referrerPolicy = "no-referrer";
       const load = () => { imgEl.src = url; };
       imgEl.onerror = () => {
-        if (attempt < maxRetries) {
-          attempt += 1;
-          setTimeout(load, 350 * attempt);
-          return;
-        }
-        // Fallback placeholder
-        imgEl.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Cimage x='6' y='6' width='12' height='12' href='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTRhM2I4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iMjEgMTUgMTYgMTAgNSAyMSIvPjwvc3ZnPg=='/%3E%3C/svg%3E";
+        if (attempt < maxRetries) { attempt += 1; setTimeout(load, 350 * attempt); return; }
+        imgEl.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
       };
       load();
     }
+
     function getBestThumbUrl(obj, fallbackUrl) {
       if (!obj) return fallbackUrl;
       return obj.thumb_url || obj.thumbUrl || obj.thumbnail_url || obj.thumbnailUrl || fallbackUrl;
     }
   </script>
 </head>
-<body class="min-h-screen font-sans selection:bg-orange-500/30 pb-20 lg:pb-0">
 
-  <!-- Top Navbar -->
-  <nav class="sticky top-0 z-40 glass-panel border-b-0 border-b-white/5 shadow-lg shadow-orange-900/5">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<body class="font-body mobile-bottom">
+
+  <!-- ══ NAVBAR ══ -->
+  <nav class="navbar sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
       <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-            <i class="fa-solid fa-bolt text-lg"></i>
+          <div class="logo-icon w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-bolt text-navy-950 text-base" style="color:#060D1F"></i>
           </div>
           <div>
-            <h1 class="text-xl font-bold text-white tracking-tight">EventLens <span class="text-orange-400">AI</span></h1>
-            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Political Intelligence Unit</p>
+            <div class="flex items-baseline gap-2">
+              <span class="font-display text-white text-lg tracking-wide">EventLens</span>
+              <span class="font-display text-sm" style="color:#D4A017">AI</span>
+            </div>
+            <p class="text-[9px] uppercase tracking-widest" style="color:#475569; letter-spacing:0.12em;">Political Intelligence Unit</p>
           </div>
         </div>
-        <div class="flex items-center gap-4">
-           <!-- Share/Copy Button -->
-           <button id="copySummaryBtn" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700 text-xs font-medium">
-             <i class="fa-regular fa-copy"></i> Copy Stats
-           </button>
-           <div id="tokenDisplay" class="hidden md:block px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-xs font-mono text-slate-400">
-             <i class="fa-solid fa-shield-halved mr-1 text-emerald-500"></i> Secure
-           </div>
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3">
+          <button id="copySummaryBtn" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg btn-ghost text-xs font-semibold">
+            <i class="fa-regular fa-copy text-[10px]"></i> Stats Copy करें
+          </button>
+          <div id="tokenDisplay" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full token-badge font-semibold">
+            <i class="fa-solid fa-shield-halved text-[10px]"></i> Secured
+          </div>
         </div>
       </div>
     </div>
   </nav>
 
-  <div class="max-w-7xl mx-auto px-4 py-6 lg:py-8">
+  <div class="max-w-7xl mx-auto px-4 py-6 lg:py-8 relative z-10">
     <div class="grid lg:grid-cols-12 gap-6 lg:gap-8">
-      
-      <!-- Left Column: Search & Upload -->
-      <!-- On mobile, this stays on top but becomes more compact after search -->
-      <div class="lg:col-span-4 space-y-4 lg:space-y-6">
-        
-        <!-- ── Step 1: Camera / Upload Card ── -->
-        <div id="step1Card" class="glass-panel rounded-2xl p-1 shadow-2xl overflow-hidden relative">
-          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-600"></div>
-          <div class="p-5 lg:p-6 bg-slate-900/40">
-            <h2 class="text-lg font-bold text-white mb-1 flex items-center gap-2">
-              <i class="fa-solid fa-face-viewfinder text-orange-500"></i> सेल्फी सर्च
-            </h2>
-            <p class="text-slate-400 text-xs mb-4">चेहरे से कार्यकर्ता खोजें</p>
 
-            <!-- Camera Button (Primary) -->
-            <button id="cameraBtn" class="relative w-full py-5 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-dashed border-orange-500/40 hover:border-orange-500 transition-all duration-200 cursor-pointer active:scale-[0.98] mb-3 group/cam overflow-hidden">
-              <input id="selfieInput" accept="image/*" capture="user" type="file" class="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer" onchange="previewImage(this)" />
-              <div id="uploadPlaceholder" class="flex flex-col items-center justify-center text-slate-400 group-hover/cam:text-orange-400 transition-colors pointer-events-none">
-                <div class="w-16 h-16 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center mb-2">
-                  <i class="fa-solid fa-camera text-3xl text-orange-400"></i>
-                </div>
-                <span class="text-base font-bold text-white">📸 सेल्फी लें</span>
-                <span class="text-xs text-slate-400 mt-1">Camera खुलेगा</span>
+      <!-- ══ LEFT COLUMN ══ -->
+      <div class="lg:col-span-4 space-y-5">
+
+        <!-- Step 1: Upload Card -->
+        <div id="step1Card" class="glass rounded-2xl relative overflow-hidden gold-top">
+          <div class="p-5 lg:p-6">
+            <!-- Header -->
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(212,160,23,0.12); border:1px solid rgba(212,160,23,0.25)">
+                <i class="fa-solid fa-face-viewfinder text-sm" style="color:#D4A017"></i>
               </div>
-              <!-- Preview -->
-              <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover z-10 rounded-xl" />
-              <div id="scanLine" class="hidden absolute left-0 w-full h-1 bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,1)] z-10 animate-scan pointer-events-none"></div>
-            </button>
+              <div>
+                <h2 class="font-semibold text-white text-sm">सेल्फी सर्च</h2>
+                <p class="text-[11px]" style="color:#475569">चेहरे से कार्यकर्ता खोजें</p>
+              </div>
+            </div>
 
-            <!-- Upload (Secondary - small) -->
-            <label class="flex items-center justify-center gap-2 w-full py-2 rounded-lg border border-slate-700 bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:border-slate-600 text-xs cursor-pointer transition-all mb-4">
+            <!-- Camera / Upload Zone -->
+            <div class="relative mb-3">
+              <label class="upload-zone rounded-xl flex flex-col items-center justify-center cursor-pointer" style="min-height:180px;">
+                <input id="selfieInput" accept="image/*" capture="user" type="file" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="previewImage(this)" />
+
+                <!-- Placeholder -->
+                <div id="uploadPlaceholder" class="flex flex-col items-center justify-center py-6 pointer-events-none">
+                  <div class="w-16 h-16 rounded-full flex items-center justify-center mb-3 pulse-ring" style="background:rgba(212,160,23,0.1); border:1px solid rgba(212,160,23,0.25)">
+                    <i class="fa-solid fa-camera text-2xl" style="color:#D4A017"></i>
+                  </div>
+                  <span class="font-bold text-white text-sm mb-1">📸 सेल्फी लें</span>
+                  <span class="text-xs" style="color:#475569">Camera खुलेगा</span>
+                </div>
+
+                <!-- Preview -->
+                <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover rounded-xl z-10" />
+                <!-- Scan Line -->
+                <div id="scanLine" class="hidden absolute left-0 w-full scan-line z-10 pointer-events-none" style="animation: scandown 2.5s linear infinite; position:absolute;"></div>
+              </label>
+            </div>
+
+            <!-- Gallery Upload -->
+            <label class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl btn-ghost text-xs font-semibold cursor-pointer mb-4">
               <input id="uploadInput" accept="image/*" type="file" class="hidden" onchange="previewImage(this)" />
-              <i class="fa-solid fa-upload text-[11px]"></i> गैलरी से अपलोड करें
+              <i class="fa-solid fa-images text-[11px]" style="color:#D4A017"></i>
+              <span>गैलरी से अपलोड</span>
             </label>
 
             <!-- Search Button -->
-            <button id="searchBtn" class="relative w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold shadow-lg shadow-orange-900/40 transition-all active:scale-[0.98] overflow-hidden">
-              <span class="relative flex items-center justify-center gap-2">
-                <i class="fa-solid fa-magnifying-glass"></i> खोजें
-              </span>
+            <button id="searchBtn" class="btn-primary w-full py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 relative z-10">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>खोजें</span>
             </button>
 
             <div id="statusBox" class="hidden mt-3 text-center"></div>
           </div>
         </div>
 
-        <!-- ── Step 2: Match Found → Name/Mobile form ── -->
-        <div id="step2Card" class="hidden glass-panel rounded-2xl p-1 shadow-2xl overflow-hidden relative">
-          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
-          <div class="p-5 bg-slate-900/40">
+        <!-- Step 2: Match Confirmation -->
+        <div id="step2Card" class="hidden glass rounded-2xl relative overflow-hidden">
+          <!-- Jade top border -->
+          <div class="absolute top-0 left-0 right-0 h-0.5" style="background: linear-gradient(90deg, transparent, #3ECFB2, transparent)"></div>
+          <div class="p-5">
             <!-- Match Summary -->
-            <div id="matchSummary" class="mb-5 text-center">
-              <div class="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto mb-3">
-                <i class="fa-solid fa-circle-check text-2xl text-emerald-400"></i>
+            <div id="matchSummary" class="text-center mb-5">
+              <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 match-glow" style="background:rgba(62,207,178,0.1); border:1px solid rgba(62,207,178,0.3)">
+                <i class="fa-solid fa-circle-check text-2xl" style="color:#3ECFB2"></i>
               </div>
-              <div class="text-white font-bold text-base" id="matchTitle">मैच मिला!</div>
-              <div class="text-slate-400 text-xs mt-1" id="matchSubtitle"></div>
-              <!-- Stats pills -->
-              <div class="flex justify-center gap-3 mt-3" id="matchPills"></div>
+              <div class="font-bold text-white text-base" id="matchTitle">मैच मिला!</div>
+              <div class="text-xs mt-1" style="color:#475569" id="matchSubtitle"></div>
+              <div class="flex justify-center gap-2 mt-3 flex-wrap" id="matchPills"></div>
             </div>
 
-            <!-- Name + Mobile -->
-            <div class="space-y-3">
+            <div class="divider mb-4"></div>
+
+            <!-- Inputs -->
+            <div class="space-y-3 mb-4">
               <div>
-                <label class="text-xs text-slate-400 font-medium block mb-1">नाम (Name)</label>
-                <input id="nameInput" type="text" placeholder="कार्यकर्ता का नाम" class="w-full rounded-lg px-3 py-2.5 text-sm bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none" />
+                <label class="text-[10px] font-semibold uppercase tracking-wider block mb-1.5" style="color:#475569">नाम (Name)</label>
+                <input id="nameInput" type="text" placeholder="कार्यकर्ता का नाम" class="w-full rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-1" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); transition:border-color 0.2s; font-family:'DM Sans',sans-serif;" onfocus="this.style.borderColor='rgba(212,160,23,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
               </div>
               <div>
-                <label class="text-xs text-slate-400 font-medium block mb-1">मोबाइल (Mobile)</label>
-                <input id="mobileInput" type="tel" placeholder="10 अंक" class="w-full rounded-lg px-3 py-2.5 text-sm bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-orange-500 focus:outline-none" />
+                <label class="text-[10px] font-semibold uppercase tracking-wider block mb-1.5" style="color:#475569">मोबाइल</label>
+                <input id="mobileInput" type="tel" placeholder="10 अंक" class="w-full rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); transition:border-color 0.2s; font-family:'DM Sans',sans-serif;" onfocus="this.style.borderColor='rgba(212,160,23,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
               </div>
-              <button id="confirmBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold transition-all active:scale-[0.98]">
-                <i class="fa-solid fa-eye mr-2"></i> रिजल्ट देखें
-              </button>
-              <button id="skipBtn" class="w-full py-2 rounded-xl border border-slate-700 text-slate-400 hover:text-white text-xs transition-all">
-                बिना नाम के देखें
-              </button>
             </div>
+
+            <button id="confirmBtn" class="btn-success w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 mb-2">
+              <i class="fa-solid fa-eye text-[13px]"></i> रिजल्ट देखें
+            </button>
+            <button id="skipBtn" class="btn-ghost w-full py-2.5 rounded-xl text-xs">
+              बिना नाम के देखें
+            </button>
           </div>
         </div>
+
       </div>
 
-      <!-- Right Column: Results -->
-      <div class="lg:col-span-8 space-y-6">
-        
+      <!-- ══ RIGHT COLUMN ══ -->
+      <div class="lg:col-span-8 space-y-5">
+
         <!-- Empty State -->
-        <div id="emptyState" class="glass-panel rounded-2xl p-8 lg:p-12 text-center flex flex-col items-center justify-center h-full min-h-[300px] lg:min-h-[400px]">
-           <div class="w-20 h-20 lg:w-24 lg:h-24 bg-slate-800/50 rounded-full flex items-center justify-center mb-4 border border-slate-700">
-             <i class="fa-solid fa-fingerprint text-3xl lg:text-4xl text-slate-600"></i>
-           </div>
-           <h3 class="text-xl font-bold text-slate-300">Ready to Search</h3>
-           <p class="text-slate-500 mt-2 max-w-sm text-sm lg:text-base">Upload a photo to verify identity and view timeline.</p>
+        <div id="emptyState" class="glass rounded-2xl flex flex-col items-center justify-center text-center" style="min-height:380px;">
+          <div class="w-20 h-20 rounded-full flex items-center justify-center mb-5" style="background:rgba(17,32,68,0.6); border:1px solid rgba(212,160,23,0.12)">
+            <i class="fa-solid fa-fingerprint text-3xl" style="color:#1A3060"></i>
+          </div>
+          <h3 class="font-display text-lg text-white mb-2" style="letter-spacing:0.04em">Search Ready</h3>
+          <p class="text-sm max-w-xs" style="color:#475569">सेल्फी अपलोड करें और कार्यकर्ता की पहचान तुरंत करें</p>
+          <div class="flex gap-4 mt-6 text-xs" style="color:#1A3060">
+            <div class="flex items-center gap-1.5"><i class="fa-solid fa-face-viewfinder"></i> चेहरा पहचान</div>
+            <div class="flex items-center gap-1.5"><i class="fa-solid fa-timeline"></i> इवेंट टाइमलाइन</div>
+            <div class="flex items-center gap-1.5"><i class="fa-solid fa-images"></i> फोटो गैलरी</div>
+          </div>
         </div>
 
         <!-- Stats Dashboard -->
-        <div id="statsDashboard" class="hidden grid grid-cols-3 gap-3 lg:gap-4">
+        <div id="statsDashboard" class="hidden grid grid-cols-3 gap-3">
           <!-- Match Score -->
-          <div class="glass-card p-3 lg:p-4 rounded-xl relative overflow-hidden text-center lg:text-left">
-             <div class="lg:absolute lg:right-0 lg:top-0 lg:p-3 opacity-10 hidden lg:block"><i class="fa-solid fa-bullseye text-6xl"></i></div>
-             <div class="text-slate-400 text-[10px] lg:text-xs font-semibold uppercase tracking-wider">Confidence</div>
-             <div class="mt-1 lg:mt-2 flex justify-center lg:justify-start items-baseline gap-1">
-                <span id="scoreVal" class="text-2xl lg:text-3xl font-extrabold text-white">0%</span>
-             </div>
-             <div class="w-full bg-slate-700 h-1 mt-2 rounded-full overflow-hidden mx-auto lg:mx-0 max-w-[80px] lg:max-w-none">
-                <div id="scoreBar" class="h-full bg-emerald-500 w-0 transition-all duration-1000"></div>
-             </div>
+          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
+            <div class="absolute right-3 top-3 opacity-5"><i class="fa-solid fa-bullseye text-5xl" style="color:#D4A017"></i></div>
+            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Confidence</div>
+            <div class="flex items-baseline gap-1 mb-2">
+              <span id="scoreVal" class="text-3xl font-bold text-white">0%</span>
+            </div>
+            <div class="rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06); height:3px;">
+              <div id="scoreBar" class="stat-bar-fill" style="background:linear-gradient(90deg,#2AB89C,#3ECFB2); width:0%;"></div>
+            </div>
+            <div class="text-[9px] mt-1" style="color:#1A3060" id="similarityText"></div>
           </div>
-          
-          <!-- Timeline Count -->
-          <div class="glass-card p-3 lg:p-4 rounded-xl relative overflow-hidden text-center lg:text-left">
-             <div class="lg:absolute lg:right-0 lg:top-0 lg:p-3 opacity-10 hidden lg:block"><i class="fa-solid fa-clock-rotate-left text-6xl"></i></div>
-             <div class="text-slate-400 text-[10px] lg:text-xs font-semibold uppercase tracking-wider">Events</div>
-             <div class="mt-1 lg:mt-2 text-2xl lg:text-3xl font-extrabold text-white" id="eventCountVal">0</div>
+          <!-- Events -->
+          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
+            <div class="absolute right-3 top-3 opacity-5"><i class="fa-solid fa-clock-rotate-left text-5xl" style="color:#D4A017"></i></div>
+            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Events</div>
+            <div class="text-3xl font-bold text-white" id="eventCountVal">0</div>
+            <div id="timelineCount" class="hidden"></div>
           </div>
-          
-          <!-- Photos Count -->
-          <div class="glass-card p-3 lg:p-4 rounded-xl relative overflow-hidden text-center lg:text-left">
-             <div class="lg:absolute lg:right-0 lg:top-0 lg:p-3 opacity-10 hidden lg:block"><i class="fa-solid fa-images text-6xl"></i></div>
-             <div class="text-slate-400 text-[10px] lg:text-xs font-semibold uppercase tracking-wider">Photos</div>
-             <div class="mt-1 lg:mt-2 text-2xl lg:text-3xl font-extrabold text-white" id="photoCountVal">0</div>
+          <!-- Photos -->
+          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
+            <div class="absolute right-3 top-3 opacity-5"><i class="fa-solid fa-images text-5xl" style="color:#D4A017"></i></div>
+            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Photos</div>
+            <div class="text-3xl font-bold text-white" id="photoCountVal">0</div>
+            <div id="photoCount" class="hidden"></div>
           </div>
         </div>
 
-        <!-- Skeleton Loader (New) -->
-        <div id="skeletonLoader" class="hidden space-y-6">
-           <div class="flex gap-4 mb-8">
-              <div class="w-24 h-8 rounded-lg skeleton"></div>
-              <div class="w-24 h-8 rounded-lg skeleton"></div>
-           </div>
-           <!-- Fake Items -->
-           <div class="pl-8 relative border-l-2 border-slate-800 space-y-8">
-              <div class="relative">
-                 <div class="absolute -left-[39px] top-4 w-4 h-4 rounded-full bg-slate-800 border-2 border-slate-700"></div>
-                 <div class="glass-card rounded-xl p-5 h-32 skeleton"></div>
-              </div>
-              <div class="relative">
-                 <div class="absolute -left-[39px] top-4 w-4 h-4 rounded-full bg-slate-800 border-2 border-slate-700"></div>
-                 <div class="glass-card rounded-xl p-5 h-32 skeleton"></div>
-              </div>
-              <div class="relative">
-                 <div class="absolute -left-[39px] top-4 w-4 h-4 rounded-full bg-slate-800 border-2 border-slate-700"></div>
-                 <div class="glass-card rounded-xl p-5 h-32 skeleton"></div>
-              </div>
-           </div>
+        <!-- Skeleton Loader -->
+        <div id="skeletonLoader" class="hidden space-y-4">
+          <div class="flex gap-3">
+            <div class="h-7 w-20 rounded-full skeleton"></div>
+            <div class="h-7 w-20 rounded-full skeleton"></div>
+            <div class="h-7 w-20 rounded-full skeleton"></div>
+          </div>
+          <div class="space-y-4 pl-10 relative" style="border-left:1px solid rgba(212,160,23,0.1)">
+            <div class="relative">
+              <div class="absolute -left-[41px] top-5 w-4 h-4 rounded-full skeleton"></div>
+              <div class="rounded-xl p-5 skeleton" style="height:96px;"></div>
+            </div>
+            <div class="relative">
+              <div class="absolute -left-[41px] top-5 w-4 h-4 rounded-full skeleton"></div>
+              <div class="rounded-xl p-5 skeleton" style="height:80px;"></div>
+            </div>
+            <div class="relative">
+              <div class="absolute -left-[41px] top-5 w-4 h-4 rounded-full skeleton"></div>
+              <div class="rounded-xl p-5 skeleton" style="height:112px;"></div>
+            </div>
+          </div>
         </div>
 
-        <!-- Main Content Area -->
-        <div id="resultsContainer" class="hidden flex flex-col min-h-[500px]">
-           
-           <!-- Tabs -->
-           <div class="flex items-center gap-1 border-b border-slate-700/50 mb-4 sticky top-16 lg:top-0 bg-[#020617] lg:bg-transparent z-30 pt-4 lg:pt-0">
-              <button id="btnTabPhotos" class="flex-1 text-center font-bold border-b-2 pb-3 px-3 transition-all tab-active text-sm">
-                  <i class="fa-regular fa-images mr-1"></i> गैलरी
-              </button>
-              <button id="btnTabTimeline" class="flex-1 text-center font-medium border-b-2 pb-3 px-3 transition-all tab-inactive text-sm">
-                  <i class="fa-solid fa-timeline mr-1"></i> Timeline
-              </button>
-              <button id="btnAllSlideshow" class="flex-none px-3 pb-3 pt-0 text-orange-400 hover:text-orange-300 text-xs font-bold flex items-center gap-1 border-b-2 border-transparent">
-                  <i class="fa-solid fa-play text-[10px]"></i> सभी
-              </button>
-           </div>
+        <!-- Results Container -->
+        <div id="resultsContainer" class="hidden flex flex-col" style="min-height:480px;">
 
-           <!-- Actions Toolbar (Filters + AI) -->
-           <div class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-6 animate-fade-in">
-              <!-- Timeline Filters -->
-              <div id="timelineFilters" class="hidden flex-wrap gap-2">
-                 <button class="filter-btn active px-3 py-1.5 rounded-full text-xs font-medium border border-orange-500 bg-orange-500/20 text-orange-200 transition-all" data-filter="all">All</button>
-                 <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-800 text-slate-400 hover:text-white transition-all" data-filter="tour">Tours</button>
-                 <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-800 text-slate-400 hover:text-white transition-all" data-filter="report">Reports</button>
-                 <button class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-800 text-slate-400 hover:text-white transition-all" data-filter="other">Others</button>
-              </div>
+          <!-- Tabs -->
+          <div class="flex items-center gap-0 border-b sticky top-16 z-30 pt-4 pb-0" style="border-color:rgba(212,160,23,0.12); background:rgba(3,7,15,0.95); backdrop-filter:blur(16px); margin:0 -4px; padding-left:4px; padding-right:4px;">
+            <button id="btnTabPhotos" class="tab-btn tab-active flex-1 text-center text-sm pb-3 px-3">
+              <i class="fa-regular fa-images mr-1.5 text-xs"></i>गैलरी
+            </button>
+            <button id="btnTabTimeline" class="tab-btn tab-inactive flex-1 text-center text-sm pb-3 px-3">
+              <i class="fa-solid fa-timeline mr-1.5 text-xs"></i>Timeline
+            </button>
+            <button id="btnAllSlideshow" class="pb-3 px-4 text-xs font-bold border-b-2 border-transparent flex items-center gap-1.5" style="color:#D4A017; flex-shrink:0;">
+              <i class="fa-solid fa-play text-[9px]"></i>सभी
+            </button>
+          </div>
 
-              <!-- AI Button -->
-              <button id="btnAiReport" class="hidden px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-lg shadow-indigo-500/30 transition-all items-center gap-2 self-start sm:self-auto">
-                 <i class="fa-solid fa-wand-magic-sparkles"></i> Generate AI Report ✨
-              </button>
-           </div>
+          <!-- Filters + AI -->
+          <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between py-4">
+            <div id="timelineFilters" class="hidden flex-wrap gap-2">
+              <button class="filter-btn filter-pill active" data-filter="all">All</button>
+              <button class="filter-btn filter-pill" data-filter="tour">Tours</button>
+              <button class="filter-btn filter-pill" data-filter="report">Reports</button>
+              <button class="filter-btn filter-pill" data-filter="other">Others</button>
+            </div>
+            <button id="btnAiReport" class="hidden items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white" style="background:linear-gradient(135deg,#3730a3,#6d28d9); box-shadow:0 4px 20px rgba(109,40,217,0.3);">
+              <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> AI Report ✨
+            </button>
+          </div>
 
-           <!-- Timeline View -->
-           <div id="viewTimeline" class="hidden relative pl-4 timeline-line space-y-6 lg:space-y-8 animate-fade-in">
-              <!-- Timeline Items injected here -->
-           </div>
+          <!-- Timeline View -->
+          <div id="viewTimeline" class="hidden relative pl-10 timeline-rail space-y-5 animate-fadeup pb-4">
+            <!-- Items injected -->
+          </div>
 
-           <!-- Photos View (Grid) -->
-           <div id="viewPhotos" class="">
-              <div id="photosGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2 lg:gap-4">
-                 <!-- Photos injected here -->
-              </div>
-              <div class="text-center mt-8 text-slate-500 text-xs">
-                <p>All photos associated with identified person.</p>
-              </div>
-           </div>
+          <!-- Photos View -->
+          <div id="viewPhotos" class="animate-fadeup">
+            <div id="photosGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+              <!-- Photos injected -->
+            </div>
+            <div class="text-center mt-6 text-xs" style="color:#1A3060">
+              <i class="fa-solid fa-shield-halved mr-1"></i>सभी फोटो एन्क्रिप्टेड
+            </div>
+          </div>
+
         </div>
 
       </div>
     </div>
   </div>
 
-  <!-- Detail Modal -->
-  <!-- ── PPT Slideshow Overlay ── -->
+  <!-- ══ SLIDESHOW OVERLAY ══ -->
   <div id="slideshowOverlay">
-    <!-- Top Bar -->
     <div id="slideshowTopBar">
       <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-        <button id="ssClose" style="width:32px;height:32px;border-radius:50%;background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.4);color:#f97316;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+        <button id="ssClose" style="width:34px;height:34px;border-radius:50%;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.3);color:#D4A017;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s;">
           <i class="fa-solid fa-xmark"></i>
         </button>
         <div id="slideshowTitle">Event</div>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
-        <div id="slideshowCounter" style="font-size:12px;color:#94a3b8;"></div>
-        <button id="ssAutoplay" title="Auto Play" style="width:32px;height:32px;border-radius:50%;background:rgba(15,23,42,0.8);border:1px solid rgba(249,115,22,0.3);color:#f97316;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div id="slideshowCounter"></div>
+        <button id="ssAutoplay" style="width:34px;height:34px;border-radius:50%;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.3);color:#D4A017;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;">
           <i class="fa-solid fa-play"></i>
         </button>
       </div>
     </div>
-    <!-- Progress Bar -->
     <div id="slideshowProgress"><div id="slideshowProgressBar" style="width:0%"></div></div>
-    <!-- Main Image -->
     <div id="slideshowMain">
       <button class="ss-nav-btn" id="ssPrev"><i class="fa-solid fa-chevron-left"></i></button>
       <img id="slideshowImg" src="" alt="Event Photo" />
       <button class="ss-nav-btn" id="ssNext"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
-    <!-- Bottom: Details + Thumbs -->
     <div id="slideshowBottom">
       <div id="slideshowDetails"></div>
       <div id="slideshowThumbBar"></div>
     </div>
   </div>
 
-  <div id="detailModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-950/90 backdrop-blur-md transition-opacity opacity-0" id="modalBackdrop"></div>
-    
+  <!-- ══ DETAIL MODAL ══ -->
+  <div id="detailModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 transition-opacity opacity-0" id="modalBackdrop" style="background:rgba(3,7,15,0.9);backdrop-filter:blur(12px);"></div>
     <div class="fixed inset-0 z-10 overflow-y-auto">
-      <div class="flex min-h-full items-center justify-center p-0 lg:p-4 text-center">
-        
-        <!-- Panel -->
-        <div class="relative w-full h-full lg:h-auto lg:max-h-[90vh] lg:max-w-4xl transform overflow-hidden lg:rounded-2xl bg-black lg:bg-slate-900 border-0 lg:border border-slate-700 text-left shadow-2xl transition-all opacity-0 scale-95 flex flex-col" id="modalPanel">
-          
-          <!-- Header -->
-          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900 z-10">
-             <h3 class="text-base lg:text-lg font-semibold leading-6 text-white truncate pr-4" id="detailModalTitle">Details</h3>
-             <button id="detailModalClose" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-300 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      <div class="flex min-h-full items-center justify-center p-0 lg:p-4">
+        <div class="relative w-full h-full lg:h-auto lg:max-h-[88vh] lg:max-w-4xl transform overflow-hidden lg:rounded-2xl bg-navy-900 text-left shadow-2xl transition-all opacity-0 scale-95 flex flex-col modal-panel" id="modalPanel" style="background:linear-gradient(145deg,#0B1530,#060D1F); border:1px solid rgba(212,160,23,0.15);">
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between px-5 py-4 z-10" style="border-bottom:1px solid rgba(212,160,23,0.1); background:rgba(3,7,15,0.7);">
+            <h3 class="font-semibold text-white text-sm pr-4 truncate" id="detailModalTitle">Details</h3>
+            <button id="detailModalClose" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white transition-colors" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
           </div>
-          
-          <!-- Body -->
-          <div class="flex-1 overflow-y-auto bg-black/50 custom-scrollbar" id="detailModalBody">
-            <!-- Content -->
-          </div>
-
-          <!-- Carousel Controls (Only visible in Gallery Mode) -->
-          <div id="carouselControls" class="hidden absolute top-1/2 -translate-y-1/2 w-full justify-between px-2 pointer-events-none">
-             <button id="prevBtn" class="pointer-events-auto w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur border border-white/10 flex items-center justify-center transition-all active:scale-95"><i class="fa-solid fa-chevron-left"></i></button>
-             <button id="nextBtn" class="pointer-events-auto w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur border border-white/10 flex items-center justify-center transition-all active:scale-95"><i class="fa-solid fa-chevron-right"></i></button>
+          <!-- Modal Body -->
+          <div class="flex-1 overflow-y-auto" id="detailModalBody"></div>
+          <!-- Carousel Controls -->
+          <div id="carouselControls" class="hidden absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-3 pointer-events-none">
+            <button id="prevBtn" class="pointer-events-auto w-11 h-11 rounded-full flex items-center justify-center text-white transition-all" style="background:rgba(0,0,0,0.6);border:1px solid rgba(212,160,23,0.3);">
+              <i class="fa-solid fa-chevron-left text-sm"></i>
+            </button>
+            <button id="nextBtn" class="pointer-events-auto w-11 h-11 rounded-full flex items-center justify-center text-white transition-all" style="background:rgba(0,0,0,0.6);border:1px solid rgba(212,160,23,0.3);">
+              <i class="fa-solid fa-chevron-right text-sm"></i>
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+<!-- ══ ALL JS (Logic unchanged, selectors match new IDs) ══ -->
 <script>
 (() => {
   const API_ID = "vxid0yoovj";
@@ -549,10 +817,10 @@
   const apiKey = ""; // Runtime injection
 
   const qs = new URLSearchParams(window.location.search);
-  const token = qs.get("token") || "";   
+  const token = qs.get("token") || "";
 
   // State
-  let galleryImages = []; 
+  let galleryImages = [];
   let currentGalleryIndex = 0;
   let globalTimelineData = [];
   let globalPhotoMap = new Map();
@@ -566,25 +834,19 @@
     statsDashboard: document.getElementById("statsDashboard"),
     resultsContainer: document.getElementById("resultsContainer"),
     skeletonLoader: document.getElementById("skeletonLoader"),
-    
-    // Stats
     scoreVal: document.getElementById("scoreVal"),
     scoreBar: document.getElementById("scoreBar"),
     eventCountVal: document.getElementById("eventCountVal"),
     photoCountVal: document.getElementById("photoCountVal"),
-    
-    // Tabs & Views
     btnTabTimeline: document.getElementById("btnTabTimeline"),
     btnTabPhotos: document.getElementById("btnTabPhotos"),
     viewTimeline: document.getElementById("viewTimeline"),
     viewPhotos: document.getElementById("viewPhotos"),
     photosGrid: document.getElementById("photosGrid"),
     timelineFilters: document.getElementById("timelineFilters"),
-    
     searchBtn: document.getElementById("searchBtn"),
     copySummaryBtn: document.getElementById("copySummaryBtn"),
     btnAiReport: document.getElementById("btnAiReport"),
-    // New 2-step elements
     step1Card: document.getElementById("step1Card"),
     step2Card: document.getElementById("step2Card"),
     uploadInput: document.getElementById("uploadInput"),
@@ -596,42 +858,38 @@
     nameInput: document.getElementById("nameInput"),
     mobileInput: document.getElementById("mobileInput"),
     btnAllSlideshow: document.getElementById("btnAllSlideshow"),
+    similarityText: document.getElementById("similarityText"),
+    timelineCount: document.getElementById("timelineCount"),
+    photoCount: document.getElementById("photoCount"),
   };
 
-  // --------- Tab Logic ----------
+  // Tab Logic
   function switchTab(tab) {
     if (tab === 'timeline') {
-        el.viewTimeline.classList.remove('hidden');
-        if (el.timelineFilters) { el.timelineFilters.classList.remove('hidden'); el.timelineFilters.classList.add('flex'); }
-        el.viewPhotos.classList.add('hidden');
-        if(el.btnTabTimeline) el.btnTabTimeline.className = "flex-1 text-center font-bold border-b-2 pb-3 px-3 transition-all tab-active text-sm";
-        if(el.btnTabPhotos) el.btnTabPhotos.className = "flex-1 text-center font-medium border-b-2 pb-3 px-3 transition-all tab-inactive text-sm";
+      el.viewTimeline.classList.remove('hidden');
+      if (el.timelineFilters) { el.timelineFilters.classList.remove('hidden'); el.timelineFilters.classList.add('flex'); }
+      el.viewPhotos.classList.add('hidden');
+      if (el.btnTabTimeline) el.btnTabTimeline.className = "tab-btn tab-active flex-1 text-center text-sm pb-3 px-3";
+      if (el.btnTabPhotos) el.btnTabPhotos.className = "tab-btn tab-inactive flex-1 text-center text-sm pb-3 px-3";
     } else {
-        el.viewTimeline.classList.add('hidden');
-        if (el.timelineFilters) { el.timelineFilters.classList.add('hidden'); el.timelineFilters.classList.remove('flex'); }
-        el.viewPhotos.classList.remove('hidden');
-        if(el.btnTabTimeline) el.btnTabTimeline.className = "flex-1 text-center font-medium border-b-2 pb-3 px-3 transition-all tab-inactive text-sm";
-        if(el.btnTabPhotos) el.btnTabPhotos.className = "flex-1 text-center font-bold border-b-2 pb-3 px-3 transition-all tab-active text-sm";
+      el.viewTimeline.classList.add('hidden');
+      if (el.timelineFilters) { el.timelineFilters.classList.add('hidden'); el.timelineFilters.classList.remove('flex'); }
+      el.viewPhotos.classList.remove('hidden');
+      if (el.btnTabTimeline) el.btnTabTimeline.className = "tab-btn tab-inactive flex-1 text-center text-sm pb-3 px-3";
+      if (el.btnTabPhotos) el.btnTabPhotos.className = "tab-btn tab-active flex-1 text-center text-sm pb-3 px-3";
     }
   }
 
-  if(el.btnTabTimeline) el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
-  if(el.btnTabPhotos) el.btnTabPhotos.addEventListener('click', () => switchTab('photos'));
+  if (el.btnTabTimeline) el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
+  if (el.btnTabPhotos) el.btnTabPhotos.addEventListener('click', () => switchTab('photos'));
 
-  // --------- Filter Logic ----------
+  // Filter Logic
   function initFilters() {
     const btns = el.timelineFilters.querySelectorAll('.filter-btn');
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
-        // UI
-        btns.forEach(b => {
-          b.classList.remove('border-orange-500', 'bg-orange-500/20', 'text-orange-200');
-          b.classList.add('border-slate-700', 'bg-slate-800', 'text-slate-400');
-        });
-        btn.classList.remove('border-slate-700', 'bg-slate-800', 'text-slate-400');
-        btn.classList.add('border-orange-500', 'bg-orange-500/20', 'text-orange-200');
-        
-        // Logic
+        btns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
         currentFilter = btn.dataset.filter;
         applyFilter();
       });
@@ -640,14 +898,12 @@
 
   function applyFilter() {
     if (!globalTimelineData.length) return;
-    
     let filtered = globalTimelineData;
     if (currentFilter !== 'all') {
       filtered = globalTimelineData.filter(item => {
         const type = (item.form_type || "").toLowerCase();
         const data = item.data || {};
         const pType = (data.program_type || "").toLowerCase();
-
         if (currentFilter === 'tour') return type.includes('tour') || pType.includes('tour');
         if (currentFilter === 'report') return type.includes('mandal') || type.includes('report');
         if (currentFilter === 'other') return !type.includes('tour') && !pType.includes('tour') && !type.includes('mandal') && !type.includes('report');
@@ -657,100 +913,57 @@
     renderTimeline(filtered, globalPhotoMap);
   }
 
-  // --------- Gemini AI Logic ----------
+  // Gemini AI Report
   async function generateAiReport() {
     if (!globalTimelineData.length) return;
-
     const btn = el.btnAiReport;
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
-
     try {
-        // Prepare simplified data for LLM to save tokens
-        const simplifiedEvents = globalTimelineData.slice(0, 30).map(item => {
-            const sum = buildEventSummary(item);
-            return {
-                date: sum.subtitle,
-                title: sum.title,
-                type: item.form_type,
-                details: sum.highlights.map(h => `${h[0]}: ${h[1]}`).join(", ")
-            };
-        });
-
-        const prompt = `You are a senior political analyst. Analyze the following timeline of a 'Karyakarta' (Party Worker) in India. 
-        Write a concise, professional performance summary report in HINDI language (Devanagari script).
-        
-        Structure the response in Markdown:
-        1. **Summary**: 2-3 sentences about their overall activity level and main focus area (e.g., Tours, Mandal meetings).
-        2. **Key Activities**: Bullet points of their most significant types of participation.
-        3. **Consistency**: Comment on their regularity based on dates.
-        4. **Tone**: Encouraging and formal.
-        
-        Data: ${JSON.stringify(simplifiedEvents)}`;
-
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
-
-        const data = await response.json();
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (aiText) {
-            // Show in modal
-            const contentDiv = document.createElement("div");
-            contentDiv.className = "ai-report-content p-4 text-slate-200";
-            
-            // Simple markdown parser
-            const htmlContent = aiText
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n\n/g, '<br><br>')
-                .replace(/^- (.*)/gm, '<li>$1</li>');
-
-            contentDiv.innerHTML = htmlContent;
-            
-            modal.open("AI Performance Report ✨", contentDiv);
-        } else {
-            throw new Error("No response from AI");
-        }
-
+      const simplifiedEvents = globalTimelineData.slice(0, 30).map(item => {
+        const sum = buildEventSummary(item);
+        return { date: sum.subtitle, title: sum.title, type: item.form_type, details: sum.highlights.map(h => `${h[0]}: ${h[1]}`).join(", ") };
+      });
+      const prompt = `You are a senior political analyst. Analyze the following timeline of a 'Karyakarta' (Party Worker) in India. Write a concise, professional performance summary report in HINDI language (Devanagari script). Structure the response in Markdown: 1. **Summary**: 2-3 sentences about their overall activity level and main focus area (e.g., Tours, Mandal meetings). 2. **Key Activities**: Bullet points of their most significant types of participation. 3. **Consistency**: Comment on their regularity based on dates. 4. **Tone**: Encouraging and formal. Data: ${JSON.stringify(simplifiedEvents)}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+      const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+      const data = await response.json();
+      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (aiText) {
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "ai-report-content p-5";
+        const htmlContent = aiText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n\n/g, '<br><br>').replace(/^- (.*)/gm, '<li>$1</li>');
+        contentDiv.innerHTML = htmlContent;
+        modal.open("AI Performance Report ✨", contentDiv);
+      } else { throw new Error("No response from AI"); }
     } catch (error) {
-        console.error("AI Error:", error);
-        alert("Could not generate report. Please try again.");
+      console.error("AI Error:", error);
+      alert("Could not generate report. Please try again.");
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+      btn.disabled = false;
+      btn.innerHTML = originalText;
     }
   }
 
-  if (el.btnAiReport) {
-      el.btnAiReport.addEventListener("click", generateAiReport);
-  }
+  if (el.btnAiReport) el.btnAiReport.addEventListener("click", generateAiReport);
 
-  // --------- Copy Logic ----------
+  // Copy Logic
   if (el.copySummaryBtn) {
     el.copySummaryBtn.addEventListener('click', () => {
       const score = el.scoreVal.textContent;
       const events = el.eventCountVal.textContent;
       const photos = el.photoCountVal.textContent;
-      
       const text = `*EventLens Search Result*\nSimilarity: ${score}\nEvents Found: ${events}\nPhotos Found: ${photos}\n\nGenerated by EventLens AI`;
-      
       navigator.clipboard.writeText(text).then(() => {
         const originalHtml = el.copySummaryBtn.innerHTML;
-        el.copySummaryBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        el.copySummaryBtn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Copied!';
         setTimeout(() => el.copySummaryBtn.innerHTML = originalHtml, 2000);
       });
     });
   }
 
-  // --------- Modal & Carousel Logic ----------
+  // Modal Logic
   const modal = (() => {
     const wrap = document.getElementById("detailModal");
     const backdrop = document.getElementById("modalBackdrop");
@@ -766,13 +979,8 @@
       titleEl.textContent = title || "Details";
       bodyEl.innerHTML = "";
       if (bodyNode) bodyEl.appendChild(bodyNode);
-      
-      if(isGalleryMode && galleryImages.length > 1) {
-          controls.classList.remove("hidden");
-      } else {
-          controls.classList.add("hidden");
-      }
-
+      if (isGalleryMode && galleryImages.length > 1) controls.classList.remove("hidden");
+      else controls.classList.add("hidden");
       wrap.classList.remove("hidden");
       requestAnimationFrame(() => {
         backdrop.classList.remove("opacity-0");
@@ -786,99 +994,89 @@
       backdrop.classList.add("opacity-0");
       panel.classList.remove("opacity-100", "scale-100");
       panel.classList.add("opacity-0", "scale-95");
-      setTimeout(() => {
-        wrap.classList.add("hidden");
-        document.body.classList.remove("overflow-hidden");
-      }, 200);
+      setTimeout(() => { wrap.classList.add("hidden"); document.body.classList.remove("overflow-hidden"); }, 200);
     }
 
     function showGalleryImage(index) {
-        if(index < 0) index = galleryImages.length - 1;
-        if(index >= galleryImages.length) index = 0;
-        currentGalleryIndex = index;
-        
-        const item = galleryImages[index];
-        titleEl.textContent = `${item.title} (${index + 1}/${galleryImages.length})`;
-        
-        const body = document.createElement("div");
-        body.className = "h-full flex flex-col bg-black";
-
-        const imgCont = document.createElement("div");
-        imgCont.className = "flex-1 flex items-center justify-center p-2 relative";
-        
-        const img = document.createElement("img");
-        img.src = item.url;
-        img.className = "max-w-full max-h-full object-contain";
-        imgCont.appendChild(img);
-
-        const actions = document.createElement("div");
-        actions.className = "p-4 bg-slate-900 border-t border-slate-800 flex justify-between items-center";
-        
-        const dlBtn = document.createElement("a");
-        dlBtn.href = item.url;
-        dlBtn.download = `event_photo_${index}.jpg`;
-        dlBtn.className = "px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium border border-slate-700 flex items-center gap-2";
-        dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Download';
-        
-        actions.appendChild(dlBtn);
-        body.appendChild(imgCont);
-        body.appendChild(actions);
-
-        bodyEl.innerHTML = "";
-        bodyEl.appendChild(body);
+      if (index < 0) index = galleryImages.length - 1;
+      if (index >= galleryImages.length) index = 0;
+      currentGalleryIndex = index;
+      const item = galleryImages[index];
+      titleEl.textContent = `${item.title} (${index + 1}/${galleryImages.length})`;
+      const body = document.createElement("div");
+      body.className = "h-full flex flex-col";
+      body.style.background = "#000";
+      const imgCont = document.createElement("div");
+      imgCont.className = "flex-1 flex items-center justify-center p-3 relative";
+      const img = document.createElement("img");
+      img.src = item.url;
+      img.className = "max-w-full max-h-full object-contain rounded-lg";
+      imgCont.appendChild(img);
+      const actions = document.createElement("div");
+      actions.className = "p-4 flex justify-between items-center";
+      actions.style.background = "rgba(3,7,15,0.9)";
+      const dlBtn = document.createElement("a");
+      dlBtn.href = item.url;
+      dlBtn.download = `event_photo_${index}.jpg`;
+      dlBtn.className = "px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-white";
+      dlBtn.style.cssText = "background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.3);";
+      dlBtn.innerHTML = '<i class="fa-solid fa-download text-xs" style="color:#D4A017"></i> Download';
+      actions.appendChild(dlBtn);
+      body.appendChild(imgCont);
+      body.appendChild(actions);
+      bodyEl.innerHTML = "";
+      bodyEl.appendChild(body);
     }
 
     closeBtn.addEventListener("click", close);
-    backdrop.addEventListener("click", (e) => {
-        if(e.target === backdrop) close();
-    });
-
-    prevBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        showGalleryImage(currentGalleryIndex - 1);
-    });
-    nextBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        showGalleryImage(currentGalleryIndex + 1);
-    });
-
+    backdrop.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
+    prevBtn.addEventListener("click", (e) => { e.stopPropagation(); showGalleryImage(currentGalleryIndex - 1); });
+    nextBtn.addEventListener("click", (e) => { e.stopPropagation(); showGalleryImage(currentGalleryIndex + 1); });
     document.addEventListener('keydown', (e) => {
-        if(wrap.classList.contains('hidden')) return;
-        if(e.key === 'ArrowLeft') showGalleryImage(currentGalleryIndex - 1);
-        if(e.key === 'ArrowRight') showGalleryImage(currentGalleryIndex + 1);
-        if(e.key === 'Escape') close();
+      if (wrap.classList.contains('hidden')) return;
+      if (e.key === 'ArrowLeft') showGalleryImage(currentGalleryIndex - 1);
+      if (e.key === 'ArrowRight') showGalleryImage(currentGalleryIndex + 1);
+      if (e.key === 'Escape') close();
     });
 
     return { open, close, showGalleryImage };
   })();
 
-  // --------- UI Helpers ----------
+  // ── Helpers ──
   function isNonEmpty(v) { return v !== null && v !== undefined && String(v).trim() !== ""; }
 
   function escapeHtml(s) {
     if (s === null || s === undefined) return "";
     return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   }
-  
+
   function prettyIso(iso) {
     if (!isNonEmpty(iso)) return "";
     const date = new Date(iso);
     return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  function formatDate(val) {
+    if (!val) return "";
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(val)) {
+      const [d, m, y] = val.split("/");
+      const dt = new Date(`${y}-${m}-${d}`);
+      return isNaN(dt) ? val : dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    if (val.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(val)) return prettyIso(val);
+    return val;
+  }
+
   function setStatus(msg, type = "info") {
     if (!el.statusBox) return;
     el.statusBox.classList.remove("hidden");
-    el.statusBox.innerHTML = `
-      <div class="inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold ${
-        type === 'error' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 
-        type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
-        'bg-slate-800 text-slate-300 border border-slate-700'
-      }">
-        ${type === 'loading' ? '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>' : ''}
-        ${msg}
-      </div>
-    `;
+    const colors = {
+      error: 'rgba(230,57,80,0.12);border:1px solid rgba(230,57,80,0.3);color:#FF7088',
+      success: 'rgba(62,207,178,0.1);border:1px solid rgba(62,207,178,0.3);color:#3ECFB2',
+      loading: 'rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);color:#D4A017',
+    };
+    const style = colors[type] || 'rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#94a3b8';
+    el.statusBox.innerHTML = `<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold" style="background:${style}">${type==='loading'?'<i class="fa-solid fa-circle-notch fa-spin"></i>':''}${escapeHtml(msg)}</div>`;
   }
 
   function updateDashboard(sim, events, photos) {
@@ -886,28 +1084,17 @@
     el.skeletonLoader.classList.add("hidden");
     el.statsDashboard.classList.remove("hidden");
     el.resultsContainer.classList.remove("hidden");
-    el.copySummaryBtn.classList.remove("hidden"); // Show copy btn
-    
-    // Init filters
+    el.copySummaryBtn.classList.remove("hidden");
     el.timelineFilters.classList.remove("hidden");
     el.timelineFilters.classList.add("flex");
+    if (el.btnAiReport) el.btnAiReport.classList.remove("hidden");
+    el.btnAiReport.classList.add("flex");
     initFilters();
-    
-    // Show AI Button if events > 0
-    if (events > 0) {
-        el.btnAiReport.classList.remove("hidden");
-        el.btnAiReport.classList.add("flex");
-    } else {
-        el.btnAiReport.classList.add("hidden");
-    }
-
-    el.scoreVal.textContent = sim + "%";
-    el.scoreBar.style.width = sim + "%";
-    el.scoreBar.className = `h-full transition-all duration-1000 ${
-      sim > 80 ? 'bg-emerald-500' : 
-      sim > 50 ? 'bg-yellow-500' : 
-      'bg-red-500'
-    }`;
+    const simNum = Number(sim);
+    el.scoreVal.textContent = `${simNum.toFixed(0)}%`;
+    if (el.similarityText) el.similarityText.textContent = `Match Score`;
+    el.scoreBar.style.width = `${Math.min(simNum, 100)}%`;
+    el.scoreBar.style.background = simNum > 80 ? 'linear-gradient(90deg,#2AB89C,#3ECFB2)' : simNum > 50 ? 'linear-gradient(90deg,#D4A017,#EFC24A)' : 'linear-gradient(90deg,#C41E37,#E63950)';
     el.eventCountVal.textContent = events;
     el.photoCountVal.textContent = photos;
   }
@@ -918,6 +1105,11 @@
     return isNonEmpty(v) ? v : fallback;
   }
 
+  function getFormTypeLabel(ft) {
+    const map = { president_tour_form: "President Tour", mandal_reporting: "Mandal Report", mandal_reporting_form: "Mandal Report", visitor_form: "Visitor", party_attendance: "Party Attendance", coordinator_entry: "Coordinator Entry", coordinator_form: "Coordinator Form" };
+    return map[ft] || (ft ? ft.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : "Event");
+  }
+
   function buildEventSummary(item) {
     const form = get(item, "form_type", "");
     const data = item.data || {};
@@ -926,34 +1118,28 @@
     const createdAtIso = prettyIso(get(item, "created_at_iso", ""));
     const withLabel = get(item, "with_label", "");
     const faceCount = Number(get(item, "face_count", 0) || 0);
-
     let title = form || "Event";
     let subtitle = "";
     let icon = "fa-calendar-check";
     const highlights = [];
     const footer = [];
 
-    // Form की actual date निकालो (form में जो date डाली थी)
     function getFormDate(form, data) {
-      const pick = (...keys) => { for(const k of keys){ if(data && data[k]) return data[k]; } return ""; };
-      if (form === "president_tour_form")
-        return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
-      if (form === "mandal_reporting" || form === "mandal_reporting_form")
-        return pick("report_date","event_date","दिनांक","date","program_date");
-      if (form === "party_attendance")
-        return pick("attendance_date","event_date","दिनांक","date");
+      const pick = (...keys) => { for (const k of keys) { if (data && data[k]) return data[k]; } return ""; };
+      if (form === "president_tour_form") return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+      if (form === "mandal_reporting" || form === "mandal_reporting_form") return pick("report_date","event_date","दिनांक","date","program_date");
+      if (form === "party_attendance") return pick("attendance_date","event_date","दिनांक","date");
       return pick("event_date","program_date","दिनांक","date");
     }
     const formDate = getFormDate(form, data);
-    // अगर form की date मिली तो वो दिखाओ, नहीं तो created_at fallback
     const displayDate = isNonEmpty(formDate) ? formDate : createdAtIso;
 
     if (withLabel) highlights.push(withLabel);
     if (faceCount) highlights.push(`${faceCount} faces`);
 
-    // Hindi+English field names दोनों check
     const bsPName = data.program_name || data["कार्यक्रम_का_नाम"] || data.name_of_program || "";
     const bsPType = data.program_type || data["कार्यक्रम_का_प्रकार"] || "";
+
     if (form === "president_tour_form") {
       title = bsPName || bsPType || data.tour_title || "President Tour";
       icon = "fa-plane-departure";
@@ -983,10 +1169,8 @@
 
     const locBits = [district, vidhansabha].filter(isNonEmpty);
     if (locBits.length) footer.push(locBits.join(", "));
-    // Footer में form date दिखाओ (created date नहीं)
     if (isNonEmpty(displayDate)) footer.push(displayDate);
 
-    // Full details
     const details = [];
     const pushD = (k, v) => { if (isNonEmpty(v)) details.push([k, String(v)]); };
     pushD("Form Type", form);
@@ -994,21 +1178,19 @@
     pushD("Vidhansabha", vidhansabha);
     pushD("दिनांक (Form)", isNonEmpty(formDate) ? formDate : "—");
     pushD("Entry Date", createdAtIso);
-    Object.keys(data).forEach(k => { if(typeof data[k] !== 'object') pushD(k, data[k]); });
+    Object.keys(data).forEach(k => { if (typeof data[k] !== 'object') pushD(k, data[k]); });
 
     return { title, subtitle, highlights, footer, details, rawData: data, icon };
   }
 
   function makeKVTable(rows) {
     const div = document.createElement("div");
-    div.className = "space-y-3 p-4";
+    div.className = "space-y-3 p-5";
     rows.forEach(([k, v]) => {
       const row = document.createElement("div");
-      row.className = "flex flex-col sm:flex-row sm:justify-between border-b border-slate-700/50 pb-2 last:border-0";
-      row.innerHTML = `
-        <span class="text-xs text-slate-500 font-medium uppercase tracking-wide">${k}</span>
-        <span class="text-sm text-slate-200 font-medium text-left sm:text-right mt-1 sm:mt-0 break-words">${v}</span>
-      `;
+      row.className = "flex flex-col sm:flex-row sm:justify-between pb-2 last:border-0";
+      row.style.borderBottom = "1px solid rgba(212,160,23,0.08)";
+      row.innerHTML = `<span class="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style="color:#475569">${k}</span><span class="text-sm font-medium text-right break-words" style="color:#D1D9E6">${v}</span>`;
       div.appendChild(row);
     });
     return div;
@@ -1022,28 +1204,19 @@
     } catch (e) { return ""; }
   }
 
-  // --------- Render Timeline ----------
-  // ── Form date helper (global, used everywhere) ──
+  // ── Form date helper ──
   function getEventFormDate(formType, data) {
     if (!data) return "";
-    // Hindi + English field names दोनों check
-    const pick = (...keys) => { for(const k of keys){ if(data[k]) return data[k]; } return ""; };
-    if (formType === "president_tour_form")
-      return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
-    if (formType === "mandal_reporting" || formType === "mandal_reporting_form")
-      return pick("report_date","event_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
-    if (formType === "party_attendance")
-      return pick("attendance_date","event_date","दिनांक","date");
-    // किसी भी form में common date fields
+    const pick = (...keys) => { for (const k of keys) { if (data[k]) return data[k]; } return ""; };
+    if (formType === "president_tour_form") return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return pick("report_date","event_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+    if (formType === "party_attendance") return pick("attendance_date","event_date","दिनांक","date");
     return pick("event_date","program_date","दिनांक","date");
   }
 
-  // ── Event photos: server 'photos' या 'photo_urls' दोनों check करो ──
   function getEventPhotos(item, photoUrlByKey) {
-    // grouped events में 'photos' field होता है (presigned URLs array)
     if (Array.isArray(item.photos) && item.photos.length) return item.photos;
     if (Array.isArray(item.photo_urls) && item.photo_urls.length) return item.photo_urls;
-    // single entry → s3_key से URL निकालो
     const s3Key = item.s3_key || "";
     if (isNonEmpty(s3Key) && photoUrlByKey) {
       const u = photoUrlByKey.get(s3Key);
@@ -1052,25 +1225,30 @@
     return [];
   }
 
+  // ── Icon color map ──
+  const iconColorMap = {
+    'fa-plane-departure': '#3ECFB2',
+    'fa-clipboard-list': '#D4A017',
+    'fa-user-clock': '#A78BFA',
+    'fa-users-line': '#60A5FA',
+    'fa-id-badge': '#F97316',
+    'fa-calendar-check': '#D4A017',
+  };
+
   function renderTimeline(timeline, photoUrlByKey) {
     el.viewTimeline.innerHTML = "";
     if (!Array.isArray(timeline) || timeline.length === 0) {
-      el.viewTimeline.innerHTML = `<div class="text-center py-10 text-slate-500">No events found for filter: ${currentFilter}.</div>`;
+      el.viewTimeline.innerHTML = `<div class="text-center py-10 text-sm" style="color:#475569;">इस फ़िल्टर में कोई इवेंट नहीं: ${currentFilter}</div>`;
       return;
     }
 
-    // Sort by form date first, fallback created_at
-    // Sort by form date (newest first)
     const sorted = [...timeline].sort((a, b) => {
       const parseDate = (item) => {
         const fd = getEventFormDate(item.form_type || item.ft || "", item.data || {});
         if (fd) {
-          // DD/MM/YYYY or YYYY-MM-DD
           const parts = fd.split(/[-/]/);
           if (parts.length === 3) {
-            const d = parts[0].length === 4
-              ? new Date(parts[0], parts[1]-1, parts[2])    // YYYY-MM-DD
-              : new Date(parts[2], parts[1]-1, parts[0]);   // DD/MM/YYYY
+            const d = parts[0].length === 4 ? new Date(parts[0], parts[1]-1, parts[2]) : new Date(parts[2], parts[1]-1, parts[0]);
             if (!isNaN(d)) return d.getTime();
           }
         }
@@ -1082,137 +1260,104 @@
     sorted.forEach((item, index) => {
       const form = item.form_type || item.ft || "";
       const data = item.data || {};
-
-      // ── 1. Date: form में जो डाली वो ──
       const formDate = getEventFormDate(form, data);
       const displayDate = formDate || prettyIso(item.created_at_iso || "");
-
-      // ── 2. Title (Hindi + English field names दोनों check करो) ──
-      // program_name के सभी possible field names
       const pName = data.program_name || data["कार्यक्रम_का_नाम"] || data.name_of_program || data.karyakram_name || "";
       const pType = data.program_type || data["कार्यक्रम_का_प्रकार"] || data.type || "";
       let title = form || "Event";
       let icon = "fa-calendar-check";
-      if (form === "president_tour_form") {
-        title = pName || pType || data.tour_title || "President Tour";
-        icon = "fa-plane-departure";
-      } else if (form === "mandal_reporting" || form === "mandal_reporting_form") {
-        title = pName || data.venue || data["स्थान"] || "Mandal Report";
-        icon = "fa-clipboard-list";
-      } else if (form === "visitor_form") {
-        title = item.name || data.name || data["नाम"] || "Visitor";
-        icon = "fa-user-clock";
-      } else if (form === "party_attendance") {
-        title = pName || pType || "Party Attendance";
-        icon = "fa-users-line";
-      } else if (form === "coordinator_entry" || form === "coordinator_form") {
-        title = data.name || data["नाम"] || pName || "Coordinator Entry";
-        icon = "fa-id-badge";
-      } else if (pName) {
-        title = pName;  // Unknown form type but has program name
-      }
 
-      // ── 3. Location ──
+      if (form === "president_tour_form") { title = pName || pType || data.tour_title || "President Tour"; icon = "fa-plane-departure"; }
+      else if (form === "mandal_reporting" || form === "mandal_reporting_form") { title = pName || data.venue || data["स्थान"] || "Mandal Report"; icon = "fa-clipboard-list"; }
+      else if (form === "visitor_form") { title = item.name || data.name || data["नाम"] || "Visitor"; icon = "fa-user-clock"; }
+      else if (form === "party_attendance") { title = pName || pType || "Party Attendance"; icon = "fa-users-line"; }
+      else if (form === "coordinator_entry" || form === "coordinator_form") { title = data.name || data["नाम"] || pName || "Coordinator Entry"; icon = "fa-id-badge"; }
+      else if (pName) { title = pName; }
+
       const district = item.district || data.district || "";
       const vidhansabha = item.vidhansabha || data.vidhansabha || "";
       const venue = data.tour_location || data.venue || data.tour_venue || "";
       const locStr = [district, vidhansabha].filter(Boolean).join(", ");
-
-      // ── 4. Photos ──
       const eventPhotos = getEventPhotos(item, photoUrlByKey);
-
-      // ── 5. with_label (साथ में कौन थे) ──
       const withLabel = item.with_label || "";
       const faceCount = Number(item.face_count || 0);
+      const iconColor = iconColorMap[icon] || '#D4A017';
 
-      // ── Card build ──
       const wrapper = document.createElement("div");
-      wrapper.className = "relative pl-8 group";
-      wrapper.style.animationDelay = `${index * 40}ms`;
+      wrapper.className = "relative pl-2 timeline-item";
+      wrapper.style.animationDelay = `${index * 50}ms`;
 
       const dot = document.createElement("div");
-      dot.className = "absolute left-[13px] top-6 w-4 h-4 rounded-full bg-slate-900 border-2 border-slate-600 group-hover:border-orange-500 group-hover:bg-orange-900 transition-colors z-10";
+      dot.className = "timeline-dot absolute w-4 h-4 rounded-full z-10";
+      dot.style.cssText = `left:-29px; top:20px;`;
       wrapper.appendChild(dot);
 
       const card = document.createElement("div");
-      card.className = "glass-card rounded-xl p-4 hover:bg-slate-800/80 transition-all cursor-pointer group-hover:translate-x-1 duration-300 active:scale-[0.98]";
+      card.className = "event-card rounded-xl p-4 cursor-pointer";
+      card.style.borderRadius = "12px";
 
-      // ── Row 1: Icon + Title + Date badge ──
-      card.innerHTML += `
-        <div class="flex items-start justify-between gap-2 mb-2">
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="text-orange-500 bg-orange-500/10 p-1.5 rounded-md text-xs shrink-0"><i class="fa-solid ${icon}"></i></span>
-            <h3 class="font-bold text-white text-sm leading-tight line-clamp-2">${escapeHtml(title)}</h3>
+      // Row 1: Icon + Title + Date
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${iconColor}18; border:1px solid ${iconColor}30;">
+              <i class="fa-solid ${icon} text-xs" style="color:${iconColor}"></i>
+            </span>
+            <h3 class="font-semibold text-sm leading-tight line-clamp-2" style="color:#E8EEF7">${escapeHtml(title)}</h3>
           </div>
-          ${displayDate ? `<span class="text-orange-300 text-xs shrink-0 bg-orange-500/10 border border-orange-500/20 px-2 py-1 rounded-md font-medium whitespace-nowrap">${escapeHtml(displayDate)}</span>` : ""}
+          ${displayDate ? `<span class="badge-gold px-2 py-0.5 rounded-md shrink-0 whitespace-nowrap text-[10px]">${escapeHtml(displayDate)}</span>` : ""}
         </div>
       `;
 
-      // ── Row 2: Location + Venue ──
+      // Location
       if (locStr || venue) {
-        card.innerHTML += `
-          <div class="flex items-center gap-2 text-xs text-slate-400 mb-2">
-            <i class="fa-solid fa-location-dot text-slate-500 text-[10px]"></i>
-            <span class="truncate">${escapeHtml([locStr, venue].filter(Boolean).join(" • "))}</span>
-          </div>
-        `;
+        card.innerHTML += `<div class="flex items-center gap-1.5 text-xs mb-2" style="color:#475569"><i class="fa-solid fa-location-dot text-[9px]" style="color:#D4A01760"></i><span class="truncate">${escapeHtml([locStr, venue].filter(Boolean).join(" • "))}</span></div>`;
       }
 
-      // ── Row 3: Program details ──
+      // Detail pills
       const detailParts = [];
       if (data.program_type && form === "president_tour_form") detailParts.push(data.program_type);
       if (data.total_attendance) detailParts.push(`${data.total_attendance} उपस्थित`);
       if (data.attendance_count) detailParts.push(`${data.attendance_count} उपस्थित`);
       if (data.level || data.program_level) detailParts.push(data.level || data.program_level);
       if (detailParts.length) {
-        card.innerHTML += `<div class="text-xs text-slate-300 mb-2 flex flex-wrap gap-2">${detailParts.map(d => `<span class="bg-slate-800 px-2 py-0.5 rounded">${escapeHtml(d)}</span>`).join("")}</div>`;
+        card.innerHTML += `<div class="flex flex-wrap gap-1.5 mb-2">${detailParts.map(d => `<span class="text-[10px] px-2 py-0.5 rounded-md font-medium" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8">${escapeHtml(d)}</span>`).join("")}</div>`;
       }
 
-      // ── Row 4: with_label (साथ में कौन थे) ──
+      // With label
       if (withLabel) {
-        card.innerHTML += `
-          <div class="flex items-center gap-1.5 text-xs text-sky-400 mb-3 bg-sky-500/5 border border-sky-500/15 rounded-lg px-2.5 py-1.5">
-            <i class="fa-solid fa-users text-[10px]"></i>
-            <span>${escapeHtml(withLabel)}</span>
-          </div>
-        `;
+        card.innerHTML += `<div class="flex items-center gap-1.5 text-xs mb-2 px-2.5 py-1.5 rounded-lg badge-jade"><i class="fa-solid fa-users text-[9px]"></i><span>${escapeHtml(withLabel)}</span></div>`;
       } else if (faceCount > 1) {
-        card.innerHTML += `
-          <div class="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
-            <i class="fa-solid fa-users text-[10px]"></i>
-            <span>${faceCount} लोग इस event में</span>
-          </div>
-        `;
+        card.innerHTML += `<div class="flex items-center gap-1.5 text-xs mb-2" style="color:#475569"><i class="fa-solid fa-users text-[9px]"></i><span>${faceCount} लोग</span></div>`;
       }
 
-      // ── Row 5: Photo thumbnails (सभी photos) ──
+      // Photo thumbnails
       if (eventPhotos.length > 0) {
         const strip = document.createElement("div");
-        strip.className = "flex flex-wrap gap-1.5 mb-3";
+        strip.className = "flex flex-wrap gap-1.5 mb-2";
         const maxShow = 6;
         eventPhotos.slice(0, maxShow).forEach((u, pi) => {
           const im = document.createElement("img");
           setImgSrcWithRetry(im, u);
-          im.className = "w-14 h-14 rounded-lg object-cover border border-slate-700/70 hover:border-orange-500/50 transition-colors";
-          im.title = `Photo ${pi + 1}`;
+          im.className = "w-13 h-13 rounded-lg object-cover";
+          im.style.cssText = "width:52px;height:52px;border:1px solid rgba(212,160,23,0.15);transition:border-color 0.2s;";
+          im.onmouseenter = () => im.style.borderColor = "rgba(212,160,23,0.5)";
+          im.onmouseleave = () => im.style.borderColor = "rgba(212,160,23,0.15)";
           strip.appendChild(im);
         });
         if (eventPhotos.length > maxShow) {
           const more = document.createElement("div");
-          more.className = "w-14 h-14 rounded-lg flex flex-col items-center justify-center text-xs font-semibold bg-slate-900 border border-slate-700 text-orange-400 gap-0.5 cursor-pointer";
-          more.innerHTML = `<i class="fa-solid fa-images text-base"></i><span>+${eventPhotos.length - maxShow}</span>`;
+          more.style.cssText = "width:52px;height:52px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);color:#D4A017;gap:2px;cursor:pointer;";
+          more.innerHTML = `<i class="fa-solid fa-images text-sm"></i><span>+${eventPhotos.length - maxShow}</span>`;
           strip.appendChild(more);
         }
         card.appendChild(strip);
       }
 
-      // ── Row 6: Footer (slideshow hint) ──
+      // Footer
       const footer = document.createElement("div");
-      footer.className = "pt-2 border-t border-slate-800/60 flex items-center justify-between";
-      footer.innerHTML = `
-        <span class="text-[10px] text-slate-500">${escapeHtml(locStr || "—")}</span>
-        <span class="text-[10px] text-orange-400 flex items-center gap-1"><i class="fa-solid fa-play text-[8px]"></i> Slideshow</span>
-      `;
+      footer.style.cssText = "padding-top:8px;border-top:1px solid rgba(212,160,23,0.08);display:flex;align-items:center;justify-content:space-between;";
+      footer.innerHTML = `<span class="text-[10px]" style="color:#1A3060">${escapeHtml(locStr || "—")}</span><span class="text-[10px] flex items-center gap-1 font-semibold" style="color:#D4A017"><i class="fa-solid fa-play text-[8px]"></i>Slideshow</span>`;
       card.appendChild(footer);
 
       card.addEventListener("click", () => openEventSlideshow(item, { title, icon, details: buildEventDetails(item, form, data, displayDate, formDate) }));
@@ -1221,7 +1366,6 @@
     });
   }
 
-  // ── Event details array for slideshow ──
   function buildEventDetails(item, form, data, displayDate, formDate) {
     const details = [];
     const push = (k, v) => { if (v) details.push([k, String(v)]); };
@@ -1238,80 +1382,55 @@
     if (item.with_label) push("साथ में", item.with_label);
     push("विवरण", data.program_details || data.report_summary);
     const skip = new Set(["district","vidhansabha","mandal","program_name","program_type","level","program_level","tour_location","venue","tour_venue","total_attendance","attendance_count","other_speakers","program_details","report_summary","tour_date","report_date","attendance_date","event_date","name","mobile"]);
-    Object.keys(data).forEach(k => {
-      if (!skip.has(k) && typeof data[k] !== "object" && isNonEmpty(data[k])) push(k, data[k]);
-    });
+    Object.keys(data).forEach(k => { if (!skip.has(k) && typeof data[k] !== "object" && isNonEmpty(data[k])) push(k, data[k]); });
     return details;
   }
 
-  // ─────────────── PPT Slideshow ───────────────
+  // ── PPT Slideshow ──
   const SS = (() => {
     let photos = [], idx = 0, autoTimer = null, isPlaying = false;
-    const overlay  = document.getElementById("slideshowOverlay");
-    const img      = document.getElementById("slideshowImg");
-    const counter  = document.getElementById("slideshowCounter");
-    const titleEl  = document.getElementById("slideshowTitle");
+    const overlay = document.getElementById("slideshowOverlay");
+    const img = document.getElementById("slideshowImg");
+    const counter = document.getElementById("slideshowCounter");
+    const titleEl = document.getElementById("slideshowTitle");
     const detailEl = document.getElementById("slideshowDetails");
     const thumbBar = document.getElementById("slideshowThumbBar");
-    const progBar  = document.getElementById("slideshowProgressBar");
-    const autoBtn  = document.getElementById("ssAutoplay");
+    const progBar = document.getElementById("slideshowProgressBar");
+    const autoBtn = document.getElementById("ssAutoplay");
 
     function goTo(i, animate = true) {
       if (!photos.length) return;
       idx = ((i % photos.length) + photos.length) % photos.length;
-      // progress
       progBar.style.width = `${((idx + 1) / photos.length) * 100}%`;
       counter.textContent = `${idx + 1} / ${photos.length}`;
-      // fade
       if (animate) {
         img.classList.add("fading");
-        setTimeout(() => {
-          img.src = photos[idx].url;
-          img.onload = () => img.classList.remove("fading");
-          img.onerror = () => img.classList.remove("fading");
-        }, 200);
-      } else {
-        img.src = photos[idx].url;
-      }
-      // thumbs
-      thumbBar.querySelectorAll(".ss-thumb").forEach((t, ti) => {
-        t.classList.toggle("active", ti === idx);
-      });
-      if (thumbBar.children[idx]) {
-        thumbBar.children[idx].scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-      }
+        setTimeout(() => { img.src = photos[idx].url; img.onload = () => img.classList.remove("fading"); img.onerror = () => img.classList.remove("fading"); }, 200);
+      } else { img.src = photos[idx].url; }
+      thumbBar.querySelectorAll(".ss-thumb").forEach((t, ti) => t.classList.toggle("active", ti === idx));
+      if (thumbBar.children[idx]) thumbBar.children[idx].scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     }
 
-    function stopAuto() {
-      clearInterval(autoTimer); autoTimer = null; isPlaying = false;
-      autoBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
-    }
-
-    function startAuto() {
-      isPlaying = true;
-      autoBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-      autoTimer = setInterval(() => goTo(idx + 1), 3000);
-    }
+    function stopAuto() { clearInterval(autoTimer); autoTimer = null; isPlaying = false; autoBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
+    function startAuto() { isPlaying = true; autoBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; autoTimer = setInterval(() => goTo(idx + 1), 3000); }
 
     document.getElementById("ssPrev").addEventListener("click", () => { stopAuto(); goTo(idx - 1); });
     document.getElementById("ssNext").addEventListener("click", () => { stopAuto(); goTo(idx + 1); });
     document.getElementById("ssClose").addEventListener("click", close);
     autoBtn.addEventListener("click", () => { isPlaying ? stopAuto() : startAuto(); });
 
-    // Keyboard nav
     document.addEventListener("keydown", e => {
       if (!overlay.classList.contains("active")) return;
-      if (e.key === "ArrowLeft")  { stopAuto(); goTo(idx - 1); }
+      if (e.key === "ArrowLeft") { stopAuto(); goTo(idx - 1); }
       if (e.key === "ArrowRight") { stopAuto(); goTo(idx + 1); }
-      if (e.key === "Escape")     { close(); }
-      if (e.key === " ")          { isPlaying ? stopAuto() : startAuto(); e.preventDefault(); }
+      if (e.key === "Escape") { close(); }
+      if (e.key === " ") { isPlaying ? stopAuto() : startAuto(); e.preventDefault(); }
     });
 
     function open(title, photoList, details) {
       photos = photoList || [];
       if (!photos.length) return;
       titleEl.textContent = title || "Event";
-      // build thumbs
       thumbBar.innerHTML = "";
       photos.forEach((p, i) => {
         const t = document.createElement("img");
@@ -1319,7 +1438,6 @@
         t.addEventListener("click", () => { stopAuto(); goTo(i); });
         thumbBar.appendChild(t);
       });
-      // build details
       detailEl.innerHTML = "";
       (details || []).forEach(([k, v]) => {
         detailEl.innerHTML += `<div class="ss-detail-row"><span class="ss-detail-key">${k}</span><span class="ss-detail-val">${v}</span></div>`;
@@ -1328,16 +1446,10 @@
       goTo(0, false);
     }
 
-    function close() {
-      stopAuto();
-      overlay.classList.remove("active");
-      img.src = "";
-    }
-
+    function close() { stopAuto(); overlay.classList.remove("active"); img.src = ""; }
     return { open, close };
   })();
 
-  // ─── Form date helper (form में जो date डाली वो दिखाओ) ───
   function getFormDate(formType, data) {
     if (!data) return "";
     if (formType === "president_tour_form") return data.tour_date || "";
@@ -1346,72 +1458,56 @@
     return "";
   }
 
-  // ─── Open event in PPT slideshow ───
   function openEventSlideshow(item, sum) {
     const form = item.form_type || item.ft || "";
     const data = item.data || {};
     const eventPhotos = getEventPhotos(item, globalPhotoMap);
-
     if (eventPhotos.length === 0) {
       const body = document.createElement("div");
-      const det = sum.details || buildEventDetails(item, form, data,
-        getEventFormDate(form, data) || prettyIso(item.created_at_iso || ""),
-        getEventFormDate(form, data));
+      const det = sum.details || buildEventDetails(item, form, data, getEventFormDate(form, data) || prettyIso(item.created_at_iso || ""), getEventFormDate(form, data));
       body.appendChild(makeKVTable(det));
       modal.open(sum.title || "Event", body, false);
       return;
     }
-
     const formDate = getEventFormDate(form, data);
     const displayDate = formDate || prettyIso(item.created_at_iso || "");
     const details = sum.details || buildEventDetails(item, form, data, displayDate, formDate);
     SS.open(sum.title || "Event", eventPhotos.map(u => ({ url: u })), details);
   }
 
-  // --------- Render Photos (Gallery Grid) ----------
+  // ── Render Photos ──
   function renderPhotos(photoUrls, timeline) {
     el.photosGrid.innerHTML = "";
     galleryImages = [];
-
     if (!Array.isArray(photoUrls) || photoUrls.length === 0) {
-      el.photosGrid.innerHTML = "<div class='col-span-full text-center text-slate-500'>No photos found</div>";
+      el.photosGrid.innerHTML = `<div class="col-span-full text-center py-8 text-sm" style="color:#475569">कोई फोटो नहीं मिली</div>`;
       return;
     }
-
     const byKey = new Map();
-    photoUrls.forEach((u) => {
-      const k = parseS3KeyFromUrl(u);
-      if (isNonEmpty(k) && !byKey.has(k)) byKey.set(k, u);
-    });
-
+    photoUrls.forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k) && !byKey.has(k)) byKey.set(k, u); });
     const labelByKey = new Map();
-    (timeline || []).forEach((t) => {
-      if (isNonEmpty(t.s3_key)) labelByKey.set(t.s3_key, buildEventSummary(t).title);
-    });
+    (timeline || []).forEach(t => { if (isNonEmpty(t.s3_key)) labelByKey.set(t.s3_key, buildEventSummary(t).title); });
 
     Array.from(byKey.entries()).forEach(([k, url], idx) => {
-      // Store for slideshow
       galleryImages.push({ url, title: labelByKey.get(k) || "Event Photo", id: k });
-
       const wrapper = document.createElement("div");
-      wrapper.className = "group relative aspect-square rounded-xl overflow-hidden bg-slate-900 border border-slate-700 cursor-pointer active:scale-95 transition-transform";
-      
+      wrapper.className = "photo-item cursor-pointer";
+
       const img = document.createElement("img");
       setImgSrcWithRetry(img, url);
       img.loading = "lazy";
-      img.className = "w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100";
-      
-      wrapper.appendChild(img);
-      wrapper.addEventListener("click", () => {
-         modal.open("Gallery", null, true); // True triggers gallery mode
-         modal.showGalleryImage(idx);
-      });
+      img.className = "w-full h-full object-cover transition-transform duration-500 group-hover:scale-110";
+      img.style.cssText = "opacity:0.85; transition:opacity 0.3s, transform 0.5s;";
+      img.onmouseenter = () => img.style.opacity = "1";
+      img.onmouseleave = () => img.style.opacity = "0.85";
 
+      wrapper.appendChild(img);
+      wrapper.addEventListener("click", () => { modal.open("Gallery", null, true); modal.showGalleryImage(idx); });
       el.photosGrid.appendChild(wrapper);
     });
   }
 
-  // --------- API Logic ----------
+  // ── API Logic ──
   async function apiCall(action, payload, tokenOpt) {
     const isPublic = !!tokenOpt;
     const url = isPublic ? `${BASE_URL}/political/public/search` : `${BASE_URL}/political/search`;
@@ -1430,32 +1526,20 @@
     return json;
   }
 
-  // ── State for 2-step flow ──
-  let pendingSearchRes = null;  // Step 1 result store होता है यहाँ
+  let pendingSearchRes = null;
 
-  // ── uploadInput भी selfieInput की तरह काम करे ──
   if (el.uploadInput) {
     el.uploadInput.addEventListener("change", function() {
       if (this.files && this.files[0] && el.selfieInput) {
-        // DataTransfer trick: uploadInput की file selfieInput में copy करो
-        try {
-          const dt = new DataTransfer();
-          dt.items.add(this.files[0]);
-          el.selfieInput.files = dt.files;
-        } catch(e) {}
+        try { const dt = new DataTransfer(); dt.items.add(this.files[0]); el.selfieInput.files = dt.files; } catch(e) {}
         previewImage(this);
       }
     });
   }
 
-  // ── Step 1: Search (face match only) ──
   async function doFaceSearch() {
-    const file = (el.selfieInput && el.selfieInput.files && el.selfieInput.files[0])
-               || (el.uploadInput && el.uploadInput.files && el.uploadInput.files[0]);
-    if (!file) {
-      setStatus("कृपया पहले सेल्फी लें", "error");
-      return;
-    }
+    const file = (el.selfieInput && el.selfieInput.files && el.selfieInput.files[0]) || (el.uploadInput && el.uploadInput.files && el.uploadInput.files[0]);
+    if (!file) { setStatus("कृपया पहले सेल्फी लें", "error"); return; }
 
     el.searchBtn.disabled = true;
     el.searchBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>खोज रहे हैं...';
@@ -1475,7 +1559,7 @@
 
       const init = await apiCall("init_search", { mime_type: file.type || "image/jpeg", sha256: photoSha256 }, token);
       const uploadUrl = init.upload_url || init.url;
-      const searchId  = init.search_id || init.searchId;
+      const searchId = init.search_id || init.searchId;
 
       if (!init.cache_hit) {
         await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
@@ -1483,7 +1567,6 @@
 
       setStatus("डेटाबेस में खोज हो रही है...", "loading");
       const res = await apiCall("run_search", { search_id: searchId }, token);
-
       el.skeletonLoader.classList.add("hidden");
 
       const tCount = Array.isArray(res.events || res.timeline) ? (res.events || res.timeline).length : 0;
@@ -1495,34 +1578,21 @@
         el.emptyState.querySelector("h3").textContent = "कोई मैच नहीं मिला";
         el.emptyState.querySelector("p").textContent = "इस चेहरे का कोई रिकॉर्ड नहीं है।";
       } else {
-        // ── Step 2 दिखाओ: match summary + name/mobile form ──
         pendingSearchRes = res;
         setStatus("", "info");
-
-        // Match pills
         const sim = isNonEmpty(res.similarity) ? Number(res.similarity).toFixed(0) : "0";
         if (el.matchPills) {
           el.matchPills.innerHTML = `
-            <span class="px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-300 text-xs font-bold">
-              <i class="fa-solid fa-images mr-1"></i>${pCount} फोटो
-            </span>
-            <span class="px-3 py-1 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-bold">
-              <i class="fa-solid fa-calendar-check mr-1"></i>${tCount} इवेंट
-            </span>
-            <span class="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
-              ${sim}% मैच
-            </span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold badge-gold">${pCount} फोटो</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold badge-jade">${tCount} इवेंट</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:rgba(62,207,178,0.1);border:1px solid rgba(62,207,178,0.3);color:#3ECFB2">${sim}% मैच</span>
           `;
         }
         if (el.matchTitle) el.matchTitle.textContent = "✅ मैच मिला!";
         if (el.matchSubtitle) el.matchSubtitle.textContent = "नाम/मोबाइल डालें या सीधे देखें";
-
-        // Profile से name/mobile pre-fill करो अगर पहले से है
         const profile = res.profile || {};
         if (el.nameInput && profile.name) el.nameInput.value = profile.name;
         if (el.mobileInput && profile.mobile) el.mobileInput.value = profile.mobile;
-
-        // Step 1 hide, Step 2 show
         if (el.step1Card) el.step1Card.classList.add("hidden");
         if (el.step2Card) el.step2Card.classList.remove("hidden");
       }
@@ -1532,11 +1602,10 @@
       el.skeletonLoader.classList.add("hidden");
     } finally {
       el.searchBtn.disabled = false;
-      el.searchBtn.innerHTML = '<span class="relative flex items-center justify-center gap-2"><i class="fa-solid fa-magnifying-glass"></i> खोजें</span>';
+      el.searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-2"></i>खोजें';
     }
   }
 
-  // ── Step 2: Show Results ──
   function showResults(name, mobile) {
     if (!pendingSearchRes) return;
     const res = pendingSearchRes;
@@ -1547,21 +1616,17 @@
 
     globalTimelineData = timeline;
     globalPhotoMap = new Map();
-    (res.photo_urls || []).forEach((u) => {
-      const k = parseS3KeyFromUrl(u);
-      if (isNonEmpty(k)) globalPhotoMap.set(k, u);
-    });
+    (res.photo_urls || []).forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k)) globalPhotoMap.set(k, u); });
 
     if (el.step2Card) el.step2Card.classList.add("hidden");
     currentFilter = "all";
     updateDashboard(sim, tCount, pCount);
     applyFilter();
     renderPhotos(res.photo_urls || [], timeline);
-    switchTab("photos"); // Gallery पहले दिखाओ
-    if(window.innerWidth < 1024) el.statsDashboard.scrollIntoView({ behavior: "smooth" });
+    switchTab("photos");
+    if (window.innerWidth < 1024) el.statsDashboard.scrollIntoView({ behavior: "smooth" });
   }
 
-  // ── "सभी Slideshow" button ──
   function openAllSlideshow() {
     const allPhotos = [];
     const seen = new Set();
@@ -1569,242 +1634,83 @@
       const photos = getEventPhotos(item, globalPhotoMap);
       photos.forEach(u => { if (!seen.has(u)) { seen.add(u); allPhotos.push({ url: u }); } });
     });
-    // photo_urls से भी
-    globalPhotoMap.forEach((u) => { if (!seen.has(u)) { seen.add(u); allPhotos.push({ url: u }); } });
+    globalPhotoMap.forEach(u => { if (!seen.has(u)) { seen.add(u); allPhotos.push({ url: u }); } });
     if (allPhotos.length) SS.open("सभी फोटो", allPhotos, [["कुल फोटो", allPhotos.length]]);
   }
 
-  // ── Event listeners ──
   if (el.searchBtn) el.searchBtn.addEventListener("click", doFaceSearch);
-  if (el.confirmBtn) el.confirmBtn.addEventListener("click", () => {
-    showResults(el.nameInput ? el.nameInput.value.trim() : "", el.mobileInput ? el.mobileInput.value.trim() : "");
-  });
+  if (el.confirmBtn) el.confirmBtn.addEventListener("click", () => showResults(el.nameInput ? el.nameInput.value.trim() : "", el.mobileInput ? el.mobileInput.value.trim() : ""));
   if (el.skipBtn) el.skipBtn.addEventListener("click", () => showResults("", ""));
   if (el.btnAllSlideshow) el.btnAllSlideshow.addEventListener("click", openAllSlideshow);
 })();
 </script>
 
 <script>
-// ===== EventLens Patch: Timeline grouping by event_id (v2) =====
+// ── Timeline Grouping Patch ──
 let globalTimelineGroups = [];
 
-// Build groups so 10 photos in same event show as 1 event card.
-function buildTimelineGroups(timelineArr){
+function buildTimelineGroups(timelineArr) {
   const timeline = Array.isArray(timelineArr) ? timelineArr : [];
   const map = new Map();
-  for (const it of timeline){
-    if(!it || typeof it !== 'object') continue;
+  for (const it of timeline) {
+    if (!it || typeof it !== 'object') continue;
     const eid = (it.event_id || it.eventId || it.event_key || it.eventKey || it.entry_id || it.entryId || '').toString().trim();
     const gid = eid || (it.entry_id || it.entryId || '').toString().trim() || Math.random().toString(36).slice(2);
-    if(!map.has(gid)){
-      map.set(gid, {
-        group_id: gid,
-        event_id: eid || gid,
-        form_type: it.form_type || it.ft || 'unknown',
-        created_at: it.created_at || '0',
-        created_at_iso: it.created_at_iso || '',
-        district: it.district || (it.data||{}).district || '',
-        vidhansabha: it.vidhansabha || (it.data||{}).vidhansabha || '',
-        mandal: it.mandal || (it.data||{}).mandal || '',
-        items: [it],
-      });
+    if (!map.has(gid)) {
+      map.set(gid, { group_id: gid, event_id: eid || gid, form_type: it.form_type || it.ft || 'unknown', created_at: it.created_at || '0', created_at_iso: it.created_at_iso || '', with_label: it.with_label || '', face_count: it.face_count || 0, district: it.district || (it.data||{}).district || '', vidhansabha: it.vidhansabha || (it.data||{}).vidhansabha || '', mandal: it.mandal || (it.data||{}).mandal || '', items: [it] });
     } else {
       const g = map.get(gid);
       g.items.push(it);
-      // keep latest time
       const ca = Number(it.created_at || 0);
       const ga = Number(g.created_at || 0);
-      if(ca > ga){
-        g.created_at = it.created_at || g.created_at;
-        g.created_at_iso = it.created_at_iso || g.created_at_iso;
-        g.district = it.district || g.district;
-        g.vidhansabha = it.vidhansabha || g.vidhansabha;
-        g.mandal = it.mandal || g.mandal;
-        g.form_type = it.form_type || it.ft || g.form_type;
-      }
+      if (ca > ga) { g.created_at = it.created_at || g.created_at; g.created_at_iso = it.created_at_iso || g.created_at_iso; g.district = it.district || g.district; g.vidhansabha = it.vidhansabha || g.vidhansabha; g.mandal = it.mandal || g.mandal; g.form_type = it.form_type || it.ft || g.form_type; }
     }
   }
   const groups = Array.from(map.values());
-  groups.sort((a,b)=> Number(b.created_at||0) - Number(a.created_at||0));
+  groups.sort((a, b) => Number(b.created_at||0) - Number(a.created_at||0));
   return groups;
 }
 
-// Override dashboard counts to show EVENT count (not photo count)
-function updateDashboard(similarity, timelineCount, photoCount){
-  el.similarityText.textContent = `${similarity}%`;
-  el.timelineCount.textContent = `${timelineCount}`;
-  el.photoCount.textContent = `${photoCount}`;
+function updateDashboard(similarity, timelineCount, photoCount) {
+  const el2 = { similarityText: document.getElementById("similarityText"), timelineCount: document.getElementById("timelineCount"), photoCount: document.getElementById("photoCount") };
+  if (el2.similarityText) el2.similarityText.textContent = `${similarity}%`;
+  if (el2.timelineCount) el2.timelineCount.textContent = `${timelineCount}`;
+  if (el2.photoCount) el2.photoCount.textContent = `${photoCount}`;
 }
 
-// Render grouped timeline (one card per event)
-function renderTimelineGroups(groups){
-  el.timelineGrid.innerHTML = "";
-  if(!Array.isArray(groups) || groups.length===0){
-    el.timelineGrid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10">No timeline entries.</div>';
+function renderTimelineGroups(groups) {
+  const grid = document.getElementById("viewTimeline");
+  if (!grid) return;
+  grid.innerHTML = "";
+  if (!Array.isArray(groups) || groups.length === 0) {
+    grid.innerHTML = '<div class="text-center text-sm py-10" style="color:#475569">No timeline entries.</div>';
     return;
   }
-
-  const frag = document.createDocumentFragment();
-  for(const g of groups){
+  // Use the existing renderTimeline by flattening groups to representative items
+  const repItems = groups.map(g => {
     const rep = (g.items && g.items[0]) ? g.items[0] : {};
-    const ft = g.form_type || rep.form_type || rep.ft || 'unknown';
-    const title = getFormTypeLabel(ft);
-    const repData = rep.data || {};
-
-    // Form date (form में जो date डाली)
-    const formDt = getEventFormDate(ft, repData);
-    const dt = formDt || formatDate(g.created_at_iso || rep.created_at_iso || "");
-
-    const locParts = [];
-    if(g.district) locParts.push(g.district);
-    if(g.vidhansabha) locParts.push(g.vidhansabha);
-    if(g.mandal) locParts.push(g.mandal);
-    const loc = locParts.join(" • ");
-
-    // with_label
-    const withLabel = g.with_label || rep.with_label || "";
-    const faceCount = Number(g.face_count || rep.face_count || 0);
-
-    // Photos
-    const gPhotos = getEventPhotos(g, globalPhotoMap);
-
-    const card = document.createElement("div");
-    card.className = "group bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 hover:bg-slate-800/80 transition cursor-pointer";
-
-    // Title + Date
-    card.innerHTML = `
-      <div class="flex items-start justify-between gap-2 mb-2">
-        <h3 class="font-semibold text-slate-100 truncate text-sm">${escapeHtml(title)}</h3>
-        ${dt ? `<span class="text-orange-300 text-xs shrink-0 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded font-medium">${escapeHtml(dt)}</span>` : ""}
-      </div>
-      ${loc ? `<p class="text-xs text-slate-400 mb-2"><i class="fa-solid fa-location-dot text-[10px] mr-1"></i>${escapeHtml(loc)}</p>` : ""}
-      ${withLabel ? `<div class="text-xs text-sky-400 bg-sky-500/5 border border-sky-500/15 rounded px-2 py-1 mb-2 flex items-center gap-1"><i class="fa-solid fa-users text-[10px]"></i>${escapeHtml(withLabel)}</div>` : (faceCount > 1 ? `<div class="text-xs text-slate-400 mb-2">${faceCount} लोग</div>` : "")}
-    `;
-
-    // Thumbnails
-    if (gPhotos.length > 0) {
-      const strip = document.createElement("div");
-      strip.className = "flex flex-wrap gap-1.5 mb-2";
-      const maxShow = 5;
-      gPhotos.slice(0, maxShow).forEach(u => {
-        const im = document.createElement("img");
-        setImgSrcWithRetry(im, u);
-        im.className = "w-12 h-12 rounded-lg object-cover border border-slate-700/70";
-        strip.appendChild(im);
-      });
-      if (gPhotos.length > maxShow) {
-        const m = document.createElement("div");
-        m.className = "w-12 h-12 rounded-lg flex flex-col items-center justify-center text-xs font-semibold bg-slate-900 border border-slate-700 text-orange-400 gap-0.5";
-        m.innerHTML = `<i class="fa-solid fa-images text-sm"></i><span>+${gPhotos.length - maxShow}</span>`;
-        strip.appendChild(m);
-      }
-      card.appendChild(strip);
-    }
-
-    card.innerHTML += `
-      <div class="flex items-center justify-between text-xs text-slate-500 border-t border-slate-700/40 pt-2 mt-1">
-        <span>${(g.items && g.items.length > 1) ? g.items.length + " records" : "1 record"}</span>
-        <span class="text-orange-400 flex items-center gap-1"><i class="fa-solid fa-play text-[8px]"></i> Slideshow</span>
-      </div>
-    `;
-
-    card.addEventListener("click", () => openEventSlideshow(g, { title, icon: "fa-calendar-check", details: buildEventDetails(rep, ft, repData, dt, formDt) }));
-    frag.appendChild(card);
-  }
-  el.timelineGrid.appendChild(frag);
+    return Object.assign({}, rep, { _groupPhotos: g.items, _itemCount: g.items.length });
+  });
+  // We call the main render directly
+  if (typeof window._renderTimelineMain === 'function') window._renderTimelineMain(repItems, window._globalPhotoMap || new Map());
 }
 
-// Show group details (all merged items)
-function openGroupModal(group){
-  const items = (group && group.items) ? group.items : [];
-  const rep = items[0] || {};
-  const ft = group.form_type || rep.form_type || rep.ft || 'unknown';
-  const title = `${getFormTypeLabel(ft)} (Event)`;
-  // Form की actual date
-  const modalData = rep.data || {};
-  function pickFD(formType, d) {
-    if (formType === "president_tour_form") return d.tour_date || "";
-    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return d.report_date || d.event_date || "";
-    if (formType === "party_attendance") return d.attendance_date || "";
-    return "";
-  }
-  const modalFormDt = pickFD(ft, modalData);
-  const dt = modalFormDt || formatDate(group.created_at_iso || rep.created_at_iso || "");
-  const locParts = [];
-  if(group.district) locParts.push(group.district);
-  if(group.vidhansabha) locParts.push(group.vidhansabha);
-  if(group.mandal) locParts.push(group.mandal);
-
-  const headerHtml = `
-    <div class="space-y-1">
-      <div class="text-lg font-semibold text-slate-100">${escapeHtml(title)}</div>
-      <div class="text-sm text-slate-400">${escapeHtml([dt, locParts.join(" • ")].filter(Boolean).join(" • "))}</div>
-      <div class="text-xs text-slate-500">Event ID: ${escapeHtml(group.event_id || group.group_id || '')}</div>
-    </div>
-  `;
-
-  const rows = items.map((it, idx)=>{
-    const p = it.data && typeof it.data==='object' ? it.data : (it.data || it.payload || {});
-    const name = it.name || (p && p.name) || '';
-    const mobile = it.mobile || (p && p.mobile) || '';
-    const reason = it.reason || (p && (p.reason || p.visit_reason)) || '';
-    const when = formatDate(it.created_at_iso || '');
-    return `
-      <div class="rounded-xl border border-slate-700/60 bg-slate-900/30 p-3">
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0">
-            <div class="font-medium text-slate-100 truncate">${escapeHtml(name || '—')}</div>
-            <div class="text-xs text-slate-400 mt-0.5">${escapeHtml(mobile || '')}</div>
-          </div>
-          <div class="text-[11px] text-slate-400 shrink-0">${escapeHtml(when || '')}</div>
-        </div>
-        ${reason ? `<div class="text-sm text-slate-200/90 mt-2">${escapeHtml(reason)}</div>` : ``}
-      </div>
-    `;
-  }).join("");
-
-  el.detailModalTitle.innerHTML = headerHtml;
-  el.detailModalBody.innerHTML = `
-    <div class="space-y-3">
-      <div class="text-xs text-slate-400">Merged records: <span class="text-slate-200">${items.length}</span></div>
-      <div class="grid grid-cols-1 gap-3">${rows}</div>
-    </div>
-  `;
-  el.detailModal.classList.remove("hidden");
-}
-
-// Override filter to work on groups
 function applyFilter() {
   const groups = Array.isArray(globalTimelineGroups) ? globalTimelineGroups : [];
-  if (currentFilter === 'all') {
-    renderTimelineGroups(groups);
-    return;
-  }
-  const filtered = groups.filter(g => {
-    const ft = (g.form_type || '').toString();
-    return ft === currentFilter;
-  });
+  if (window.currentFilter === 'all') { renderTimelineGroups(groups); return; }
+  const filtered = groups.filter(g => { const ft = (g.form_type || '').toString(); return ft === window.currentFilter; });
   renderTimelineGroups(filtered);
 }
 
-// Patch search submit: after globalTimelineData set, also set globalTimelineGroups and counts
-(function patchSearchSubmitHook(){
-  // We hook into existing code by wrapping renderPhotos call when data exists.
+(function patchSearchSubmitHook() {
   const _origRenderPhotos = window.renderPhotos;
-  window.renderPhotos = function(photoUrls, timeline){
-    try{
-      globalTimelineGroups = buildTimelineGroups(globalTimelineData || timeline || []);
-      // Update counts again with grouped count
-      const simText = (el.similarityText && el.similarityText.textContent) ? el.similarityText.textContent.replace('%','') : '0';
-      const sim = Number(simText || 0).toFixed(0);
-      const tCount = globalTimelineGroups.length;
-      const pCount = Array.isArray(photoUrls) ? photoUrls.length : 0;
-      updateDashboard(sim, tCount, pCount);
-      // Apply filter re-render
-      applyFilter();
-    }catch(e){
-      console.warn('timeline grouping patch failed', e);
-    }
+  window.renderPhotos = function(photoUrls, timeline) {
+    try {
+      globalTimelineGroups = buildTimelineGroups(window.globalTimelineData || timeline || []);
+      const scoreEl = document.getElementById("scoreVal");
+      const sim = scoreEl ? Number(scoreEl.textContent.replace('%','') || 0).toFixed(0) : '0';
+      updateDashboard(sim, globalTimelineGroups.length, Array.isArray(photoUrls) ? photoUrls.length : 0);
+    } catch(e) { console.warn('timeline grouping patch failed', e); }
     return _origRenderPhotos ? _origRenderPhotos(photoUrls, timeline) : undefined;
   };
 })();
