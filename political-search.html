@@ -8,33 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-  <!-- PWA Setup -->
-  <meta name="theme-color" content="#03070F" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <link rel="manifest" href="data:application/manifest+json,{
-    \"name\": \"EventLens AI\",
-    \"short_name\": \"EventLens\",
-    \"start_url\": \".\",
-    \"display\": \"standalone\",
-    \"background_color\": \"#03070F\",
-    \"theme_color\": \"#D4A017\",
-    \"orientation\": \"portrait-primary\",
-    \"icons\": [
-      {\"src\": \"https://via.placeholder.com/192x192\", \"sizes\": \"192x192\", \"type\": \"image/png\"},
-      {\"src\": \"https://via.placeholder.com/512x512\", \"sizes\": \"512x512\", \"type\": \"image/png\"}
-    ]
-  }" />
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('SW registered!', reg))
-          .catch(err => console.log('SW registration failed', err));
-      });
-    }
-  </script>
-
   <script>
     tailwind.config = {
       theme: {
@@ -356,7 +329,7 @@
     #slideshowOverlay {
       position: fixed; inset: 0; z-index: 9999;
       background: #000;
-      display: none; flex-direction: row;
+      display: none; flex-direction: column;
     }
     #slideshowOverlay.active { display: flex; }
     #slideshowTopBar {
@@ -364,7 +337,7 @@
       padding: 12px 20px;
       background: rgba(3,7,15,0.97);
       border-bottom: 1px solid rgba(212,160,23,0.2);
-      flex-shrink: 0; position: absolute; top: 0; left: 0; right: 0;
+      flex-shrink: 0;
     }
     #slideshowTitle {
       font-family: 'DM Sans', sans-serif;
@@ -377,7 +350,7 @@
       position: relative; overflow: hidden;
       background: radial-gradient(ellipse at center, #0A0F1E 0%, #000 100%);
     }
-    #slideshowImg { max-width: 60%; max-height: 70%; object-fit: contain; transition: opacity 0.25s ease; }
+    #slideshowImg { max-width: 100%; max-height: 100%; object-fit: contain; transition: opacity 0.25s ease; }
     #slideshowImg.fading { opacity: 0; }
     .ss-nav-btn {
       position: absolute; top: 50%; transform: translateY(-50%);
@@ -391,26 +364,26 @@
     #ssPrev { left: 16px; } #ssNext { right: 16px; }
     #slideshowBottom { background: rgba(3,7,15,0.97); border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
     #slideshowDetails {
-      display: flex; flex-wrap: wrap; gap: 12px; /* सुंदर ग्रिड */
-      background: rgba(17,32,68,0.7); padding: 20px; border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4); max-width: 400px; /* कार्ड जैसा */
+      padding: 12px 20px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px 20px;
+      max-height: 120px; overflow-y: auto;
+      font-size: 12px;
     }
     .ss-detail-row { display: flex; flex-direction: column; }
     .ss-detail-key { color: #475569; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
     .ss-detail-val { color: #D1D9E6; font-weight: 600; font-size: 12px; }
     #slideshowThumbBar {
-      flex-direction: column; /* वर्टिकल थंबनेल्स */
-      width: 80px; /* लेफ्ट साइडबार चौड़ाई */
-      overflow-y: auto; height: 100vh; padding: 16px 8px;
-      background: rgba(6,13,31,0.8); border-right: 1px solid rgba(212,160,23,0.2);
-      gap: 8px; /* सुंदर स्पेसिंग */
+      display: flex; gap: 6px; padding: 8px 16px;
+      overflow-x: auto; background: rgba(6,13,31,0.8);
+      scrollbar-width: thin; border-top: 1px solid rgba(212,160,23,0.08);
     }
     .ss-thumb {
-      width: 64px; height: 64px; border-radius: 8px; object-fit: cover;
+      width: 52px; height: 52px; border-radius: 8px; object-fit: cover;
       border: 2px solid transparent; cursor: pointer; flex-shrink: 0;
       transition: all 0.2s; opacity: 0.6;
     }
-    .ss-thumb:hover { opacity: 1; transform: scale(1.1); }
+    .ss-thumb:hover { opacity: 1; }
     .ss-thumb.active { border-color: var(--gold-400); opacity: 1; box-shadow: 0 0 12px rgba(212,160,23,0.4); }
     #slideshowProgress { height: 2px; background: rgba(212,160,23,0.15); }
     #slideshowProgressBar { height: 100%; background: linear-gradient(90deg, #D4A017, #EFC24A); transition: width 0.3s ease; }
@@ -484,21 +457,6 @@
       border-radius: 999px;
       transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    /* Advanced Responsive */
-    @media (max-width: 768px) {
-      .grid-cols-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      #slideshowThumbBar { width: 60px; }
-      #slideshowImg { max-width: 100%; max-height: 50%; }
-      #slideshowDetails { max-width: 100%; padding: 10px; }
-      #timelineTable { font-size: 12px; }
-      #timelineTable th, #timelineTable td { padding: 8px; }
-      #viewTimeline { overflow-x: auto; }
-    }
-
-    @media (min-width: 769px) {
-      .grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-    }
   </style>
 
   <script>
@@ -534,6 +492,11 @@
         imgEl.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
       };
       load();
+    }
+
+    function getBestThumbUrl(obj, fallbackUrl) {
+      if (!obj) return fallbackUrl;
+      return obj.thumb_url || obj.thumbUrl || obj.thumbnail_url || obj.thumbnailUrl || fallbackUrl;
     }
   </script>
 </head>
@@ -611,11 +574,11 @@
               </label>
             </div>
 
-            <!-- Gallery Upload - Small Option -->
-            <label class="flex items-center justify-center gap-2 w-full py-1.5 rounded-xl btn-ghost text-xs font-semibold cursor-pointer mb-4" style="font-size: 10px; padding: 8px;">
+            <!-- Gallery Upload -->
+            <label class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl btn-ghost text-xs font-semibold cursor-pointer mb-4">
               <input id="uploadInput" accept="image/*" type="file" class="hidden" onchange="previewImage(this)" />
-              <i class="fa-solid fa-images text-[10px]" style="color:#D4A017"></i>
-              <span>गैलरी से (छोटा ऑप्शन)</span>
+              <i class="fa-solid fa-images text-[11px]" style="color:#D4A017"></i>
+              <span>गैलरी से अपलोड</span>
             </label>
 
             <!-- Search Button -->
@@ -628,8 +591,9 @@
           </div>
         </div>
 
-        <!-- Step 2: Match Confirmation (Hidden) -->
+        <!-- Step 2: Match Confirmation -->
         <div id="step2Card" class="hidden glass rounded-2xl relative overflow-hidden">
+          <!-- Jade top border -->
           <div class="absolute top-0 left-0 right-0 h-0.5" style="background: linear-gradient(90deg, transparent, #3ECFB2, transparent)"></div>
           <div class="p-5">
             <!-- Match Summary -->
@@ -684,8 +648,8 @@
           </div>
         </div>
 
-        <!-- Stats Dashboard - Updated with Name and Mobile -->
-        <div id="statsDashboard" class="hidden grid grid-cols-2 md:grid-cols-5 gap-3">
+        <!-- Stats Dashboard -->
+        <div id="statsDashboard" class="hidden grid grid-cols-3 gap-3">
           <!-- Match Score -->
           <div class="stat-card rounded-xl p-4 relative overflow-hidden">
             <div class="absolute right-3 top-3 opacity-5"><i class="fa-solid fa-bullseye text-5xl" style="color:#D4A017"></i></div>
@@ -711,16 +675,6 @@
             <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Photos</div>
             <div class="text-3xl font-bold text-white" id="photoCountVal">0</div>
             <div id="photoCount" class="hidden"></div>
-          </div>
-          <!-- Name -->
-          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
-            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Name</div>
-            <div class="text-2xl font-bold text-white" id="nameVal">अज्ञात</div>
-          </div>
-          <!-- Mobile -->
-          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
-            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Mobile</div>
-            <div class="text-2xl font-bold text-white" id="mobileVal">नहीं उपलब्ध</div>
           </div>
         </div>
 
@@ -776,21 +730,9 @@
             </button>
           </div>
 
-          <!-- Timeline View - Updated to Table -->
-          <div id="viewTimeline" class="hidden relative animate-fadeup pb-4">
-            <table id="timelineTable" class="w-full border-collapse" style="background: rgba(17,32,68,0.7); border:1px solid rgba(212,160,23,0.2);">
-              <thead>
-                <tr style="background: rgba(212,160,23,0.15); color:#fff;">
-                  <th class="p-3 text-left">Date</th>
-                  <th class="p-3 text-left">Location</th>
-                  <th class="p-3 text-left">Event Type</th>
-                  <th class="p-3 text-left">Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- JS से रो ऐड -->
-              </tbody>
-            </table>
+          <!-- Timeline View -->
+          <div id="viewTimeline" class="hidden relative pl-10 timeline-rail space-y-5 animate-fadeup pb-4">
+            <!-- Items injected -->
           </div>
 
           <!-- Photos View -->
@@ -809,7 +751,7 @@
     </div>
   </div>
 
-  <!-- ══ SLIDESHOW OVERLAY - Updated Layout ══ -->
+  <!-- ══ SLIDESHOW OVERLAY ══ -->
   <div id="slideshowOverlay">
     <div id="slideshowTopBar">
       <div style="display:flex;align-items:center;gap:10px;min-width:0;">
@@ -826,7 +768,6 @@
       </div>
     </div>
     <div id="slideshowProgress"><div id="slideshowProgressBar" style="width:0%"></div></div>
-    <div id="slideshowThumbBar"></div>
     <div id="slideshowMain">
       <button class="ss-nav-btn" id="ssPrev"><i class="fa-solid fa-chevron-left"></i></button>
       <img id="slideshowImg" src="" alt="Event Photo" />
@@ -834,6 +775,7 @@
     </div>
     <div id="slideshowBottom">
       <div id="slideshowDetails"></div>
+      <div id="slideshowThumbBar"></div>
     </div>
   </div>
 
@@ -866,7 +808,7 @@
     </div>
   </div>
 
-<!-- ══ ALL JS ══ -->
+<!-- ══ ALL JS (Logic unchanged, selectors match new IDs) ══ -->
 <script>
 (() => {
   const API_ID = "vxid0yoovj";
@@ -919,8 +861,6 @@
     similarityText: document.getElementById("similarityText"),
     timelineCount: document.getElementById("timelineCount"),
     photoCount: document.getElementById("photoCount"),
-    nameVal: document.getElementById("nameVal"),
-    mobileVal: document.getElementById("mobileVal"),
   };
 
   // Tab Logic
@@ -986,7 +926,7 @@
         return { date: sum.subtitle, title: sum.title, type: item.form_type, details: sum.highlights.map(h => `${h[0]}: ${h[1]}`).join(", ") };
       });
       const prompt = `You are a senior political analyst. Analyze the following timeline of a 'Karyakarta' (Party Worker) in India. Write a concise, professional performance summary report in HINDI language (Devanagari script). Structure the response in Markdown: 1. **Summary**: 2-3 sentences about their overall activity level and main focus area (e.g., Tours, Mandal meetings). 2. **Key Activities**: Bullet points of their most significant types of participation. 3. **Consistency**: Comment on their regularity based on dates. 4. **Tone**: Encouraging and formal. Data: ${JSON.stringify(simplifiedEvents)}`;
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
       const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
       const data = await response.json();
       const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -1264,7 +1204,16 @@
     } catch (e) { return ""; }
   }
 
-  // ─── Event photos ───
+  // ── Form date helper ──
+  function getEventFormDate(formType, data) {
+    if (!data) return "";
+    const pick = (...keys) => { for (const k of keys) { if (data[k]) return data[k]; } return ""; };
+    if (formType === "president_tour_form") return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return pick("report_date","event_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+    if (formType === "party_attendance") return pick("attendance_date","event_date","दिनांक","date");
+    return pick("event_date","program_date","दिनांक","date");
+  }
+
   function getEventPhotos(item, photoUrlByKey) {
     if (Array.isArray(item.photos) && item.photos.length) return item.photos;
     if (Array.isArray(item.photo_urls) && item.photo_urls.length) return item.photo_urls;
@@ -1276,7 +1225,7 @@
     return [];
   }
 
-  // ─── Icon color map ───
+  // ── Icon color map ──
   const iconColorMap = {
     'fa-plane-departure': '#3ECFB2',
     'fa-clipboard-list': '#D4A017',
@@ -1287,32 +1236,133 @@
   };
 
   function renderTimeline(timeline, photoUrlByKey) {
-    const tbody = document.querySelector("#timelineTable tbody");
-    tbody.innerHTML = "";
+    el.viewTimeline.innerHTML = "";
     if (!Array.isArray(timeline) || timeline.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center">इस फ़िल्टर में कोई इवेंट नहीं</td></tr>`;
+      el.viewTimeline.innerHTML = `<div class="text-center py-10 text-sm" style="color:#475569;">इस फ़िल्टर में कोई इवेंट नहीं: ${currentFilter}</div>`;
       return;
     }
-    const sorted = [...timeline].sort((a,b) => new Date(b.created_at_iso) - new Date(a.created_at_iso));
-    sorted.forEach(item => {
-      const row = document.createElement("tr");
-      row.style.cssText = "border-bottom:1px solid rgba(212,160,23,0.1); transition:background 0.2s;";
-      row.onmouseenter = () => row.style.background = "rgba(212,160,23,0.1)";
-      row.onmouseleave = () => row.style.background = "transparent";
-      
-      const date = formatDate(getEventFormDate(item.form_type, item.data) || item.created_at_iso);
-      const loc = [item.district, item.vidhansabha].filter(Boolean).join(", ");
-      const type = getFormTypeLabel(item.form_type);
-      const details = buildEventSummary(item).title + " (क्लिक फॉर स्लाइडशो)";
-      
-      row.innerHTML = `
-        <td class="p-3">${date}</td>
-        <td class="p-3">${loc || "—"}</td>
-        <td class="p-3">${type}</td>
-        <td class="p-3 cursor-pointer" style="color:#D4A017;">${details}</td>
+
+    const sorted = [...timeline].sort((a, b) => {
+      const parseDate = (item) => {
+        const fd = getEventFormDate(item.form_type || item.ft || "", item.data || {});
+        if (fd) {
+          const parts = fd.split(/[-/]/);
+          if (parts.length === 3) {
+            const d = parts[0].length === 4 ? new Date(parts[0], parts[1]-1, parts[2]) : new Date(parts[2], parts[1]-1, parts[0]);
+            if (!isNaN(d)) return d.getTime();
+          }
+        }
+        return parseInt(item.created_at || "0", 10);
+      };
+      return parseDate(b) - parseDate(a);
+    });
+
+    sorted.forEach((item, index) => {
+      const form = item.form_type || item.ft || "";
+      const data = item.data || {};
+      const formDate = getEventFormDate(form, data);
+      const displayDate = formDate || prettyIso(item.created_at_iso || "");
+      const pName = data.program_name || data["कार्यक्रम_का_नाम"] || data.name_of_program || data.karyakram_name || "";
+      const pType = data.program_type || data["कार्यक्रम_का_प्रकार"] || data.type || "";
+      let title = form || "Event";
+      let icon = "fa-calendar-check";
+
+      if (form === "president_tour_form") { title = pName || pType || data.tour_title || "President Tour"; icon = "fa-plane-departure"; }
+      else if (form === "mandal_reporting" || form === "mandal_reporting_form") { title = pName || data.venue || data["स्थान"] || "Mandal Report"; icon = "fa-clipboard-list"; }
+      else if (form === "visitor_form") { title = item.name || data.name || data["नाम"] || "Visitor"; icon = "fa-user-clock"; }
+      else if (form === "party_attendance") { title = pName || pType || "Party Attendance"; icon = "fa-users-line"; }
+      else if (form === "coordinator_entry" || form === "coordinator_form") { title = data.name || data["नाम"] || pName || "Coordinator Entry"; icon = "fa-id-badge"; }
+      else if (pName) { title = pName; }
+
+      const district = item.district || data.district || "";
+      const vidhansabha = item.vidhansabha || data.vidhansabha || "";
+      const venue = data.tour_location || data.venue || data.tour_venue || "";
+      const locStr = [district, vidhansabha].filter(Boolean).join(", ");
+      const eventPhotos = getEventPhotos(item, photoUrlByKey);
+      const withLabel = item.with_label || "";
+      const faceCount = Number(item.face_count || 0);
+      const iconColor = iconColorMap[icon] || '#D4A017';
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "relative pl-2 timeline-item";
+      wrapper.style.animationDelay = `${index * 50}ms`;
+
+      const dot = document.createElement("div");
+      dot.className = "timeline-dot absolute w-4 h-4 rounded-full z-10";
+      dot.style.cssText = `left:-29px; top:20px;`;
+      wrapper.appendChild(dot);
+
+      const card = document.createElement("div");
+      card.className = "event-card rounded-xl p-4 cursor-pointer";
+      card.style.borderRadius = "12px";
+
+      // Row 1: Icon + Title + Date
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${iconColor}18; border:1px solid ${iconColor}30;">
+              <i class="fa-solid ${icon} text-xs" style="color:${iconColor}"></i>
+            </span>
+            <h3 class="font-semibold text-sm leading-tight line-clamp-2" style="color:#E8EEF7">${escapeHtml(title)}</h3>
+          </div>
+          ${displayDate ? `<span class="badge-gold px-2 py-0.5 rounded-md shrink-0 whitespace-nowrap text-[10px]">${escapeHtml(displayDate)}</span>` : ""}
+        </div>
       `;
-      row.querySelector("td:last-child").addEventListener("click", () => openEventSlideshow(item, buildEventSummary(item)));
-      tbody.appendChild(row);
+
+      // Location
+      if (locStr || venue) {
+        card.innerHTML += `<div class="flex items-center gap-1.5 text-xs mb-2" style="color:#475569"><i class="fa-solid fa-location-dot text-[9px]" style="color:#D4A01760"></i><span class="truncate">${escapeHtml([locStr, venue].filter(Boolean).join(" • "))}</span></div>`;
+      }
+
+      // Detail pills
+      const detailParts = [];
+      if (data.program_type && form === "president_tour_form") detailParts.push(data.program_type);
+      if (data.total_attendance) detailParts.push(`${data.total_attendance} उपस्थित`);
+      if (data.attendance_count) detailParts.push(`${data.attendance_count} उपस्थित`);
+      if (data.level || data.program_level) detailParts.push(data.level || data.program_level);
+      if (detailParts.length) {
+        card.innerHTML += `<div class="flex flex-wrap gap-1.5 mb-2">${detailParts.map(d => `<span class="text-[10px] px-2 py-0.5 rounded-md font-medium" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8">${escapeHtml(d)}</span>`).join("")}</div>`;
+      }
+
+      // With label
+      if (withLabel) {
+        card.innerHTML += `<div class="flex items-center gap-1.5 text-xs mb-2 px-2.5 py-1.5 rounded-lg badge-jade"><i class="fa-solid fa-users text-[9px]"></i><span>${escapeHtml(withLabel)}</span></div>`;
+      } else if (faceCount > 1) {
+        card.innerHTML += `<div class="flex items-center gap-1.5 text-xs mb-2" style="color:#475569"><i class="fa-solid fa-users text-[9px]"></i><span>${faceCount} लोग</span></div>`;
+      }
+
+      // Photo thumbnails
+      if (eventPhotos.length > 0) {
+        const strip = document.createElement("div");
+        strip.className = "flex flex-wrap gap-1.5 mb-2";
+        const maxShow = 6;
+        eventPhotos.slice(0, maxShow).forEach((u, pi) => {
+          const im = document.createElement("img");
+          setImgSrcWithRetry(im, u);
+          im.className = "w-13 h-13 rounded-lg object-cover";
+          im.style.cssText = "width:52px;height:52px;border:1px solid rgba(212,160,23,0.15);transition:border-color 0.2s;";
+          im.onmouseenter = () => im.style.borderColor = "rgba(212,160,23,0.5)";
+          im.onmouseleave = () => im.style.borderColor = "rgba(212,160,23,0.15)";
+          strip.appendChild(im);
+        });
+        if (eventPhotos.length > maxShow) {
+          const more = document.createElement("div");
+          more.style.cssText = "width:52px;height:52px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);color:#D4A017;gap:2px;cursor:pointer;";
+          more.innerHTML = `<i class="fa-solid fa-images text-sm"></i><span>+${eventPhotos.length - maxShow}</span>`;
+          strip.appendChild(more);
+        }
+        card.appendChild(strip);
+      }
+
+      // Footer
+      const footer = document.createElement("div");
+      footer.style.cssText = "padding-top:8px;border-top:1px solid rgba(212,160,23,0.08);display:flex;align-items:center;justify-content:space-between;";
+      footer.innerHTML = `<span class="text-[10px]" style="color:#1A3060">${escapeHtml(locStr || "—")}</span><span class="text-[10px] flex items-center gap-1 font-semibold" style="color:#D4A017"><i class="fa-solid fa-play text-[8px]"></i>Slideshow</span>`;
+      card.appendChild(footer);
+
+      card.addEventListener("click", () => openEventSlideshow(item, { title, icon, details: buildEventDetails(item, form, data, displayDate, formDate) }));
+      wrapper.appendChild(card);
+      el.viewTimeline.appendChild(wrapper);
     });
   }
 
@@ -1334,15 +1384,6 @@
     const skip = new Set(["district","vidhansabha","mandal","program_name","program_type","level","program_level","tour_location","venue","tour_venue","total_attendance","attendance_count","other_speakers","program_details","report_summary","tour_date","report_date","attendance_date","event_date","name","mobile"]);
     Object.keys(data).forEach(k => { if (!skip.has(k) && typeof data[k] !== "object" && isNonEmpty(data[k])) push(k, data[k]); });
     return details;
-  }
-
-  function getEventFormDate(formType, data) {
-    if (!data) return "";
-    const pick = (...keys) => { for (const k of keys) { if (data[k]) return data[k]; } return ""; };
-    if (formType === "president_tour_form") return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
-    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return pick("report_date","event_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
-    if (formType === "party_attendance") return pick("attendance_date","event_date","दिनांक","date");
-    return pick("event_date","program_date","दिनांक","date");
   }
 
   // ── PPT Slideshow ──
@@ -1408,6 +1449,14 @@
     function close() { stopAuto(); overlay.classList.remove("active"); img.src = ""; }
     return { open, close };
   })();
+
+  function getFormDate(formType, data) {
+    if (!data) return "";
+    if (formType === "president_tour_form") return data.tour_date || "";
+    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return data.report_date || data.event_date || "";
+    if (formType === "party_attendance") return data.attendance_date || "";
+    return "";
+  }
 
   function openEventSlideshow(item, sum) {
     const form = item.form_type || item.ft || "";
@@ -1572,8 +1621,6 @@
     if (el.step2Card) el.step2Card.classList.add("hidden");
     currentFilter = "all";
     updateDashboard(sim, tCount, pCount);
-    if (el.nameVal) el.nameVal.textContent = name || res.profile.name || "अज्ञात";
-    if (el.mobileVal) el.mobileVal.textContent = mobile || res.profile.mobile || "नहीं उपलब्ध";
     applyFilter();
     renderPhotos(res.photo_urls || [], timeline);
     switchTab("photos");
@@ -1595,108 +1642,78 @@
   if (el.confirmBtn) el.confirmBtn.addEventListener("click", () => showResults(el.nameInput ? el.nameInput.value.trim() : "", el.mobileInput ? el.mobileInput.value.trim() : ""));
   if (el.skipBtn) el.skipBtn.addEventListener("click", () => showResults("", ""));
   if (el.btnAllSlideshow) el.btnAllSlideshow.addEventListener("click", openAllSlideshow);
-
-  // Timeline Grouping Patch
-  let globalTimelineGroups = [];
-
-  function buildTimelineGroups(timelineArr) {
-    const timeline = Array.isArray(timelineArr) ? timelineArr : [];
-    const map = new Map();
-    for (const it of timeline) {
-      if (!it || typeof it !== 'object') continue;
-      const eid = (it.event_id || it.eventId || it.event_key || it.eventKey || it.entry_id || it.entryId || '').toString().trim();
-      const gid = eid || (it.entry_id || it.entryId || '').toString().trim() || Math.random().toString(36).slice(2);
-      if (!map.has(gid)) {
-        map.set(gid, { group_id: gid, event_id: eid || gid, form_type: it.form_type || it.ft || 'unknown', created_at: it.created_at || '0', created_at_iso: it.created_at_iso || '', with_label: it.with_label || '', face_count: it.face_count || 0, district: it.district || (it.data||{}).district || '', vidhansabha: it.vidhansabha || (it.data||{}).vidhansabha || '', mandal: it.mandal || (it.data||{}).mandal || '', items: [it] });
-      } else {
-        const g = map.get(gid);
-        g.items.push(it);
-        const ca = Number(it.created_at || 0);
-        const ga = Number(g.created_at || 0);
-        if (ca > ga) { g.created_at = it.created_at || g.created_at; g.created_at_iso = it.created_at_iso || g.created_at_iso; g.district = it.district || g.district; g.vidhansabha = it.vidhansabha || g.vidhansabha; g.mandal = it.mandal || g.mandal; g.form_type = it.form_type || it.ft || g.form_type; }
-      }
-    }
-    const groups = Array.from(map.values());
-    groups.sort((a, b) => Number(b.created_at||0) - Number(a.created_at||0));
-    return groups;
-  }
-
-  function updateDashboard(similarity, timelineCount, photoCount) {
-    const el2 = { similarityText: document.getElementById("similarityText"), timelineCount: document.getElementById("timelineCount"), photoCount: document.getElementById("photoCount") };
-    if (el2.similarityText) el2.similarityText.textContent = `${similarity}%`;
-    if (el2.timelineCount) el2.timelineCount.textContent = `${timelineCount}`;
-    if (el2.photoCount) el2.photoCount.textContent = `${photoCount}`;
-  }
-
-  function renderTimelineGroups(groups) {
-    const grid = document.getElementById("viewTimeline");
-    if (!grid) return;
-    grid.innerHTML = "";
-    if (!Array.isArray(groups) || groups.length === 0) {
-      grid.innerHTML = '<div class="text-center text-sm py-10" style="color:#475569">No timeline entries.</div>';
-      return;
-    }
-    // Use the existing renderTimeline by flattening groups to representative items
-    const repItems = groups.map(g => {
-      const rep = (g.items && g.items[0]) ? g.items[0] : {};
-      return Object.assign({}, rep, { _groupPhotos: g.items, _itemCount: g.items.length });
-    });
-    // We call the main render directly
-    renderTimeline(repItems, globalPhotoMap);
-  }
-
-  function applyFilter() {
-    const groups = Array.isArray(globalTimelineGroups) ? globalTimelineGroups : [];
-    if (currentFilter === 'all') { renderTimelineGroups(groups); return; }
-    const filtered = groups.filter(g => { const ft = (g.form_type || '').toString(); return ft === currentFilter; });
-    renderTimelineGroups(filtered);
-  }
-
-  (function patchSearchSubmitHook() {
-    const _origRenderPhotos = window.renderPhotos;
-    window.renderPhotos = function(photoUrls, timeline) {
-      try {
-        globalTimelineGroups = buildTimelineGroups(globalTimelineData || timeline || []);
-        const scoreEl = document.getElementById("scoreVal");
-        const sim = scoreEl ? Number(scoreEl.textContent.replace('%','') || 0).toFixed(0) : '0';
-        updateDashboard(sim, globalTimelineGroups.length, Array.isArray(photoUrls) ? photoUrls.length : 0);
-      } catch(e) { console.warn('timeline grouping patch failed', e); }
-      return _origRenderPhotos ? _origRenderPhotos(photoUrls, timeline) : undefined;
-    };
-  })();
 })();
 </script>
 
-<!-- Service Worker for PWA -->
-<script id="sw-js">
-  // sw.js content embedded
-  self.addEventListener('install', (event) => {
-    event.waitUntil(
-      caches.open('eventlens-v1').then((cache) => {
-        return cache.addAll([
-          '/',
-          // Add other assets to cache
-        ]);
-      })
-    );
-  });
-
-  self.addEventListener('fetch', (event) => {
-    event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request);
-      })
-    );
-  });
-</script>
 <script>
-  // Register embedded SW
-  if ('serviceWorker' in navigator) {
-    const swContent = document.getElementById('sw-js').text;
-    const blob = new Blob([swContent], { type: 'application/javascript' });
-    const url = URL.createObjectURL(blob);
-    navigator.serviceWorker.register(url);
+// ── Timeline Grouping Patch ──
+let globalTimelineGroups = [];
+
+function buildTimelineGroups(timelineArr) {
+  const timeline = Array.isArray(timelineArr) ? timelineArr : [];
+  const map = new Map();
+  for (const it of timeline) {
+    if (!it || typeof it !== 'object') continue;
+    const eid = (it.event_id || it.eventId || it.event_key || it.eventKey || it.entry_id || it.entryId || '').toString().trim();
+    const gid = eid || (it.entry_id || it.entryId || '').toString().trim() || Math.random().toString(36).slice(2);
+    if (!map.has(gid)) {
+      map.set(gid, { group_id: gid, event_id: eid || gid, form_type: it.form_type || it.ft || 'unknown', created_at: it.created_at || '0', created_at_iso: it.created_at_iso || '', with_label: it.with_label || '', face_count: it.face_count || 0, district: it.district || (it.data||{}).district || '', vidhansabha: it.vidhansabha || (it.data||{}).vidhansabha || '', mandal: it.mandal || (it.data||{}).mandal || '', items: [it] });
+    } else {
+      const g = map.get(gid);
+      g.items.push(it);
+      const ca = Number(it.created_at || 0);
+      const ga = Number(g.created_at || 0);
+      if (ca > ga) { g.created_at = it.created_at || g.created_at; g.created_at_iso = it.created_at_iso || g.created_at_iso; g.district = it.district || g.district; g.vidhansabha = it.vidhansabha || g.vidhansabha; g.mandal = it.mandal || g.mandal; g.form_type = it.form_type || it.ft || g.form_type; }
+    }
   }
+  const groups = Array.from(map.values());
+  groups.sort((a, b) => Number(b.created_at||0) - Number(a.created_at||0));
+  return groups;
+}
+
+function updateDashboard(similarity, timelineCount, photoCount) {
+  const el2 = { similarityText: document.getElementById("similarityText"), timelineCount: document.getElementById("timelineCount"), photoCount: document.getElementById("photoCount") };
+  if (el2.similarityText) el2.similarityText.textContent = `${similarity}%`;
+  if (el2.timelineCount) el2.timelineCount.textContent = `${timelineCount}`;
+  if (el2.photoCount) el2.photoCount.textContent = `${photoCount}`;
+}
+
+function renderTimelineGroups(groups) {
+  const grid = document.getElementById("viewTimeline");
+  if (!grid) return;
+  grid.innerHTML = "";
+  if (!Array.isArray(groups) || groups.length === 0) {
+    grid.innerHTML = '<div class="text-center text-sm py-10" style="color:#475569">No timeline entries.</div>';
+    return;
+  }
+  // Use the existing renderTimeline by flattening groups to representative items
+  const repItems = groups.map(g => {
+    const rep = (g.items && g.items[0]) ? g.items[0] : {};
+    return Object.assign({}, rep, { _groupPhotos: g.items, _itemCount: g.items.length });
+  });
+  // We call the main render directly
+  if (typeof window._renderTimelineMain === 'function') window._renderTimelineMain(repItems, window._globalPhotoMap || new Map());
+}
+
+function applyFilter() {
+  const groups = Array.isArray(globalTimelineGroups) ? globalTimelineGroups : [];
+  if (window.currentFilter === 'all') { renderTimelineGroups(groups); return; }
+  const filtered = groups.filter(g => { const ft = (g.form_type || '').toString(); return ft === window.currentFilter; });
+  renderTimelineGroups(filtered);
+}
+
+(function patchSearchSubmitHook() {
+  const _origRenderPhotos = window.renderPhotos;
+  window.renderPhotos = function(photoUrls, timeline) {
+    try {
+      globalTimelineGroups = buildTimelineGroups(window.globalTimelineData || timeline || []);
+      const scoreEl = document.getElementById("scoreVal");
+      const sim = scoreEl ? Number(scoreEl.textContent.replace('%','') || 0).toFixed(0) : '0';
+      updateDashboard(sim, globalTimelineGroups.length, Array.isArray(photoUrls) ? photoUrls.length : 0);
+    } catch(e) { console.warn('timeline grouping patch failed', e); }
+    return _origRenderPhotos ? _origRenderPhotos(photoUrls, timeline) : undefined;
+  };
+})();
 </script>
 
 </body>
