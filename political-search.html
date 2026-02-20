@@ -8,6 +8,33 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
+  <!-- PWA Setup -->
+  <meta name="theme-color" content="#03070F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <link rel="manifest" href="data:application/manifest+json,{
+    \"name\": \"EventLens AI\",
+    \"short_name\": \"EventLens\",
+    \"start_url\": \".\",
+    \"display\": \"standalone\",
+    \"background_color\": \"#03070F\",
+    \"theme_color\": \"#D4A017\",
+    \"orientation\": \"portrait-primary\",
+    \"icons\": [
+      {\"src\": \"https://via.placeholder.com/192x192\", \"sizes\": \"192x192\", \"type\": \"image/png\"},
+      {\"src\": \"https://via.placeholder.com/512x512\", \"sizes\": \"512x512\", \"type\": \"image/png\"}
+    ]
+  }" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('SW registered!', reg))
+          .catch(err => console.log('SW registration failed', err));
+      });
+    }
+  </script>
+
   <script>
     tailwind.config = {
       theme: {
@@ -19,19 +46,20 @@
           colors: {
             navy: { 950: '#03070F', 900: '#060D1F', 800: '#0B1530', 700: '#112044', 600: '#1A3060' },
             gold: { 300: '#F5D78A', 400: '#EFC24A', 500: '#D4A017', 600: '#B8880F', 700: '#8B6210' },
+            crimson: { 400: '#FF5C72', 500: '#E63950', 600: '#C41E37' },
             jade: { 400: '#3ECFB2', 500: '#2AB89C' },
-          },
-          animation: {
-            scandown: 'scandown 2.5s linear infinite',
-            pulseRing: 'pulseRing 2s ease infinite',
-            fadein: 'fadein 0.5s ease forwards',
-            shimmer: 'shimmer 2s infinite linear forwards',
           },
           keyframes: {
             scandown: { '0%': { top: '0%', opacity: 0 }, '10%': { opacity: 1 }, '90%': { opacity: 1 }, '100%': { top: '100%', opacity: 0 } },
-            pulseRing: { '0%,100%': { boxShadow: '0 0 0 0 rgba(212,160,23,0.4)' }, '50%': { boxShadow: '0 0 0 12px rgba(212,160,23,0)' } },
-            fadein: { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
             shimmer: { '0%': { backgroundPosition: '-1000px 0' }, '100%': { backgroundPosition: '1000px 0' } },
+            fadeup: { '0%': { opacity: 0, transform: 'translateY(16px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+            pulseRing: { '0%,100%': { boxShadow: '0 0 0 0 rgba(212,160,23,0.4)' }, '50%': { boxShadow: '0 0 0 12px rgba(212,160,23,0)' } },
+          },
+          animation: {
+            scandown: 'scandown 2.5s linear infinite',
+            shimmer: 'shimmer 2s infinite linear forwards',
+            fadeup: 'fadeup 0.5s ease forwards',
+            pulseRing: 'pulseRing 2s ease infinite',
           }
         }
       }
@@ -40,11 +68,22 @@
 
   <style>
     * { box-sizing: border-box; }
+    :root {
+      --navy-950: #03070F;
+      --navy-900: #060D1F;
+      --navy-800: #0B1530;
+      --navy-700: #112044;
+      --gold-400: #EFC24A;
+      --gold-500: #D4A017;
+      --crimson-500: #E63950;
+      --jade-400: #3ECFB2;
+    }
     body {
-      background-color: #03070F;
+      background-color: var(--navy-950);
       background-image:
         radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212,160,23,0.12) 0%, transparent 60%),
-        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4A017' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(230,57,80,0.07) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4A017' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
       background-attachment: fixed;
       color: #D1D9E6;
       font-family: 'DM Sans', sans-serif;
@@ -52,81 +91,414 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* ─── Noise Grain Overlay ─── */
     body::before {
-      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.35;
+      content: '';
+      position: fixed;
+      inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
     }
 
+    /* ─── Glass Card ─── */
     .glass {
       background: linear-gradient(135deg, rgba(17,32,68,0.65) 0%, rgba(6,13,31,0.85) 100%);
       backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(212,160,23,0.12);
-      box-shadow: 0 8px 48px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(212,160,23,0.08);
+    }
+    .glass-sm {
+      background: rgba(11,21,48,0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.06);
     }
 
+    /* ─── Gold Border Top ─── */
     .gold-top::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, #D4A017, transparent);
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-500), transparent);
+    }
+    .crimson-top::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--crimson-500), transparent);
     }
 
+    /* ─── Navbar ─── */
+    .navbar {
+      background: linear-gradient(180deg, rgba(3,7,15,0.97) 0%, rgba(6,13,31,0.92) 100%);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(212,160,23,0.15);
+      box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(212,160,23,0.1);
+    }
+
+    /* ─── Logo ─── */
+    .logo-icon {
+      background: linear-gradient(135deg, #D4A017 0%, #EFC24A 40%, #B8880F 100%);
+      box-shadow: 0 4px 16px rgba(212,160,23,0.4), 0 0 0 1px rgba(212,160,23,0.3);
+    }
+
+    /* ─── Upload Zone ─── */
     .upload-zone {
       background: radial-gradient(ellipse at center, rgba(17,32,68,0.8) 0%, rgba(6,13,31,0.9) 100%);
-      border: 2px dashed rgba(212,160,23,0.3);
+      border: 2px dashed rgba(212,160,23,0.25);
       transition: all 0.3s ease;
-      position: relative; overflow: hidden;
+      position: relative;
+      overflow: hidden;
     }
-    .upload-zone:hover { border-color: #D4A017; background: rgba(17,32,68,0.9); }
-    
+    .upload-zone::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(212,160,23,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .upload-zone:hover {
+      border-color: rgba(212,160,23,0.6);
+      background: radial-gradient(ellipse at center, rgba(17,32,68,0.9) 0%, rgba(6,13,31,0.95) 100%);
+    }
+
+    /* ─── Scan Line ─── */
     .scan-line {
       background: linear-gradient(to bottom, transparent, rgba(212,160,23,0.8), transparent);
-      height: 3px; box-shadow: 0 0 20px rgba(212,160,23,1);
+      height: 3px;
+      box-shadow: 0 0 20px rgba(212,160,23,1), 0 0 40px rgba(212,160,23,0.5);
     }
 
+    /* ─── Buttons ─── */
     .btn-primary {
       background: linear-gradient(135deg, #D4A017 0%, #EFC24A 50%, #B8880F 100%);
-      color: #060D1F; font-weight: 700;
-      box-shadow: 0 4px 20px rgba(212,160,23,0.35); transition: all 0.2s ease;
+      color: #060D1F;
+      font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 20px rgba(212,160,23,0.35), 0 1px 0 rgba(255,255,255,0.2) inset;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
     }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(212,160,23,0.5); }
-    .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 28px rgba(212,160,23,0.55), 0 1px 0 rgba(255,255,255,0.2) inset;
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: scale(0.98); }
 
+    .btn-success {
+      background: linear-gradient(135deg, #1a6b5c 0%, #2AB89C 100%);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(62,207,178,0.25);
+      transition: all 0.2s ease;
+    }
+    .btn-success:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(62,207,178,0.4); }
+    .btn-success:active { transform: scale(0.98); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #94a3b8;
+      transition: all 0.2s ease;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+    /* ─── Stat Cards ─── */
+    .stat-card {
+      background: linear-gradient(145deg, rgba(17,32,68,0.7) 0%, rgba(6,13,31,0.9) 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(212,160,23,0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+
+    /* ─── Tabs ─── */
     .tab-btn {
-      font-weight: 600; color: #64748b; border-bottom: 2px solid transparent; transition: all 0.25s ease; padding-bottom: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      color: #64748b;
+      border-bottom: 2px solid transparent;
+      transition: all 0.25s ease;
+      padding-bottom: 12px;
     }
-    .tab-active { color: #D4A017 !important; border-bottom-color: #D4A017 !important; font-weight: 700; }
+    .tab-btn:hover { color: #D1D9E6; border-bottom-color: rgba(212,160,23,0.3); }
+    .tab-active {
+      color: var(--gold-400) !important;
+      border-bottom-color: var(--gold-400) !important;
+      font-weight: 700;
+    }
+    .tab-inactive {
+      color: #64748b;
+      border-bottom-color: transparent;
+    }
 
-    /* Photo Item Zoom Effect */
-    .photo-item {
-      border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; overflow: hidden;
-      aspect-ratio: 1; cursor: pointer; transition: all 0.3s ease;
-      background: rgba(11,21,48,0.5);
+    /* ─── Filter Pills ─── */
+    .filter-pill {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: #64748b;
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
-    .photo-item:hover {
-      border-color: rgba(212,160,23,0.5); transform: scale(1.03);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 10;
+    .filter-pill:hover { color: #D1D9E6; border-color: rgba(212,160,23,0.4); }
+    .filter-pill.active {
+      background: rgba(212,160,23,0.15);
+      border-color: rgba(212,160,23,0.6);
+      color: var(--gold-400);
+      box-shadow: 0 0 12px rgba(212,160,23,0.2);
     }
-    .photo-item img {
-      width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;
-    }
-    .photo-item:hover img { transform: scale(1.1); }
 
-    /* Timeline Rail */
+    /* ─── Timeline ─── */
     .timeline-rail::before {
-      content: ''; position: absolute; top: 0; bottom: 0; left: 20px; width: 2px;
-      background: linear-gradient(to bottom, rgba(212,160,23,0.6) 0%, rgba(212,160,23,0.1) 80%, transparent 100%);
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; left: 20px;
+      width: 1px;
+      background: linear-gradient(to bottom, rgba(212,160,23,0.5) 0%, rgba(212,160,23,0.1) 60%, transparent 100%);
+    }
+    .timeline-dot {
+      background: var(--navy-900);
+      border: 2px solid rgba(212,160,23,0.3);
+      transition: all 0.2s ease;
+    }
+    .timeline-item:hover .timeline-dot {
+      border-color: var(--gold-400);
+      background: rgba(212,160,23,0.15);
+      box-shadow: 0 0 12px rgba(212,160,23,0.4);
     }
 
+    /* ─── Event Card ─── */
+    .event-card {
+      background: linear-gradient(145deg, rgba(17,32,68,0.5) 0%, rgba(6,13,31,0.7) 100%);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-left: 2px solid rgba(212,160,23,0.2);
+      transition: all 0.25s ease;
+    }
+    .event-card:hover {
+      background: linear-gradient(145deg, rgba(17,32,68,0.7) 0%, rgba(6,13,31,0.85) 100%);
+      border-left-color: var(--gold-400);
+      transform: translateX(4px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), -4px 0 20px rgba(212,160,23,0.1);
+    }
+
+    /* ─── Badge ─── */
+    .badge-gold {
+      background: rgba(212,160,23,0.12);
+      border: 1px solid rgba(212,160,23,0.3);
+      color: var(--gold-400);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge-jade {
+      background: rgba(62,207,178,0.08);
+      border: 1px solid rgba(62,207,178,0.25);
+      color: var(--jade-400);
+    }
+    .badge-crimson {
+      background: rgba(230,57,80,0.1);
+      border: 1px solid rgba(230,57,80,0.25);
+      color: #FF7088;
+    }
+
+    /* ─── Skeleton Shimmer ─── */
     .skeleton {
       background: rgba(17,32,68,0.5);
       background-image: linear-gradient(to right, rgba(17,32,68,0.5) 0%, rgba(26,48,96,0.7) 20%, rgba(17,32,68,0.5) 40%, rgba(17,32,68,0.5) 100%);
-      background-repeat: no-repeat; background-size: 1000px 100%;
+      background-repeat: no-repeat;
+      background-size: 1000px 100%;
       animation: shimmer 2s infinite linear forwards;
     }
 
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    /* ─── Match Success ─── */
+    .match-glow {
+      box-shadow: 0 0 0 1px rgba(62,207,178,0.3), 0 0 40px rgba(62,207,178,0.1);
+    }
+
+    /* ─── AI Report Markdown ─── */
+    .ai-report-content h1, .ai-report-content h2, .ai-report-content h3 {
+      font-family: 'Cinzel', serif;
+      color: var(--gold-400);
+      margin-top: 1.2em; margin-bottom: 0.5em;
+    }
+    .ai-report-content p { line-height: 1.7; color: #D1D9E6; margin-bottom: 0.8em; }
+    .ai-report-content ul { list-style: none; padding-left: 0; margin-bottom: 1em; }
+    .ai-report-content li { padding-left: 1.5em; margin-bottom: 0.5em; color: #94a3b8; position: relative; }
+    .ai-report-content li::before { content: '◆'; position: absolute; left: 0; color: var(--gold-500); font-size: 8px; top: 6px; }
+    .ai-report-content strong { color: var(--gold-400); }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(212,160,23,0.3); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(212,160,23,0.5); }
+    ::-webkit-scrollbar-thumb { background: rgba(212,160,23,0.2); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(212,160,23,0.4); }
+
+    /* ─── Slideshow ─── */
+    #slideshowOverlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #000;
+      display: none; flex-direction: row;
+    }
+    #slideshowOverlay.active { display: flex; }
+    #slideshowTopBar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px;
+      background: rgba(3,7,15,0.97);
+      border-bottom: 1px solid rgba(212,160,23,0.2);
+      flex-shrink: 0; position: absolute; top: 0; left: 0; right: 0;
+    }
+    #slideshowTitle {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 700; color: var(--gold-400);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60vw;
+    }
+    #slideshowCounter { font-size: 12px; color: #475569; font-family: monospace; flex-shrink: 0; }
+    #slideshowMain {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+      background: radial-gradient(ellipse at center, #0A0F1E 0%, #000 100%);
+    }
+    #slideshowImg { max-width: 60%; max-height: 70%; object-fit: contain; transition: opacity 0.25s ease; }
+    #slideshowImg.fading { opacity: 0; }
+    .ss-nav-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 48px; height: 48px; border-radius: 50%;
+      background: rgba(3,7,15,0.8); border: 1px solid rgba(212,160,23,0.3);
+      color: var(--gold-400); font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 10; transition: all 0.2s;
+    }
+    .ss-nav-btn:hover { background: rgba(212,160,23,0.15); border-color: var(--gold-400); box-shadow: 0 0 20px rgba(212,160,23,0.3); }
+    #ssPrev { left: 16px; } #ssNext { right: 16px; }
+    #slideshowBottom { background: rgba(3,7,15,0.97); border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
+    #slideshowDetails {
+      display: flex; flex-wrap: wrap; gap: 12px; /* सुंदर ग्रिड */
+      background: rgba(17,32,68,0.7); padding: 20px; border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); max-width: 400px; /* कार्ड जैसा */
+    }
+    .ss-detail-row { display: flex; flex-direction: column; }
+    .ss-detail-key { color: #475569; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+    .ss-detail-val { color: #D1D9E6; font-weight: 600; font-size: 12px; }
+    #slideshowThumbBar {
+      flex-direction: column; /* वर्टिकल थंबनेल्स */
+      width: 80px; /* लेफ्ट साइडबार चौड़ाई */
+      overflow-y: auto; height: 100vh; padding: 16px 8px;
+      background: rgba(6,13,31,0.8); border-right: 1px solid rgba(212,160,23,0.2);
+      gap: 8px; /* सुंदर स्पेसिंग */
+    }
+    .ss-thumb {
+      width: 64px; height: 64px; border-radius: 8px; object-fit: cover;
+      border: 2px solid transparent; cursor: pointer; flex-shrink: 0;
+      transition: all 0.2s; opacity: 0.6;
+    }
+    .ss-thumb:hover { opacity: 1; transform: scale(1.1); }
+    .ss-thumb.active { border-color: var(--gold-400); opacity: 1; box-shadow: 0 0 12px rgba(212,160,23,0.4); }
+    #slideshowProgress { height: 2px; background: rgba(212,160,23,0.15); }
+    #slideshowProgressBar { height: 100%; background: linear-gradient(90deg, #D4A017, #EFC24A); transition: width 0.3s ease; }
+
+    /* ─── Modal ─── */
+    #detailModal .modal-panel {
+      background: linear-gradient(145deg, #0B1530 0%, #060D1F 100%);
+      border: 1px solid rgba(212,160,23,0.15);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+    }
+
+    /* ─── Animations ─── */
+    @keyframes scandown {
+      0% { top: 0%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+    @keyframes fadeup {
+      0% { opacity: 0; transform: translateY(16px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseRing {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212,160,23,0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(212,160,23,0); }
+    }
+    .animate-fadeup { animation: fadeup 0.5s ease forwards; }
+    .pulse-ring { animation: pulseRing 2s ease infinite; }
+
+    /* ─── Mobile bottom bar ─── */
+    @media (max-width: 1023px) {
+      .mobile-bottom { padding-bottom: 80px; }
+    }
+
+    /* ─── Photo Grid ─── */
+    .photo-item {
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(11,21,48,0.5);
+      transition: all 0.25s ease;
+      aspect-ratio: 1;
+    }
+    .photo-item:hover {
+      border-color: rgba(212,160,23,0.4);
+      transform: scale(1.02);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,160,23,0.2);
+    }
+
+    /* ─── Divider ─── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,160,23,0.15), transparent);
+    }
+
+    /* ─── Token badge ─── */
+    .token-badge {
+      background: rgba(62,207,178,0.08);
+      border: 1px solid rgba(62,207,178,0.2);
+      color: var(--jade-400);
+      font-size: 11px;
+    }
+
+    /* Stat bar */
+    .stat-bar-fill {
+      height: 3px;
+      border-radius: 999px;
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Advanced Responsive */
+    @media (max-width: 768px) {
+      .grid-cols-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #slideshowThumbBar { width: 60px; }
+      #slideshowImg { max-width: 100%; max-height: 50%; }
+      #slideshowDetails { max-width: 100%; padding: 10px; }
+      #timelineTable { font-size: 12px; }
+      #timelineTable th, #timelineTable td { padding: 8px; }
+      #viewTimeline { overflow-x: auto; }
+    }
+
+    @media (min-width: 769px) {
+      .grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    }
   </style>
 
   <script>
@@ -136,21 +508,26 @@
         const preview = document.getElementById("preview");
         const placeholder = document.getElementById("uploadPlaceholder");
         const scanLine = document.getElementById("scanLine");
+        if (!preview) return;
         if (!file) {
+          preview.src = "";
           preview.classList.add("hidden");
-          placeholder.classList.remove("hidden");
-          scanLine.classList.add("hidden");
+          if (placeholder) placeholder.classList.remove("hidden");
+          if (scanLine) scanLine.classList.add("hidden");
           return;
         }
-        preview.src = URL.createObjectURL(file);
+        const url = URL.createObjectURL(file);
+        preview.src = url;
         preview.classList.remove("hidden");
-        placeholder.classList.add("hidden");
-        scanLine.classList.remove("hidden");
+        if (placeholder) placeholder.classList.add("hidden");
+        if (scanLine) scanLine.classList.remove("hidden");
       } catch (e) { console.error(e); }
     }
+
     function setImgSrcWithRetry(imgEl, url, maxRetries = 2) {
       if (!imgEl) return;
-      let attempt = 0; imgEl.referrerPolicy = "no-referrer";
+      let attempt = 0;
+      imgEl.referrerPolicy = "no-referrer";
       const load = () => { imgEl.src = url; };
       imgEl.onerror = () => {
         if (attempt < maxRetries) { attempt += 1; setTimeout(load, 350 * attempt); return; }
@@ -161,246 +538,927 @@
   </script>
 </head>
 
-<body class="font-body pb-10">
+<body class="font-body mobile-bottom">
 
   <!-- ══ NAVBAR ══ -->
-  <nav class="sticky top-0 z-40 bg-navy-950/90 backdrop-blur-md border-b border-gold-500/20 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-navy-950">
-          <i class="fa-solid fa-bolt text-lg"></i>
-        </div>
-        <div>
-          <div class="flex items-baseline gap-1.5">
-            <span class="font-display text-white text-xl tracking-wide">EventLens</span>
-            <span class="font-display text-sm text-gold-500">AI</span>
+  <nav class="navbar sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <div class="logo-icon w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-bolt text-navy-950 text-base" style="color:#060D1F"></i>
           </div>
-          <p class="text-[9px] uppercase tracking-widest text-slate-400">Political Intelligence Unit</p>
+          <div>
+            <div class="flex items-baseline gap-2">
+              <span class="font-display text-white text-lg tracking-wide">EventLens</span>
+              <span class="font-display text-sm" style="color:#D4A017">AI</span>
+            </div>
+            <p class="text-[9px] uppercase tracking-widest" style="color:#475569; letter-spacing:0.12em;">Political Intelligence Unit</p>
+          </div>
+        </div>
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3">
+          <button id="copySummaryBtn" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg btn-ghost text-xs font-semibold">
+            <i class="fa-regular fa-copy text-[10px]"></i> Stats Copy करें
+          </button>
+          <div id="tokenDisplay" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full token-badge font-semibold">
+            <i class="fa-solid fa-shield-halved text-[10px]"></i> Secured
+          </div>
         </div>
       </div>
     </div>
   </nav>
 
-  <!-- ══ MAIN LAYOUT ══ -->
-  <div class="max-w-7xl mx-auto px-4 py-8 relative z-10">
-    
-    <!-- ══ VIEW 1: UPLOAD SECTION (Centers perfectly, no side columns) ══ -->
-    <div id="uploadView" class="flex items-center justify-center min-h-[75vh] transition-all duration-500">
-      <div class="w-full max-w-md">
-        
-        <div class="glass rounded-3xl relative overflow-hidden gold-top p-6 sm:p-8 animate-fadein shadow-2xl shadow-gold-500/10">
-          <div class="text-center mb-6">
-            <h2 class="text-xl font-display text-white font-bold tracking-wide">कार्यकर्ता पहचान</h2>
-            <p class="text-xs text-slate-400 mt-1">चेहरे से इवेंट्स और गैलरी खोजें</p>
-          </div>
+  <div class="max-w-7xl mx-auto px-4 py-6 lg:py-8 relative z-10">
+    <div class="grid lg:grid-cols-12 gap-6 lg:gap-8">
 
-          <!-- Camera Zone (Big) -->
-          <div class="relative mb-4">
-            <label class="upload-zone rounded-2xl flex flex-col items-center justify-center cursor-pointer w-full aspect-[4/3]">
-              <input id="selfieInput" accept="image/*" capture="user" type="file" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="previewImage(this)" />
-              
-              <div id="uploadPlaceholder" class="flex flex-col items-center justify-center pointer-events-none">
-                <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4 bg-gold-500/10 border border-gold-500/30 animate-pulseRing">
-                  <i class="fa-solid fa-camera text-3xl text-gold-500"></i>
-                </div>
-                <span class="font-bold text-white text-base mb-1">सेल्फी लें</span>
-                <span class="text-xs text-slate-400">कैमरा खोलने के लिए टैप करें</span>
+      <!-- ══ LEFT COLUMN ══ -->
+      <div class="lg:col-span-4 space-y-5">
+
+        <!-- Step 1: Upload Card -->
+        <div id="step1Card" class="glass rounded-2xl relative overflow-hidden gold-top">
+          <div class="p-5 lg:p-6">
+            <!-- Header -->
+            <div class="flex items-center gap-3 mb-5">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(212,160,23,0.12); border:1px solid rgba(212,160,23,0.25)">
+                <i class="fa-solid fa-face-viewfinder text-sm" style="color:#D4A017"></i>
               </div>
+              <div>
+                <h2 class="font-semibold text-white text-sm">सेल्फी सर्च</h2>
+                <p class="text-[11px]" style="color:#475569">चेहरे से कार्यकर्ता खोजें</p>
+              </div>
+            </div>
 
-              <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover rounded-2xl z-10" />
-              <div id="scanLine" class="hidden absolute left-0 w-full scan-line z-10 pointer-events-none animate-scandown"></div>
+            <!-- Camera / Upload Zone -->
+            <div class="relative mb-3">
+              <label class="upload-zone rounded-xl flex flex-col items-center justify-center cursor-pointer" style="min-height:180px;">
+                <input id="selfieInput" accept="image/*" capture="user" type="file" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="previewImage(this)" />
+
+                <!-- Placeholder -->
+                <div id="uploadPlaceholder" class="flex flex-col items-center justify-center py-6 pointer-events-none">
+                  <div class="w-16 h-16 rounded-full flex items-center justify-center mb-3 pulse-ring" style="background:rgba(212,160,23,0.1); border:1px solid rgba(212,160,23,0.25)">
+                    <i class="fa-solid fa-camera text-2xl" style="color:#D4A017"></i>
+                  </div>
+                  <span class="font-bold text-white text-sm mb-1">📸 सेल्फी लें</span>
+                  <span class="text-xs" style="color:#475569">Camera खुलेगा</span>
+                </div>
+
+                <!-- Preview -->
+                <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover rounded-xl z-10" />
+                <!-- Scan Line -->
+                <div id="scanLine" class="hidden absolute left-0 w-full scan-line z-10 pointer-events-none" style="animation: scandown 2.5s linear infinite; position:absolute;"></div>
+              </label>
+            </div>
+
+            <!-- Gallery Upload - Small Option -->
+            <label class="flex items-center justify-center gap-2 w-full py-1.5 rounded-xl btn-ghost text-xs font-semibold cursor-pointer mb-4" style="font-size: 10px; padding: 8px;">
+              <input id="uploadInput" accept="image/*" type="file" class="hidden" onchange="previewImage(this)" />
+              <i class="fa-solid fa-images text-[10px]" style="color:#D4A017"></i>
+              <span>गैलरी से (छोटा ऑप्शन)</span>
             </label>
+
+            <!-- Search Button -->
+            <button id="searchBtn" class="btn-primary w-full py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 relative z-10">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>खोजें</span>
+            </button>
+
+            <div id="statusBox" class="hidden mt-3 text-center"></div>
           </div>
+        </div>
 
-          <!-- Small Gallery Link Below -->
-          <label class="flex items-center justify-center gap-2 w-full py-2 cursor-pointer mb-6 text-slate-300 hover:text-gold-400 transition-colors">
-            <input id="uploadInput" accept="image/*" type="file" class="hidden" onchange="previewImage(this)" />
-            <i class="fa-solid fa-images text-sm"></i>
-            <span class="text-xs font-semibold underline underline-offset-4">गैलरी से फोटो चुनें</span>
-          </label>
+        <!-- Step 2: Match Confirmation (Hidden) -->
+        <div id="step2Card" class="hidden glass rounded-2xl relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-0.5" style="background: linear-gradient(90deg, transparent, #3ECFB2, transparent)"></div>
+          <div class="p-5">
+            <!-- Match Summary -->
+            <div id="matchSummary" class="text-center mb-5">
+              <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 match-glow" style="background:rgba(62,207,178,0.1); border:1px solid rgba(62,207,178,0.3)">
+                <i class="fa-solid fa-circle-check text-2xl" style="color:#3ECFB2"></i>
+              </div>
+              <div class="font-bold text-white text-base" id="matchTitle">मैच मिला!</div>
+              <div class="text-xs mt-1" style="color:#475569" id="matchSubtitle"></div>
+              <div class="flex justify-center gap-2 mt-3 flex-wrap" id="matchPills"></div>
+            </div>
 
-          <button id="searchBtn" class="btn-primary w-full py-4 rounded-xl text-base flex items-center justify-center gap-2 relative z-10 font-bold tracking-wide shadow-gold-500/30">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <span>खोज शुरू करें</span>
-          </button>
+            <div class="divider mb-4"></div>
 
-          <div id="statusBox" class="hidden mt-4 text-center text-sm font-medium"></div>
+            <!-- Inputs -->
+            <div class="space-y-3 mb-4">
+              <div>
+                <label class="text-[10px] font-semibold uppercase tracking-wider block mb-1.5" style="color:#475569">नाम (Name)</label>
+                <input id="nameInput" type="text" placeholder="कार्यकर्ता का नाम" class="w-full rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-1" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); transition:border-color 0.2s; font-family:'DM Sans',sans-serif;" onfocus="this.style.borderColor='rgba(212,160,23,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
+              </div>
+              <div>
+                <label class="text-[10px] font-semibold uppercase tracking-wider block mb-1.5" style="color:#475569">मोबाइल</label>
+                <input id="mobileInput" type="tel" placeholder="10 अंक" class="w-full rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); transition:border-color 0.2s; font-family:'DM Sans',sans-serif;" onfocus="this.style.borderColor='rgba(212,160,23,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'" />
+              </div>
+            </div>
+
+            <button id="confirmBtn" class="btn-success w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 mb-2">
+              <i class="fa-solid fa-eye text-[13px]"></i> रिजल्ट देखें
+            </button>
+            <button id="skipBtn" class="btn-ghost w-full py-2.5 rounded-xl text-xs">
+              बिना नाम के देखें
+            </button>
+          </div>
         </div>
 
       </div>
-    </div>
 
-    <!-- ══ VIEW 2: FULL RESULTS SECTION (Hidden initially) ══ -->
-    <div id="resultView" class="hidden max-w-5xl mx-auto transition-all duration-700 opacity-0 space-y-6">
-      
-      <!-- Top Profile Info (मैच, नाम, मोबाइल, काउंट) -->
-      <div class="glass rounded-2xl p-5 md:p-6 animate-fadein relative overflow-hidden flex flex-col md:flex-row gap-6 justify-between items-center shadow-2xl">
-        <div class="absolute top-0 left-0 w-1.5 h-full bg-jade-400"></div>
-        
-        <!-- Match & Stats -->
-        <div class="flex items-center gap-4 w-full md:w-auto">
-          <div class="w-16 h-16 rounded-full flex items-center justify-center bg-jade-400/10 border border-jade-400/30 shrink-0">
-            <span id="scoreVal" class="text-xl font-bold text-jade-400 tracking-tight">0%</span>
+      <!-- ══ RIGHT COLUMN ══ -->
+      <div class="lg:col-span-8 space-y-5">
+
+        <!-- Empty State -->
+        <div id="emptyState" class="glass rounded-2xl flex flex-col items-center justify-center text-center" style="min-height:380px;">
+          <div class="w-20 h-20 rounded-full flex items-center justify-center mb-5" style="background:rgba(17,32,68,0.6); border:1px solid rgba(212,160,23,0.12)">
+            <i class="fa-solid fa-fingerprint text-3xl" style="color:#1A3060"></i>
           </div>
-          <div>
-            <h3 class="font-bold text-white text-lg tracking-wide mb-1">मैच मिला!</h3>
-            <div class="flex items-center gap-3 text-sm text-slate-300">
-              <span class="bg-black/30 px-2 py-1 rounded border border-white/5"><span id="photoCountVal" class="text-gold-400 font-bold">0</span> फोटो</span>
-              <span class="bg-black/30 px-2 py-1 rounded border border-white/5"><span id="timelineCount" class="text-gold-400 font-bold">0</span> इवेंट्स</span>
+          <h3 class="font-display text-lg text-white mb-2" style="letter-spacing:0.04em">Search Ready</h3>
+          <p class="text-sm max-w-xs" style="color:#475569">सेल्फी अपलोड करें और कार्यकर्ता की पहचान तुरंत करें</p>
+          <div class="flex gap-4 mt-6 text-xs" style="color:#1A3060">
+            <div class="flex items-center gap-1.5"><i class="fa-solid fa-face-viewfinder"></i> चेहरा पहचान</div>
+            <div class="flex items-center gap-1.5"><i class="fa-solid fa-timeline"></i> इवेंट टाइमलाइन</div>
+            <div class="flex items-center gap-1.5"><i class="fa-solid fa-images"></i> फोटो गैलरी</div>
+          </div>
+        </div>
+
+        <!-- Stats Dashboard - Updated with Name and Mobile -->
+        <div id="statsDashboard" class="hidden grid grid-cols-2 md:grid-cols-5 gap-3">
+          <!-- Match Score -->
+          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
+            <div class="absolute right-3 top-3 opacity-5"><i class="fa-solid fa-bullseye text-5xl" style="color:#D4A017"></i></div>
+            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Confidence</div>
+            <div class="flex items-baseline gap-1 mb-2">
+              <span id="scoreVal" class="text-3xl font-bold text-white">0%</span>
+            </div>
+            <div class="rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06); height:3px;">
+              <div id="scoreBar" class="stat-bar-fill" style="background:linear-gradient(90deg,#2AB89C,#3ECFB2); width:0%;"></div>
+            </div>
+            <div class="text-[9px] mt-1" style="color:#1A3060" id="similarityText"></div>
+          </div>
+          <!-- Events -->
+          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
+            <div class="absolute right-3 top-3 opacity-5"><i class="fa-solid fa-clock-rotate-left text-5xl" style="color:#D4A017"></i></div>
+            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Events</div>
+            <div class="text-3xl font-bold text-white" id="eventCountVal">0</div>
+            <div id="timelineCount" class="hidden"></div>
+          </div>
+          <!-- Photos -->
+          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
+            <div class="absolute right-3 top-3 opacity-5"><i class="fa-solid fa-images text-5xl" style="color:#D4A017"></i></div>
+            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Photos</div>
+            <div class="text-3xl font-bold text-white" id="photoCountVal">0</div>
+            <div id="photoCount" class="hidden"></div>
+          </div>
+          <!-- Name -->
+          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
+            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Name</div>
+            <div class="text-2xl font-bold text-white" id="nameVal">अज्ञात</div>
+          </div>
+          <!-- Mobile -->
+          <div class="stat-card rounded-xl p-4 relative overflow-hidden">
+            <div class="text-[9px] font-semibold uppercase tracking-widest mb-1" style="color:#475569">Mobile</div>
+            <div class="text-2xl font-bold text-white" id="mobileVal">नहीं उपलब्ध</div>
+          </div>
+        </div>
+
+        <!-- Skeleton Loader -->
+        <div id="skeletonLoader" class="hidden space-y-4">
+          <div class="flex gap-3">
+            <div class="h-7 w-20 rounded-full skeleton"></div>
+            <div class="h-7 w-20 rounded-full skeleton"></div>
+            <div class="h-7 w-20 rounded-full skeleton"></div>
+          </div>
+          <div class="space-y-4 pl-10 relative" style="border-left:1px solid rgba(212,160,23,0.1)">
+            <div class="relative">
+              <div class="absolute -left-[41px] top-5 w-4 h-4 rounded-full skeleton"></div>
+              <div class="rounded-xl p-5 skeleton" style="height:96px;"></div>
+            </div>
+            <div class="relative">
+              <div class="absolute -left-[41px] top-5 w-4 h-4 rounded-full skeleton"></div>
+              <div class="rounded-xl p-5 skeleton" style="height:80px;"></div>
+            </div>
+            <div class="relative">
+              <div class="absolute -left-[41px] top-5 w-4 h-4 rounded-full skeleton"></div>
+              <div class="rounded-xl p-5 skeleton" style="height:112px;"></div>
             </div>
           </div>
         </div>
 
-        <!-- Name & Mobile Inputs (जरुरी) -->
-        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto bg-navy-950/50 p-3 rounded-xl border border-white/5">
-          <div class="relative w-full sm:w-48">
-            <i class="fa-regular fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gold-500 text-xs"></i>
-            <input id="nameInput" type="text" placeholder="कार्यकर्ता का नाम *" class="w-full bg-black/60 border border-white/10 rounded-lg pl-8 pr-3 py-2.5 text-sm text-white focus:border-gold-500 focus:outline-none transition-colors font-semibold placeholder:font-normal placeholder:text-slate-500" />
+        <!-- Results Container -->
+        <div id="resultsContainer" class="hidden flex flex-col" style="min-height:480px;">
+
+          <!-- Tabs -->
+          <div class="flex items-center gap-0 border-b sticky top-16 z-30 pt-4 pb-0" style="border-color:rgba(212,160,23,0.12); background:rgba(3,7,15,0.95); backdrop-filter:blur(16px); margin:0 -4px; padding-left:4px; padding-right:4px;">
+            <button id="btnTabPhotos" class="tab-btn tab-active flex-1 text-center text-sm pb-3 px-3">
+              <i class="fa-regular fa-images mr-1.5 text-xs"></i>गैलरी
+            </button>
+            <button id="btnTabTimeline" class="tab-btn tab-inactive flex-1 text-center text-sm pb-3 px-3">
+              <i class="fa-solid fa-timeline mr-1.5 text-xs"></i>Timeline
+            </button>
+            <button id="btnAllSlideshow" class="pb-3 px-4 text-xs font-bold border-b-2 border-transparent flex items-center gap-1.5" style="color:#D4A017; flex-shrink:0;">
+              <i class="fa-solid fa-play text-[9px]"></i>सभी
+            </button>
           </div>
-          <div class="relative w-full sm:w-48">
-            <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-gold-500 text-xs"></i>
-            <input id="mobileInput" type="tel" placeholder="मोबाइल नंबर *" class="w-full bg-black/60 border border-white/10 rounded-lg pl-8 pr-3 py-2.5 text-sm text-white focus:border-gold-500 focus:outline-none transition-colors font-semibold placeholder:font-normal placeholder:text-slate-500" />
+
+          <!-- Filters + AI -->
+          <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between py-4">
+            <div id="timelineFilters" class="hidden flex-wrap gap-2">
+              <button class="filter-btn filter-pill active" data-filter="all">All</button>
+              <button class="filter-btn filter-pill" data-filter="tour">Tours</button>
+              <button class="filter-btn filter-pill" data-filter="report">Reports</button>
+              <button class="filter-btn filter-pill" data-filter="other">Others</button>
+            </div>
+            <button id="btnAiReport" class="hidden items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white" style="background:linear-gradient(135deg,#3730a3,#6d28d9); box-shadow:0 4px 20px rgba(109,40,217,0.3);">
+              <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> AI Report ✨
+            </button>
           </div>
-        </div>
-      </div>
 
-      <!-- Main Tabs -->
-      <div class="flex items-center border-b border-gold-500/20 bg-navy-950/80 sticky top-16 z-30 pt-2 px-1 backdrop-blur-md">
-        <button id="btnTabPhotos" class="tab-btn tab-active flex-1 text-center text-sm py-3 flex justify-center items-center gap-2">
-          <i class="fa-solid fa-images text-lg"></i> <span class="tracking-wide">फोटो ग्रिड</span>
-        </button>
-        <button id="btnTabTimeline" class="tab-btn flex-1 text-center text-sm py-3 flex justify-center items-center gap-2">
-          <i class="fa-solid fa-timeline text-lg"></i> <span class="tracking-wide">टाइमलाइन</span>
-        </button>
-      </div>
-
-      <!-- Skeleton Loader (While searching) -->
-      <div id="skeletonLoader" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
-        <div class="aspect-square rounded-xl skeleton"></div>
-        <div class="aspect-square rounded-xl skeleton"></div>
-        <div class="aspect-square rounded-xl skeleton"></div>
-        <div class="aspect-square rounded-xl skeleton hidden sm:block"></div>
-      </div>
-
-      <!-- Photos View Container -->
-      <div id="viewPhotos" class="animate-fadein pt-4">
-        <div id="photosGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
-          <!-- Photos Injected Here -->
-        </div>
-      </div>
-
-      <!-- Timeline View Container -->
-      <div id="viewTimeline" class="hidden relative pl-8 pt-6 timeline-rail space-y-6 animate-fadein pb-8">
-          <!-- Timeline Injected Here -->
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ══ PPT SLIDE VIEW MODAL ══ -->
-  <div id="pptOverlay" class="fixed inset-0 z-[100] hidden bg-black/95 backdrop-blur-md flex-col md:flex-row transition-opacity duration-300 opacity-0">
-    
-    <!-- Close Btn -->
-    <button id="pptClose" class="absolute top-4 right-4 md:right-auto md:left-4 z-[110] w-10 h-10 bg-black/50 hover:bg-gold-500/20 text-white rounded-full flex items-center justify-center border border-white/20 transition-all shadow-lg">
-      <i class="fa-solid fa-xmark text-lg"></i>
-    </button>
-
-    <!-- LEFT: Image Area (Zoom/Slide) -->
-    <div class="flex-1 relative flex flex-col justify-center items-center h-[55vh] md:h-full bg-black overflow-hidden group">
-      <img id="pptImg" class="max-w-full max-h-full object-contain transition-transform duration-500 scale-100" src="" />
-      
-      <!-- Nav Arrows -->
-      <button id="pptPrev" class="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/60 hover:bg-gold-500/30 text-gold-400 border border-gold-500/40 rounded-full flex items-center justify-center text-xl transition-all backdrop-blur-md z-10 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
-        <i class="fa-solid fa-chevron-left"></i>
-      </button>
-      <button id="pptNext" class="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/60 hover:bg-gold-500/30 text-gold-400 border border-gold-500/40 rounded-full flex items-center justify-center text-xl transition-all backdrop-blur-md z-10 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
-        <i class="fa-solid fa-chevron-right"></i>
-      </button>
-
-      <!-- Zoom hint overlay (desktop only) -->
-      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/50 text-white/70 px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest hidden md:flex items-center gap-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-        <i class="fa-solid fa-magnifying-glass-plus"></i> Scroll to Zoom
-      </div>
-    </div>
-
-    <!-- RIGHT: Event Details Area -->
-    <div class="w-full md:w-[420px] h-[45vh] md:h-full bg-gradient-to-b from-navy-900 to-navy-950 border-t md:border-t-0 md:border-l border-gold-500/20 overflow-y-auto shadow-2xl z-20 flex flex-col">
-      <div class="p-6 md:p-8 flex-1">
-        
-        <div class="flex justify-between items-start mb-4">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-gold-500/15 border border-gold-500/30 rounded-full text-gold-400 text-[10px] font-bold uppercase tracking-widest" id="pptTypeBadge">
-            <i class="fa-solid fa-tag"></i> <span id="pptTypeTxt">Event</span>
+          <!-- Timeline View - Updated to Table -->
+          <div id="viewTimeline" class="hidden relative animate-fadeup pb-4">
+            <table id="timelineTable" class="w-full border-collapse" style="background: rgba(17,32,68,0.7); border:1px solid rgba(212,160,23,0.2);">
+              <thead>
+                <tr style="background: rgba(212,160,23,0.15); color:#fff;">
+                  <th class="p-3 text-left">Date</th>
+                  <th class="p-3 text-left">Location</th>
+                  <th class="p-3 text-left">Event Type</th>
+                  <th class="p-3 text-left">Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- JS से रो ऐड -->
+              </tbody>
+            </table>
           </div>
-          <div class="text-[10px] text-slate-500 font-mono tracking-wider" id="pptCounter">1 / 10</div>
-        </div>
 
-        <h2 id="pptTitle" class="text-2xl font-display text-white font-bold leading-tight mb-3">कार्यक्रम का नाम</h2>
-        
-        <div class="flex items-center gap-2 text-sm text-jade-400 font-medium mb-1" id="pptDateWrap">
-          <i class="fa-regular fa-calendar-check"></i> <span id="pptDate">01 Jan 2024</span>
-        </div>
-        <div class="flex items-start gap-2 text-sm text-slate-400 mb-6" id="pptLocWrap">
-          <i class="fa-solid fa-location-dot mt-1 text-gold-500/60 text-xs"></i> 
-          <span id="pptLocation" class="leading-snug">स्थान का विवरण</span>
-        </div>
+          <!-- Photos View -->
+          <div id="viewPhotos" class="animate-fadeup">
+            <div id="photosGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+              <!-- Photos injected -->
+            </div>
+            <div class="text-center mt-6 text-xs" style="color:#1A3060">
+              <i class="fa-solid fa-shield-halved mr-1"></i>सभी फोटो एन्क्रिप्टेड
+            </div>
+          </div>
 
-        <div class="h-px w-full bg-gradient-to-r from-transparent via-gold-500/20 to-transparent mb-6"></div>
-
-        <div id="pptDetailsList" class="space-y-4">
-           <!-- Details injected here -->
         </div>
 
       </div>
     </div>
   </div>
 
+  <!-- ══ SLIDESHOW OVERLAY - Updated Layout ══ -->
+  <div id="slideshowOverlay">
+    <div id="slideshowTopBar">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <button id="ssClose" style="width:34px;height:34px;border-radius:50%;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.3);color:#D4A017;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div id="slideshowTitle">Event</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div id="slideshowCounter"></div>
+        <button id="ssAutoplay" style="width:34px;height:34px;border-radius:50%;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.3);color:#D4A017;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;">
+          <i class="fa-solid fa-play"></i>
+        </button>
+      </div>
+    </div>
+    <div id="slideshowProgress"><div id="slideshowProgressBar" style="width:0%"></div></div>
+    <div id="slideshowThumbBar"></div>
+    <div id="slideshowMain">
+      <button class="ss-nav-btn" id="ssPrev"><i class="fa-solid fa-chevron-left"></i></button>
+      <img id="slideshowImg" src="" alt="Event Photo" />
+      <button class="ss-nav-btn" id="ssNext"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <div id="slideshowBottom">
+      <div id="slideshowDetails"></div>
+    </div>
+  </div>
 
-<!-- ══ ALL JS LOGIC (Original AWS + AI Backend Preserved 100%) ══ -->
+  <!-- ══ DETAIL MODAL ══ -->
+  <div id="detailModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 transition-opacity opacity-0" id="modalBackdrop" style="background:rgba(3,7,15,0.9);backdrop-filter:blur(12px);"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+      <div class="flex min-h-full items-center justify-center p-0 lg:p-4">
+        <div class="relative w-full h-full lg:h-auto lg:max-h-[88vh] lg:max-w-4xl transform overflow-hidden lg:rounded-2xl bg-navy-900 text-left shadow-2xl transition-all opacity-0 scale-95 flex flex-col modal-panel" id="modalPanel" style="background:linear-gradient(145deg,#0B1530,#060D1F); border:1px solid rgba(212,160,23,0.15);">
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between px-5 py-4 z-10" style="border-bottom:1px solid rgba(212,160,23,0.1); background:rgba(3,7,15,0.7);">
+            <h3 class="font-semibold text-white text-sm pr-4 truncate" id="detailModalTitle">Details</h3>
+            <button id="detailModalClose" class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white transition-colors" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+          </div>
+          <!-- Modal Body -->
+          <div class="flex-1 overflow-y-auto" id="detailModalBody"></div>
+          <!-- Carousel Controls -->
+          <div id="carouselControls" class="hidden absolute top-1/2 -translate-y-1/2 w-full flex justify-between px-3 pointer-events-none">
+            <button id="prevBtn" class="pointer-events-auto w-11 h-11 rounded-full flex items-center justify-center text-white transition-all" style="background:rgba(0,0,0,0.6);border:1px solid rgba(212,160,23,0.3);">
+              <i class="fa-solid fa-chevron-left text-sm"></i>
+            </button>
+            <button id="nextBtn" class="pointer-events-auto w-11 h-11 rounded-full flex items-center justify-center text-white transition-all" style="background:rgba(0,0,0,0.6);border:1px solid rgba(212,160,23,0.3);">
+              <i class="fa-solid fa-chevron-right text-sm"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- ══ ALL JS ══ -->
 <script>
 (() => {
-  // ── ORIGINAL API CONFIG ──
   const API_ID = "vxid0yoovj";
   const REGION = "ap-south-1";
   const BASE_URL = `https://${API_ID}.execute-api.${REGION}.amazonaws.com/prod`;
-  const apiKey = ""; // Gemini API Key
+  const apiKey = ""; // Runtime injection
 
   const qs = new URLSearchParams(window.location.search);
   const token = qs.get("token") || "";
 
-  // ── STATE ──
+  // State
+  let galleryImages = [];
+  let currentGalleryIndex = 0;
   let globalTimelineData = [];
   let globalPhotoMap = new Map();
-  window.globalTimelineData = [];
-  window.globalPhotoMap = new Map();
   let currentFilter = 'all';
-  window.currentFilter = currentFilter;
-  let globalPptPhotos = []; // For PPT Slideshow
 
   const el = {
-    uploadView: document.getElementById("uploadView"),
-    resultView: document.getElementById("resultView"),
     selfieInput: document.getElementById("selfieInput"),
-    uploadInput: document.getElementById("uploadInput"),
-    searchBtn: document.getElementById("searchBtn"),
+    preview: document.getElementById("preview"),
     statusBox: document.getElementById("statusBox"),
+    emptyState: document.getElementById("emptyState"),
+    statsDashboard: document.getElementById("statsDashboard"),
+    resultsContainer: document.getElementById("resultsContainer"),
     skeletonLoader: document.getElementById("skeletonLoader"),
-    
-    // Header Stats
     scoreVal: document.getElementById("scoreVal"),
+    scoreBar: document.getElementById("scoreBar"),
+    eventCountVal: document.getElementById("eventCountVal"),
     photoCountVal: document.getElementById("photoCountVal"),
-    timelineCount: document.getElementById("timelineCount"), // Grouped events count
+    btnTabTimeline: document.getElementById("btnTabTimeline"),
+    btnTabPhotos: document.getElementById("btnTabPhotos"),
+    viewTimeline: document.getElementById("viewTimeline"),
+    viewPhotos: document.getElementById("viewPhotos"),
+    photosGrid: document.getElementById("photosGrid"),
+    timelineFilters: document.getElementById("timelineFilters"),
+    searchBtn: document.getElementById("searchBtn"),
+    copySummaryBtn: document.getElementById("copySummaryBtn"),
+    btnAiReport: document.getElementById("btnAiReport"),
+    step1Card: document.getElementById("step1Card"),
+    step2Card: document.getElementById("step2Card"),
+    uploadInput: document.getElementById("uploadInput"),
+    matchTitle: document.getElementById("matchTitle"),
+    matchSubtitle: document.getElementById("matchSubtitle"),
+    matchPills: document.getElementById("matchPills"),
+    confirmBtn: document.getElementById("confirmBtn"),
+    skipBtn: document.getElementById("skipBtn"),
     nameInput: document.getElementById("nameInput"),
     mobileInput: document.getElementById("mobileInput"),
-
-    // Tabs & Content
-    btnTabPhotos: document.getElementById("btnTabPhotos"),
-    btnTabTimeline: document.getElementById("btnTabTimeline"),
-    viewPhotos: document.getElementById("viewPhotos"),
-    viewTimeline: document.getElementById("viewTimeline"),
-    photosGrid: document.getElementById("photosGrid"),
+    btnAllSlideshow: document.getElementById("btnAllSlideshow"),
+    similarityText: document.getElementById("similarityText"),
+    timelineCount: document.getElementById("timelineCount"),
+    photoCount: document.getElementById("photoCount"),
+    nameVal: document.getElementById("nameVal"),
+    mobileVal: document.getElementById("mobileVal"),
   };
 
-  // ── ORIGINAL API CALL FUNCTION ──
+  // Tab Logic
+  function switchTab(tab) {
+    if (tab === 'timeline') {
+      el.viewTimeline.classList.remove('hidden');
+      if (el.timelineFilters) { el.timelineFilters.classList.remove('hidden'); el.timelineFilters.classList.add('flex'); }
+      el.viewPhotos.classList.add('hidden');
+      if (el.btnTabTimeline) el.btnTabTimeline.className = "tab-btn tab-active flex-1 text-center text-sm pb-3 px-3";
+      if (el.btnTabPhotos) el.btnTabPhotos.className = "tab-btn tab-inactive flex-1 text-center text-sm pb-3 px-3";
+    } else {
+      el.viewTimeline.classList.add('hidden');
+      if (el.timelineFilters) { el.timelineFilters.classList.add('hidden'); el.timelineFilters.classList.remove('flex'); }
+      el.viewPhotos.classList.remove('hidden');
+      if (el.btnTabTimeline) el.btnTabTimeline.className = "tab-btn tab-inactive flex-1 text-center text-sm pb-3 px-3";
+      if (el.btnTabPhotos) el.btnTabPhotos.className = "tab-btn tab-active flex-1 text-center text-sm pb-3 px-3";
+    }
+  }
+
+  if (el.btnTabTimeline) el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
+  if (el.btnTabPhotos) el.btnTabPhotos.addEventListener('click', () => switchTab('photos'));
+
+  // Filter Logic
+  function initFilters() {
+    const btns = el.timelineFilters.querySelectorAll('.filter-btn');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        applyFilter();
+      });
+    });
+  }
+
+  function applyFilter() {
+    if (!globalTimelineData.length) return;
+    let filtered = globalTimelineData;
+    if (currentFilter !== 'all') {
+      filtered = globalTimelineData.filter(item => {
+        const type = (item.form_type || "").toLowerCase();
+        const data = item.data || {};
+        const pType = (data.program_type || "").toLowerCase();
+        if (currentFilter === 'tour') return type.includes('tour') || pType.includes('tour');
+        if (currentFilter === 'report') return type.includes('mandal') || type.includes('report');
+        if (currentFilter === 'other') return !type.includes('tour') && !pType.includes('tour') && !type.includes('mandal') && !type.includes('report');
+        return true;
+      });
+    }
+    renderTimeline(filtered, globalPhotoMap);
+  }
+
+  // Gemini AI Report
+  async function generateAiReport() {
+    if (!globalTimelineData.length) return;
+    const btn = el.btnAiReport;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+    try {
+      const simplifiedEvents = globalTimelineData.slice(0, 30).map(item => {
+        const sum = buildEventSummary(item);
+        return { date: sum.subtitle, title: sum.title, type: item.form_type, details: sum.highlights.map(h => `${h[0]}: ${h[1]}`).join(", ") };
+      });
+      const prompt = `You are a senior political analyst. Analyze the following timeline of a 'Karyakarta' (Party Worker) in India. Write a concise, professional performance summary report in HINDI language (Devanagari script). Structure the response in Markdown: 1. **Summary**: 2-3 sentences about their overall activity level and main focus area (e.g., Tours, Mandal meetings). 2. **Key Activities**: Bullet points of their most significant types of participation. 3. **Consistency**: Comment on their regularity based on dates. 4. **Tone**: Encouraging and formal. Data: ${JSON.stringify(simplifiedEvents)}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+      const data = await response.json();
+      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (aiText) {
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "ai-report-content p-5";
+        const htmlContent = aiText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n\n/g, '<br><br>').replace(/^- (.*)/gm, '<li>$1</li>');
+        contentDiv.innerHTML = htmlContent;
+        modal.open("AI Performance Report ✨", contentDiv);
+      } else { throw new Error("No response from AI"); }
+    } catch (error) {
+      console.error("AI Error:", error);
+      alert("Could not generate report. Please try again.");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+
+  if (el.btnAiReport) el.btnAiReport.addEventListener("click", generateAiReport);
+
+  // Copy Logic
+  if (el.copySummaryBtn) {
+    el.copySummaryBtn.addEventListener('click', () => {
+      const score = el.scoreVal.textContent;
+      const events = el.eventCountVal.textContent;
+      const photos = el.photoCountVal.textContent;
+      const text = `*EventLens Search Result*\nSimilarity: ${score}\nEvents Found: ${events}\nPhotos Found: ${photos}\n\nGenerated by EventLens AI`;
+      navigator.clipboard.writeText(text).then(() => {
+        const originalHtml = el.copySummaryBtn.innerHTML;
+        el.copySummaryBtn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Copied!';
+        setTimeout(() => el.copySummaryBtn.innerHTML = originalHtml, 2000);
+      });
+    });
+  }
+
+  // Modal Logic
+  const modal = (() => {
+    const wrap = document.getElementById("detailModal");
+    const backdrop = document.getElementById("modalBackdrop");
+    const panel = document.getElementById("modalPanel");
+    const titleEl = document.getElementById("detailModalTitle");
+    const bodyEl = document.getElementById("detailModalBody");
+    const closeBtn = document.getElementById("detailModalClose");
+    const controls = document.getElementById("carouselControls");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function open(title, bodyNode, isGalleryMode = false) {
+      titleEl.textContent = title || "Details";
+      bodyEl.innerHTML = "";
+      if (bodyNode) bodyEl.appendChild(bodyNode);
+      if (isGalleryMode && galleryImages.length > 1) controls.classList.remove("hidden");
+      else controls.classList.add("hidden");
+      wrap.classList.remove("hidden");
+      requestAnimationFrame(() => {
+        backdrop.classList.remove("opacity-0");
+        panel.classList.remove("opacity-0", "scale-95");
+        panel.classList.add("opacity-100", "scale-100");
+      });
+      document.body.classList.add("overflow-hidden");
+    }
+
+    function close() {
+      backdrop.classList.add("opacity-0");
+      panel.classList.remove("opacity-100", "scale-100");
+      panel.classList.add("opacity-0", "scale-95");
+      setTimeout(() => { wrap.classList.add("hidden"); document.body.classList.remove("overflow-hidden"); }, 200);
+    }
+
+    function showGalleryImage(index) {
+      if (index < 0) index = galleryImages.length - 1;
+      if (index >= galleryImages.length) index = 0;
+      currentGalleryIndex = index;
+      const item = galleryImages[index];
+      titleEl.textContent = `${item.title} (${index + 1}/${galleryImages.length})`;
+      const body = document.createElement("div");
+      body.className = "h-full flex flex-col";
+      body.style.background = "#000";
+      const imgCont = document.createElement("div");
+      imgCont.className = "flex-1 flex items-center justify-center p-3 relative";
+      const img = document.createElement("img");
+      img.src = item.url;
+      img.className = "max-w-full max-h-full object-contain rounded-lg";
+      imgCont.appendChild(img);
+      const actions = document.createElement("div");
+      actions.className = "p-4 flex justify-between items-center";
+      actions.style.background = "rgba(3,7,15,0.9)";
+      const dlBtn = document.createElement("a");
+      dlBtn.href = item.url;
+      dlBtn.download = `event_photo_${index}.jpg`;
+      dlBtn.className = "px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-white";
+      dlBtn.style.cssText = "background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.3);";
+      dlBtn.innerHTML = '<i class="fa-solid fa-download text-xs" style="color:#D4A017"></i> Download';
+      actions.appendChild(dlBtn);
+      body.appendChild(imgCont);
+      body.appendChild(actions);
+      bodyEl.innerHTML = "";
+      bodyEl.appendChild(body);
+    }
+
+    closeBtn.addEventListener("click", close);
+    backdrop.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
+    prevBtn.addEventListener("click", (e) => { e.stopPropagation(); showGalleryImage(currentGalleryIndex - 1); });
+    nextBtn.addEventListener("click", (e) => { e.stopPropagation(); showGalleryImage(currentGalleryIndex + 1); });
+    document.addEventListener('keydown', (e) => {
+      if (wrap.classList.contains('hidden')) return;
+      if (e.key === 'ArrowLeft') showGalleryImage(currentGalleryIndex - 1);
+      if (e.key === 'ArrowRight') showGalleryImage(currentGalleryIndex + 1);
+      if (e.key === 'Escape') close();
+    });
+
+    return { open, close, showGalleryImage };
+  })();
+
+  // ── Helpers ──
+  function isNonEmpty(v) { return v !== null && v !== undefined && String(v).trim() !== ""; }
+
+  function escapeHtml(s) {
+    if (s === null || s === undefined) return "";
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+
+  function prettyIso(iso) {
+    if (!isNonEmpty(iso)) return "";
+    const date = new Date(iso);
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function formatDate(val) {
+    if (!val) return "";
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(val)) {
+      const [d, m, y] = val.split("/");
+      const dt = new Date(`${y}-${m}-${d}`);
+      return isNaN(dt) ? val : dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    if (val.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(val)) return prettyIso(val);
+    return val;
+  }
+
+  function setStatus(msg, type = "info") {
+    if (!el.statusBox) return;
+    el.statusBox.classList.remove("hidden");
+    const colors = {
+      error: 'rgba(230,57,80,0.12);border:1px solid rgba(230,57,80,0.3);color:#FF7088',
+      success: 'rgba(62,207,178,0.1);border:1px solid rgba(62,207,178,0.3);color:#3ECFB2',
+      loading: 'rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);color:#D4A017',
+    };
+    const style = colors[type] || 'rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#94a3b8';
+    el.statusBox.innerHTML = `<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold" style="background:${style}">${type==='loading'?'<i class="fa-solid fa-circle-notch fa-spin"></i>':''}${escapeHtml(msg)}</div>`;
+  }
+
+  function updateDashboard(sim, events, photos) {
+    el.emptyState.classList.add("hidden");
+    el.skeletonLoader.classList.add("hidden");
+    el.statsDashboard.classList.remove("hidden");
+    el.resultsContainer.classList.remove("hidden");
+    el.copySummaryBtn.classList.remove("hidden");
+    el.timelineFilters.classList.remove("hidden");
+    el.timelineFilters.classList.add("flex");
+    if (el.btnAiReport) el.btnAiReport.classList.remove("hidden");
+    el.btnAiReport.classList.add("flex");
+    initFilters();
+    const simNum = Number(sim);
+    el.scoreVal.textContent = `${simNum.toFixed(0)}%`;
+    if (el.similarityText) el.similarityText.textContent = `Match Score`;
+    el.scoreBar.style.width = `${Math.min(simNum, 100)}%`;
+    el.scoreBar.style.background = simNum > 80 ? 'linear-gradient(90deg,#2AB89C,#3ECFB2)' : simNum > 50 ? 'linear-gradient(90deg,#D4A017,#EFC24A)' : 'linear-gradient(90deg,#C41E37,#E63950)';
+    el.eventCountVal.textContent = events;
+    el.photoCountVal.textContent = photos;
+  }
+
+  function get(obj, key, fallback = "") {
+    if (!obj) return fallback;
+    const v = obj[key];
+    return isNonEmpty(v) ? v : fallback;
+  }
+
+  function getFormTypeLabel(ft) {
+    const map = { president_tour_form: "President Tour", mandal_reporting: "Mandal Report", mandal_reporting_form: "Mandal Report", visitor_form: "Visitor", party_attendance: "Party Attendance", coordinator_entry: "Coordinator Entry", coordinator_form: "Coordinator Form" };
+    return map[ft] || (ft ? ft.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : "Event");
+  }
+
+  function buildEventSummary(item) {
+    const form = get(item, "form_type", "");
+    const data = item.data || {};
+    const district = get(item, "district", get(data, "district", ""));
+    const vidhansabha = get(item, "vidhansabha", get(data, "vidhansabha", ""));
+    const createdAtIso = prettyIso(get(item, "created_at_iso", ""));
+    const withLabel = get(item, "with_label", "");
+    const faceCount = Number(get(item, "face_count", 0) || 0);
+    let title = form || "Event";
+    let subtitle = "";
+    let icon = "fa-calendar-check";
+    const highlights = [];
+    const footer = [];
+
+    function getFormDate(form, data) {
+      const pick = (...keys) => { for (const k of keys) { if (data && data[k]) return data[k]; } return ""; };
+      if (form === "president_tour_form") return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+      if (form === "mandal_reporting" || form === "mandal_reporting_form") return pick("report_date","event_date","दिनांक","date","program_date");
+      if (form === "party_attendance") return pick("attendance_date","event_date","दिनांक","date");
+      return pick("event_date","program_date","दिनांक","date");
+    }
+    const formDate = getFormDate(form, data);
+    const displayDate = isNonEmpty(formDate) ? formDate : createdAtIso;
+
+    if (withLabel) highlights.push(withLabel);
+    if (faceCount) highlights.push(`${faceCount} faces`);
+
+    const bsPName = data.program_name || data["कार्यक्रम_का_नाम"] || data.name_of_program || "";
+    const bsPType = data.program_type || data["कार्यक्रम_का_प्रकार"] || "";
+
+    if (form === "president_tour_form") {
+      title = bsPName || bsPType || data.tour_title || "President Tour";
+      icon = "fa-plane-departure";
+      const venue = data.tour_location || data.tour_venue || data.venue || data["स्थान"] || "";
+      subtitle = [formDate, venue].filter(isNonEmpty).join(" • ");
+      if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests", get(data,"guests","")]);
+    } else if (form === "mandal_reporting" || form === "mandal_reporting_form") {
+      title = bsPName || data.venue || data["स्थान"] || "Mandal Report";
+      icon = "fa-clipboard-list";
+      subtitle = formDate;
+      if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests", get(data,"guests","")]);
+    } else if (form === "visitor_form") {
+      title = get(item, "name", get(data, "name", data["नाम"] || "Visitor"));
+      icon = "fa-user-clock";
+      subtitle = get(data, "reason", get(data, "visit_reason", ""));
+    } else if (form === "party_attendance") {
+      title = bsPName || bsPType || "Party Attendance";
+      icon = "fa-users-line";
+      subtitle = [formDate, get(data, "designation", "")].filter(isNonEmpty).join(" • ");
+    } else if (form === "coordinator_entry" || form === "coordinator_form") {
+      title = get(data, "name", data["नाम"] || bsPName || "Coordinator Entry");
+      icon = "fa-id-badge";
+      subtitle = get(data, "designation", "");
+    } else if (bsPName) {
+      title = bsPName;
+    }
+
+    const locBits = [district, vidhansabha].filter(isNonEmpty);
+    if (locBits.length) footer.push(locBits.join(", "));
+    if (isNonEmpty(displayDate)) footer.push(displayDate);
+
+    const details = [];
+    const pushD = (k, v) => { if (isNonEmpty(v)) details.push([k, String(v)]); };
+    pushD("Form Type", form);
+    pushD("District", district);
+    pushD("Vidhansabha", vidhansabha);
+    pushD("दिनांक (Form)", isNonEmpty(formDate) ? formDate : "—");
+    pushD("Entry Date", createdAtIso);
+    Object.keys(data).forEach(k => { if (typeof data[k] !== 'object') pushD(k, data[k]); });
+
+    return { title, subtitle, highlights, footer, details, rawData: data, icon };
+  }
+
+  function makeKVTable(rows) {
+    const div = document.createElement("div");
+    div.className = "space-y-3 p-5";
+    rows.forEach(([k, v]) => {
+      const row = document.createElement("div");
+      row.className = "flex flex-col sm:flex-row sm:justify-between pb-2 last:border-0";
+      row.style.borderBottom = "1px solid rgba(212,160,23,0.08)";
+      row.innerHTML = `<span class="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style="color:#475569">${k}</span><span class="text-sm font-medium text-right break-words" style="color:#D1D9E6">${v}</span>`;
+      div.appendChild(row);
+    });
+    return div;
+  }
+
+  function parseS3KeyFromUrl(url) {
+    try {
+      const u = new URL(url);
+      const p = u.pathname || "";
+      return p.startsWith("/") ? p.slice(1) : p;
+    } catch (e) { return ""; }
+  }
+
+  // ─── Event photos ───
+  function getEventPhotos(item, photoUrlByKey) {
+    if (Array.isArray(item.photos) && item.photos.length) return item.photos;
+    if (Array.isArray(item.photo_urls) && item.photo_urls.length) return item.photo_urls;
+    const s3Key = item.s3_key || "";
+    if (isNonEmpty(s3Key) && photoUrlByKey) {
+      const u = photoUrlByKey.get(s3Key);
+      if (u) return [u];
+    }
+    return [];
+  }
+
+  // ─── Icon color map ───
+  const iconColorMap = {
+    'fa-plane-departure': '#3ECFB2',
+    'fa-clipboard-list': '#D4A017',
+    'fa-user-clock': '#A78BFA',
+    'fa-users-line': '#60A5FA',
+    'fa-id-badge': '#F97316',
+    'fa-calendar-check': '#D4A017',
+  };
+
+  function renderTimeline(timeline, photoUrlByKey) {
+    const tbody = document.querySelector("#timelineTable tbody");
+    tbody.innerHTML = "";
+    if (!Array.isArray(timeline) || timeline.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center">इस फ़िल्टर में कोई इवेंट नहीं</td></tr>`;
+      return;
+    }
+    const sorted = [...timeline].sort((a,b) => new Date(b.created_at_iso) - new Date(a.created_at_iso));
+    sorted.forEach(item => {
+      const row = document.createElement("tr");
+      row.style.cssText = "border-bottom:1px solid rgba(212,160,23,0.1); transition:background 0.2s;";
+      row.onmouseenter = () => row.style.background = "rgba(212,160,23,0.1)";
+      row.onmouseleave = () => row.style.background = "transparent";
+      
+      const date = formatDate(getEventFormDate(item.form_type, item.data) || item.created_at_iso);
+      const loc = [item.district, item.vidhansabha].filter(Boolean).join(", ");
+      const type = getFormTypeLabel(item.form_type);
+      const details = buildEventSummary(item).title + " (क्लिक फॉर स्लाइडशो)";
+      
+      row.innerHTML = `
+        <td class="p-3">${date}</td>
+        <td class="p-3">${loc || "—"}</td>
+        <td class="p-3">${type}</td>
+        <td class="p-3 cursor-pointer" style="color:#D4A017;">${details}</td>
+      `;
+      row.querySelector("td:last-child").addEventListener("click", () => openEventSlideshow(item, buildEventSummary(item)));
+      tbody.appendChild(row);
+    });
+  }
+
+  function buildEventDetails(item, form, data, displayDate, formDate) {
+    const details = [];
+    const push = (k, v) => { if (v) details.push([k, String(v)]); };
+    push("दिनांक", displayDate);
+    push("जिला", item.district || data.district);
+    push("विधानसभा", item.vidhansabha || data.vidhansabha);
+    push("मंडल", item.mandal || data.mandal);
+    push("कार्यक्रम", data.program_name);
+    push("प्रकार", data.program_type);
+    push("स्तर", data.level || data.program_level);
+    push("स्थान", data.tour_location || data.venue || data.tour_venue);
+    push("उपस्थिति", data.total_attendance || data.attendance_count);
+    push("वक्ता", data.other_speakers);
+    if (item.with_label) push("साथ में", item.with_label);
+    push("विवरण", data.program_details || data.report_summary);
+    const skip = new Set(["district","vidhansabha","mandal","program_name","program_type","level","program_level","tour_location","venue","tour_venue","total_attendance","attendance_count","other_speakers","program_details","report_summary","tour_date","report_date","attendance_date","event_date","name","mobile"]);
+    Object.keys(data).forEach(k => { if (!skip.has(k) && typeof data[k] !== "object" && isNonEmpty(data[k])) push(k, data[k]); });
+    return details;
+  }
+
+  function getEventFormDate(formType, data) {
+    if (!data) return "";
+    const pick = (...keys) => { for (const k of keys) { if (data[k]) return data[k]; } return ""; };
+    if (formType === "president_tour_form") return pick("tour_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return pick("report_date","event_date","दिनांक","date","program_date","कार्यक्रम_दिनांक");
+    if (formType === "party_attendance") return pick("attendance_date","event_date","दिनांक","date");
+    return pick("event_date","program_date","दिनांक","date");
+  }
+
+  // ── PPT Slideshow ──
+  const SS = (() => {
+    let photos = [], idx = 0, autoTimer = null, isPlaying = false;
+    const overlay = document.getElementById("slideshowOverlay");
+    const img = document.getElementById("slideshowImg");
+    const counter = document.getElementById("slideshowCounter");
+    const titleEl = document.getElementById("slideshowTitle");
+    const detailEl = document.getElementById("slideshowDetails");
+    const thumbBar = document.getElementById("slideshowThumbBar");
+    const progBar = document.getElementById("slideshowProgressBar");
+    const autoBtn = document.getElementById("ssAutoplay");
+
+    function goTo(i, animate = true) {
+      if (!photos.length) return;
+      idx = ((i % photos.length) + photos.length) % photos.length;
+      progBar.style.width = `${((idx + 1) / photos.length) * 100}%`;
+      counter.textContent = `${idx + 1} / ${photos.length}`;
+      if (animate) {
+        img.classList.add("fading");
+        setTimeout(() => { img.src = photos[idx].url; img.onload = () => img.classList.remove("fading"); img.onerror = () => img.classList.remove("fading"); }, 200);
+      } else { img.src = photos[idx].url; }
+      thumbBar.querySelectorAll(".ss-thumb").forEach((t, ti) => t.classList.toggle("active", ti === idx));
+      if (thumbBar.children[idx]) thumbBar.children[idx].scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+
+    function stopAuto() { clearInterval(autoTimer); autoTimer = null; isPlaying = false; autoBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
+    function startAuto() { isPlaying = true; autoBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; autoTimer = setInterval(() => goTo(idx + 1), 3000); }
+
+    document.getElementById("ssPrev").addEventListener("click", () => { stopAuto(); goTo(idx - 1); });
+    document.getElementById("ssNext").addEventListener("click", () => { stopAuto(); goTo(idx + 1); });
+    document.getElementById("ssClose").addEventListener("click", close);
+    autoBtn.addEventListener("click", () => { isPlaying ? stopAuto() : startAuto(); });
+
+    document.addEventListener("keydown", e => {
+      if (!overlay.classList.contains("active")) return;
+      if (e.key === "ArrowLeft") { stopAuto(); goTo(idx - 1); }
+      if (e.key === "ArrowRight") { stopAuto(); goTo(idx + 1); }
+      if (e.key === "Escape") { close(); }
+      if (e.key === " ") { isPlaying ? stopAuto() : startAuto(); e.preventDefault(); }
+    });
+
+    function open(title, photoList, details) {
+      photos = photoList || [];
+      if (!photos.length) return;
+      titleEl.textContent = title || "Event";
+      thumbBar.innerHTML = "";
+      photos.forEach((p, i) => {
+        const t = document.createElement("img");
+        t.src = p.url; t.className = "ss-thumb"; t.alt = "";
+        t.addEventListener("click", () => { stopAuto(); goTo(i); });
+        thumbBar.appendChild(t);
+      });
+      detailEl.innerHTML = "";
+      (details || []).forEach(([k, v]) => {
+        detailEl.innerHTML += `<div class="ss-detail-row"><span class="ss-detail-key">${k}</span><span class="ss-detail-val">${v}</span></div>`;
+      });
+      overlay.classList.add("active");
+      goTo(0, false);
+    }
+
+    function close() { stopAuto(); overlay.classList.remove("active"); img.src = ""; }
+    return { open, close };
+  })();
+
+  function openEventSlideshow(item, sum) {
+    const form = item.form_type || item.ft || "";
+    const data = item.data || {};
+    const eventPhotos = getEventPhotos(item, globalPhotoMap);
+    if (eventPhotos.length === 0) {
+      const body = document.createElement("div");
+      const det = sum.details || buildEventDetails(item, form, data, getEventFormDate(form, data) || prettyIso(item.created_at_iso || ""), getEventFormDate(form, data));
+      body.appendChild(makeKVTable(det));
+      modal.open(sum.title || "Event", body, false);
+      return;
+    }
+    const formDate = getEventFormDate(form, data);
+    const displayDate = formDate || prettyIso(item.created_at_iso || "");
+    const details = sum.details || buildEventDetails(item, form, data, displayDate, formDate);
+    SS.open(sum.title || "Event", eventPhotos.map(u => ({ url: u })), details);
+  }
+
+  // ── Render Photos ──
+  function renderPhotos(photoUrls, timeline) {
+    el.photosGrid.innerHTML = "";
+    galleryImages = [];
+    if (!Array.isArray(photoUrls) || photoUrls.length === 0) {
+      el.photosGrid.innerHTML = `<div class="col-span-full text-center py-8 text-sm" style="color:#475569">कोई फोटो नहीं मिली</div>`;
+      return;
+    }
+    const byKey = new Map();
+    photoUrls.forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k) && !byKey.has(k)) byKey.set(k, u); });
+    const labelByKey = new Map();
+    (timeline || []).forEach(t => { if (isNonEmpty(t.s3_key)) labelByKey.set(t.s3_key, buildEventSummary(t).title); });
+
+    Array.from(byKey.entries()).forEach(([k, url], idx) => {
+      galleryImages.push({ url, title: labelByKey.get(k) || "Event Photo", id: k });
+      const wrapper = document.createElement("div");
+      wrapper.className = "photo-item cursor-pointer";
+
+      const img = document.createElement("img");
+      setImgSrcWithRetry(img, url);
+      img.loading = "lazy";
+      img.className = "w-full h-full object-cover transition-transform duration-500 group-hover:scale-110";
+      img.style.cssText = "opacity:0.85; transition:opacity 0.3s, transform 0.5s;";
+      img.onmouseenter = () => img.style.opacity = "1";
+      img.onmouseleave = () => img.style.opacity = "0.85";
+
+      wrapper.appendChild(img);
+      wrapper.addEventListener("click", () => { modal.open("Gallery", null, true); modal.showGalleryImage(idx); });
+      el.photosGrid.appendChild(wrapper);
+    });
+  }
+
+  // ── API Logic ──
   async function apiCall(action, payload, tokenOpt) {
     const isPublic = !!tokenOpt;
     const url = isPublic ? `${BASE_URL}/political/public/search` : `${BASE_URL}/political/search`;
@@ -419,275 +1477,8 @@
     return json;
   }
 
-  // ── TABS LOGIC ──
-  function switchTab(tab) {
-    if (tab === 'timeline') {
-      el.viewTimeline.classList.remove('hidden');
-      el.viewPhotos.classList.add('hidden');
-      el.btnTabTimeline.classList.add('tab-active');
-      el.btnTabTimeline.classList.remove('text-slate-400');
-      el.btnTabPhotos.classList.remove('tab-active');
-      el.btnTabPhotos.classList.add('text-slate-400');
-    } else {
-      el.viewTimeline.classList.add('hidden');
-      el.viewPhotos.classList.remove('hidden');
-      el.btnTabPhotos.classList.add('tab-active');
-      el.btnTabPhotos.classList.remove('text-slate-400');
-      el.btnTabTimeline.classList.remove('tab-active');
-      el.btnTabTimeline.classList.add('text-slate-400');
-    }
-  }
-  el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
-  el.btnTabPhotos.addEventListener('click', () => switchTab('photos'));
+  let pendingSearchRes = null;
 
-  // ── HELPERS ──
-  function isNonEmpty(v) { return v !== null && v !== undefined && String(v).trim() !== ""; }
-  function escapeHtml(s) { return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-  function prettyIso(iso) {
-    if (!iso) return "";
-    const date = new Date(iso);
-    return isNaN(date) ? iso : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-  }
-  function parseS3KeyFromUrl(url) {
-    try { const u = new URL(url); const p = u.pathname || ""; return p.startsWith("/") ? p.slice(1) : p; } 
-    catch (e) { return ""; }
-  }
-  function getEventFormDate(formType, data) {
-    if (!data) return "";
-    const pick = (...keys) => { for (const k of keys) { if (data[k]) return data[k]; } return ""; };
-    if (formType === "president_tour_form") return pick("tour_date","दिनांक","date","program_date");
-    if (formType === "mandal_reporting" || formType === "mandal_reporting_form") return pick("report_date","event_date","दिनांक","date");
-    if (formType === "party_attendance") return pick("attendance_date","event_date","दिनांक");
-    return pick("event_date","program_date","दिनांक","date");
-  }
-  function getEventPhotos(item, photoUrlByKey) {
-    if (Array.isArray(item.photos) && item.photos.length) return item.photos;
-    if (Array.isArray(item.photo_urls) && item.photo_urls.length) return item.photo_urls;
-    const s3Key = item.s3_key || "";
-    if (isNonEmpty(s3Key) && photoUrlByKey) {
-      const u = photoUrlByKey.get(s3Key);
-      if (u) return [u];
-    }
-    return [];
-  }
-
-  // ── PPT SLIDESHOW CONTROLLER ──
-  const PPT = (() => {
-    let currentIdx = 0;
-    const overlay = document.getElementById("pptOverlay");
-    const img = document.getElementById("pptImg");
-    const title = document.getElementById("pptTitle");
-    const dateTxt = document.getElementById("pptDate");
-    const locTxt = document.getElementById("pptLocation");
-    const typeBadge = document.getElementById("pptTypeTxt");
-    const list = document.getElementById("pptDetailsList");
-    const counter = document.getElementById("pptCounter");
-
-    let scale = 1;
-    img.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      scale += e.deltaY * -0.005;
-      scale = Math.min(Math.max(1, scale), 4);
-      img.style.transform = `scale(${scale})`;
-    });
-
-    function resetZoom() { scale = 1; img.style.transform = `scale(1)`; }
-
-    function open(idx) {
-      if (!globalPptPhotos.length) return;
-      currentIdx = idx;
-      updateView();
-      overlay.classList.remove("hidden");
-      setTimeout(() => overlay.classList.remove("opacity-0"), 10);
-      document.body.style.overflow = "hidden";
-    }
-
-    function close() {
-      overlay.classList.add("opacity-0");
-      resetZoom();
-      setTimeout(() => { overlay.classList.add("hidden"); document.body.style.overflow = "auto"; }, 300);
-    }
-
-    function goTo(dir) {
-      currentIdx = (currentIdx + dir + globalPptPhotos.length) % globalPptPhotos.length;
-      updateView();
-    }
-
-    function updateView() {
-      resetZoom();
-      const p = globalPptPhotos[currentIdx];
-      img.src = p.url;
-      counter.textContent = `${currentIdx + 1} / ${globalPptPhotos.length}`;
-
-      const item = p.eventObj || {};
-      const data = item.data || {};
-      const form = item.form_type || item.ft || "इवेंट";
-      
-      const formDate = getEventFormDate(form, data);
-      const displayDate = formDate || prettyIso(item.created_at_iso || "");
-      
-      const pName = data.program_name || data["कार्यक्रम_का_नाम"] || data.tour_title || "";
-      const venue = data.tour_location || data.venue || data["स्थान"] || "";
-      const district = item.district || data.district || "";
-      const locStr = [district, item.vidhansabha, venue].filter(Boolean).join(", ");
-
-      title.textContent = pName || form.replace(/_/g, ' ');
-      dateTxt.textContent = displayDate || "तारीख उपलब्ध नहीं";
-      locTxt.textContent = locStr || "स्थान उपलब्ध नहीं";
-      typeBadge.textContent = form.replace(/_/g, ' ');
-
-      list.innerHTML = "";
-      const addRow = (k, v) => {
-        if (!v) return;
-        list.innerHTML += `
-          <div class="flex flex-col pb-3 border-b border-gold-500/10 last:border-0">
-            <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">${k}</span>
-            <span class="text-sm text-white break-words leading-snug">${escapeHtml(v)}</span>
-          </div>
-        `;
-      };
-      
-      addRow("जिला / मंडल", [item.district, item.mandal].filter(Boolean).join(" - "));
-      addRow("उपस्थिति", data.total_attendance || data.attendance_count);
-      addRow("वक्ता / अतिथि", data.other_speakers || data.guests);
-      if(item.with_label) addRow("किसके साथ", item.with_label);
-      addRow("विवरण", data.program_details || data.report_summary);
-    }
-
-    document.getElementById("pptClose").addEventListener("click", close);
-    document.getElementById("pptPrev").addEventListener("click", () => goTo(-1));
-    document.getElementById("pptNext").addEventListener("click", () => goTo(1));
-    document.addEventListener("keydown", (e) => {
-      if (overlay.classList.contains("hidden")) return;
-      if (e.key === "ArrowLeft") goTo(-1);
-      if (e.key === "ArrowRight") goTo(1);
-      if (e.key === "Escape") close();
-    });
-
-    return { open };
-  })();
-
-  // ── RENDER PHOTOS (Grid & Prepares PPT data) ──
-  // Original patch hooked into `window.renderPhotos`, so we keep that name and signature.
-  window.renderPhotos = function(photoUrls, timeline) {
-    el.photosGrid.innerHTML = "";
-    globalPptPhotos = [];
-    
-    if (!Array.isArray(photoUrls) || photoUrls.length === 0) {
-      el.photosGrid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500 font-medium">कोई फोटो नहीं मिली</div>`;
-      return;
-    }
-
-    const byKey = new Map();
-    photoUrls.forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k) && !byKey.has(k)) byKey.set(k, u); });
-    
-    // Map URLs back to timeline events for details
-    const eventByKey = new Map();
-    (timeline || []).forEach(t => { if (isNonEmpty(t.s3_key)) eventByKey.set(t.s3_key, t); });
-
-    Array.from(byKey.entries()).forEach(([k, url], idx) => {
-      globalPptPhotos.push({ url, eventObj: eventByKey.get(k) || {}, index: idx });
-
-      const div = document.createElement("div");
-      div.className = "photo-item group relative";
-      const img = document.createElement("img");
-      setImgSrcWithRetry(img, url);
-      img.loading = "lazy";
-      div.appendChild(img);
-
-      div.innerHTML += `
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2 md:p-3 pointer-events-none">
-          <span class="text-white text-[10px] md:text-xs font-semibold truncate"><i class="fa-solid fa-expand mr-1 text-gold-400"></i> ज़ूम करें</span>
-        </div>`;
-      
-      div.addEventListener("click", () => PPT.open(idx));
-      el.photosGrid.appendChild(div);
-    });
-  }
-
-  // ── RENDER TIMELINE (List) ──
-  // The patch at the bottom calls `window._renderTimelineMain`
-  window._renderTimelineMain = function(timeline, photoUrlByKey) {
-    el.viewTimeline.innerHTML = "";
-    if (!Array.isArray(timeline) || timeline.length === 0) {
-      el.viewTimeline.innerHTML = `<div class="text-center py-10 text-slate-500 font-medium">कोई इवेंट नहीं मिला</div>`;
-      return;
-    }
-
-    const sorted = [...timeline].sort((a, b) => {
-      const pDate = (item) => {
-        const fd = getEventFormDate(item.form_type || item.ft || "", item.data || {});
-        if (fd) {
-          const parts = fd.split(/[-/]/);
-          if (parts.length === 3) {
-            const d = parts[0].length === 4 ? new Date(parts[0], parts[1]-1, parts[2]) : new Date(parts[2], parts[1]-1, parts[0]);
-            if (!isNaN(d)) return d.getTime();
-          }
-        }
-        return parseInt(item.created_at || "0", 10);
-      };
-      return pDate(b) - pDate(a);
-    });
-
-    sorted.forEach((item, index) => {
-      const data = item.data || {};
-      const form = item.form_type || item.ft || "Event";
-      const formDate = getEventFormDate(form, data);
-      const displayDate = formDate || prettyIso(item.created_at_iso || "");
-      
-      let title = data.program_name || data["कार्यक्रम_का_नाम"] || form.replace(/_/g, ' ');
-      const loc = [item.district, item.vidhansabha, data.venue || data.tour_location].filter(Boolean).join(", ");
-      
-      const ps = getEventPhotos(item, photoUrlByKey);
-
-      const wrp = document.createElement("div");
-      wrp.className = "relative pl-4 mb-5";
-      wrp.innerHTML = `
-        <div class="absolute w-3 h-3 rounded-full bg-gold-500 border-2 border-navy-950 z-10" style="left: -33px; top: 24px;"></div>
-        <div class="bg-navy-900/60 border border-gold-500/10 rounded-xl p-4 md:p-5 hover:border-gold-500/40 hover:bg-navy-900 transition-all cursor-pointer group">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-            <h3 class="font-bold text-white text-base leading-snug group-hover:text-gold-400 transition-colors">${escapeHtml(title)}</h3>
-            <span class="bg-gold-500/10 text-gold-400 border border-gold-500/20 px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap"><i class="fa-regular fa-clock mr-1"></i>${escapeHtml(displayDate)}</span>
-          </div>
-          ${loc ? `<div class="text-xs text-slate-400 mb-3"><i class="fa-solid fa-location-dot text-gold-500/50 mr-1.5"></i>${escapeHtml(loc)}</div>` : ''}
-          
-          ${ps.length > 0 ? `
-            <div class="flex gap-2 overflow-x-auto pb-1 mt-3 border-t border-white/5 pt-3">
-              ${ps.slice(0, 4).map(u => `<img src="${u}" class="w-12 h-12 rounded object-cover border border-white/10" />`).join('')}
-              ${ps.length > 4 ? `<div class="w-12 h-12 rounded bg-navy-950 flex items-center justify-center text-xs text-gold-400 font-bold border border-white/10">+${ps.length-4}</div>` : ''}
-            </div>
-          ` : ''}
-        </div>
-      `;
-
-      // Click opens PPT
-      wrp.addEventListener("click", () => {
-        if (ps.length > 0) {
-          const pptIdx = globalPptPhotos.findIndex(gp => gp.url === ps[0]);
-          if (pptIdx !== -1) PPT.open(pptIdx);
-        } else {
-           // Fallback if no photo
-           const mockEvObj = { url:"", eventObj: item, index: 0 };
-           const oldPhotos = [...globalPptPhotos];
-           globalPptPhotos = [mockEvObj];
-           PPT.open(0);
-           // Restore after close 
-           setTimeout(() => globalPptPhotos = oldPhotos, 500);
-        }
-      });
-      el.viewTimeline.appendChild(wrp);
-    });
-  }
-
-  function setStatus(msg, type="info") {
-    if (!msg) { el.statusBox.classList.add("hidden"); return; }
-    el.statusBox.classList.remove("hidden");
-    const isErr = type === "error";
-    el.statusBox.className = `mt-4 text-center text-sm font-medium px-4 py-2 rounded-lg ${isErr ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-gold-500/10 text-gold-400 border border-gold-500/30'}`;
-    el.statusBox.innerHTML = msg;
-  }
-
-  // ── ORIGINAL DO_FACE_SEARCH (Restored perfectly) ──
   if (el.uploadInput) {
     el.uploadInput.addEventListener("change", function() {
       if (this.files && this.files[0] && el.selfieInput) {
@@ -699,14 +1490,17 @@
 
   async function doFaceSearch() {
     const file = (el.selfieInput && el.selfieInput.files && el.selfieInput.files[0]) || (el.uploadInput && el.uploadInput.files && el.uploadInput.files[0]);
-    if (!file) { setStatus("कृपया पहले सेल्फी या फोटो अपलोड करें", "error"); return; }
+    if (!file) { setStatus("कृपया पहले सेल्फी लें", "error"); return; }
 
     el.searchBtn.disabled = true;
     el.searchBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>खोज रहे हैं...';
-    setStatus('<i class="fa-solid fa-spinner fa-spin mr-2"></i> चेहरा और डेटाबेस स्कैन हो रहा है...', "info");
+    setStatus("चेहरा पहचान हो रहा है...", "loading");
+    el.emptyState.classList.add("hidden");
+    el.statsDashboard.classList.add("hidden");
+    el.resultsContainer.classList.add("hidden");
+    el.skeletonLoader.classList.remove("hidden");
 
     try {
-      // SHA-256 for caching
       let photoSha256 = "";
       try {
         const buf = await file.arrayBuffer();
@@ -714,136 +1508,195 @@
         photoSha256 = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,"0")).join("");
       } catch(e) {}
 
-      // Init Search
       const init = await apiCall("init_search", { mime_type: file.type || "image/jpeg", sha256: photoSha256 }, token);
       const uploadUrl = init.upload_url || init.url;
       const searchId = init.search_id || init.searchId;
 
-      // Upload to S3 if needed
       if (!init.cache_hit) {
         await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
       }
 
-      setStatus('<i class="fa-solid fa-spinner fa-spin mr-2"></i> डेटाबेस में परिणाम खोजे जा रहे हैं...', "info");
-      
-      // Run Search
+      setStatus("डेटाबेस में खोज हो रही है...", "loading");
       const res = await apiCall("run_search", { search_id: searchId }, token);
-      
+      el.skeletonLoader.classList.add("hidden");
+
       const tCount = Array.isArray(res.events || res.timeline) ? (res.events || res.timeline).length : 0;
-      
+      const pCount = Array.isArray(res.photo_urls) ? res.photo_urls.length : 0;
+
       if (res.message === "NO_MATCH" || tCount === 0) {
-        setStatus("इस चेहरे का कोई रिकॉर्ड नहीं मिला।", "error");
+        setStatus("कोई मैच नहीं मिला", "error");
+        el.emptyState.classList.remove("hidden");
+        el.emptyState.querySelector("h3").textContent = "कोई मैच नहीं मिला";
+        el.emptyState.querySelector("p").textContent = "इस चेहरे का कोई रिकॉर्ड नहीं है।";
       } else {
-        // SUCCESS: Transition Layout
-        setStatus("");
-        el.uploadView.classList.add("hidden");
-        el.resultView.classList.remove("hidden");
-        setTimeout(() => el.resultView.classList.remove("opacity-0"), 50);
-
-        // Populate Top Header
+        pendingSearchRes = res;
+        setStatus("", "info");
         const sim = isNonEmpty(res.similarity) ? Number(res.similarity).toFixed(0) : "0";
-        el.scoreVal.textContent = sim + "%";
-        
+        if (el.matchPills) {
+          el.matchPills.innerHTML = `
+            <span class="px-3 py-1 rounded-full text-xs font-bold badge-gold">${pCount} फोटो</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold badge-jade">${tCount} इवेंट</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:rgba(62,207,178,0.1);border:1px solid rgba(62,207,178,0.3);color:#3ECFB2">${sim}% मैच</span>
+          `;
+        }
+        if (el.matchTitle) el.matchTitle.textContent = "✅ मैच मिला!";
+        if (el.matchSubtitle) el.matchSubtitle.textContent = "नाम/मोबाइल डालें या सीधे देखें";
         const profile = res.profile || {};
-        if (profile.name) el.nameInput.value = profile.name;
-        if (profile.mobile) el.mobileInput.value = profile.mobile;
-
-        // Render Data
-        const timeline = (res.events && Array.isArray(res.events) && res.events.length) ? res.events : (res.timeline || []);
-        window.globalTimelineData = timeline;
-        
-        window.globalPhotoMap = new Map();
-        (res.photo_urls || []).forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k)) window.globalPhotoMap.set(k, u); });
-
-        // Trigger the patched renderPhotos
-        window.renderPhotos(res.photo_urls || [], timeline);
-        switchTab('photos');
-        
-        // Scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (el.nameInput && profile.name) el.nameInput.value = profile.name;
+        if (el.mobileInput && profile.mobile) el.mobileInput.value = profile.mobile;
+        if (el.step1Card) el.step1Card.classList.add("hidden");
+        if (el.step2Card) el.step2Card.classList.remove("hidden");
       }
     } catch (err) {
       console.error(err);
       setStatus(err.message || "Connection Error", "error");
+      el.skeletonLoader.classList.add("hidden");
     } finally {
       el.searchBtn.disabled = false;
-      el.searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-2"></i>खोज शुरू करें';
+      el.searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-2"></i>खोजें';
     }
   }
 
-  el.searchBtn.addEventListener("click", doFaceSearch);
+  function showResults(name, mobile) {
+    if (!pendingSearchRes) return;
+    const res = pendingSearchRes;
+    const sim = isNonEmpty(res.similarity) ? Number(res.similarity).toFixed(0) : "0";
+    const timeline = (res.events && Array.isArray(res.events) && res.events.length) ? res.events : (res.timeline || []);
+    const tCount = timeline.length;
+    const pCount = Array.isArray(res.photo_urls) ? res.photo_urls.length : 0;
 
+    globalTimelineData = timeline;
+    globalPhotoMap = new Map();
+    (res.photo_urls || []).forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k)) globalPhotoMap.set(k, u); });
+
+    if (el.step2Card) el.step2Card.classList.add("hidden");
+    currentFilter = "all";
+    updateDashboard(sim, tCount, pCount);
+    if (el.nameVal) el.nameVal.textContent = name || res.profile.name || "अज्ञात";
+    if (el.mobileVal) el.mobileVal.textContent = mobile || res.profile.mobile || "नहीं उपलब्ध";
+    applyFilter();
+    renderPhotos(res.photo_urls || [], timeline);
+    switchTab("photos");
+    if (window.innerWidth < 1024) el.statsDashboard.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function openAllSlideshow() {
+    const allPhotos = [];
+    const seen = new Set();
+    (globalTimelineData || []).forEach(item => {
+      const photos = getEventPhotos(item, globalPhotoMap);
+      photos.forEach(u => { if (!seen.has(u)) { seen.add(u); allPhotos.push({ url: u }); } });
+    });
+    globalPhotoMap.forEach(u => { if (!seen.has(u)) { seen.add(u); allPhotos.push({ url: u }); } });
+    if (allPhotos.length) SS.open("सभी फोटो", allPhotos, [["कुल फोटो", allPhotos.length]]);
+  }
+
+  if (el.searchBtn) el.searchBtn.addEventListener("click", doFaceSearch);
+  if (el.confirmBtn) el.confirmBtn.addEventListener("click", () => showResults(el.nameInput ? el.nameInput.value.trim() : "", el.mobileInput ? el.mobileInput.value.trim() : ""));
+  if (el.skipBtn) el.skipBtn.addEventListener("click", () => showResults("", ""));
+  if (el.btnAllSlideshow) el.btnAllSlideshow.addEventListener("click", openAllSlideshow);
+
+  // Timeline Grouping Patch
+  let globalTimelineGroups = [];
+
+  function buildTimelineGroups(timelineArr) {
+    const timeline = Array.isArray(timelineArr) ? timelineArr : [];
+    const map = new Map();
+    for (const it of timeline) {
+      if (!it || typeof it !== 'object') continue;
+      const eid = (it.event_id || it.eventId || it.event_key || it.eventKey || it.entry_id || it.entryId || '').toString().trim();
+      const gid = eid || (it.entry_id || it.entryId || '').toString().trim() || Math.random().toString(36).slice(2);
+      if (!map.has(gid)) {
+        map.set(gid, { group_id: gid, event_id: eid || gid, form_type: it.form_type || it.ft || 'unknown', created_at: it.created_at || '0', created_at_iso: it.created_at_iso || '', with_label: it.with_label || '', face_count: it.face_count || 0, district: it.district || (it.data||{}).district || '', vidhansabha: it.vidhansabha || (it.data||{}).vidhansabha || '', mandal: it.mandal || (it.data||{}).mandal || '', items: [it] });
+      } else {
+        const g = map.get(gid);
+        g.items.push(it);
+        const ca = Number(it.created_at || 0);
+        const ga = Number(g.created_at || 0);
+        if (ca > ga) { g.created_at = it.created_at || g.created_at; g.created_at_iso = it.created_at_iso || g.created_at_iso; g.district = it.district || g.district; g.vidhansabha = it.vidhansabha || g.vidhansabha; g.mandal = it.mandal || g.mandal; g.form_type = it.form_type || it.ft || g.form_type; }
+      }
+    }
+    const groups = Array.from(map.values());
+    groups.sort((a, b) => Number(b.created_at||0) - Number(a.created_at||0));
+    return groups;
+  }
+
+  function updateDashboard(similarity, timelineCount, photoCount) {
+    const el2 = { similarityText: document.getElementById("similarityText"), timelineCount: document.getElementById("timelineCount"), photoCount: document.getElementById("photoCount") };
+    if (el2.similarityText) el2.similarityText.textContent = `${similarity}%`;
+    if (el2.timelineCount) el2.timelineCount.textContent = `${timelineCount}`;
+    if (el2.photoCount) el2.photoCount.textContent = `${photoCount}`;
+  }
+
+  function renderTimelineGroups(groups) {
+    const grid = document.getElementById("viewTimeline");
+    if (!grid) return;
+    grid.innerHTML = "";
+    if (!Array.isArray(groups) || groups.length === 0) {
+      grid.innerHTML = '<div class="text-center text-sm py-10" style="color:#475569">No timeline entries.</div>';
+      return;
+    }
+    // Use the existing renderTimeline by flattening groups to representative items
+    const repItems = groups.map(g => {
+      const rep = (g.items && g.items[0]) ? g.items[0] : {};
+      return Object.assign({}, rep, { _groupPhotos: g.items, _itemCount: g.items.length });
+    });
+    // We call the main render directly
+    renderTimeline(repItems, globalPhotoMap);
+  }
+
+  function applyFilter() {
+    const groups = Array.isArray(globalTimelineGroups) ? globalTimelineGroups : [];
+    if (currentFilter === 'all') { renderTimelineGroups(groups); return; }
+    const filtered = groups.filter(g => { const ft = (g.form_type || '').toString(); return ft === currentFilter; });
+    renderTimelineGroups(filtered);
+  }
+
+  (function patchSearchSubmitHook() {
+    const _origRenderPhotos = window.renderPhotos;
+    window.renderPhotos = function(photoUrls, timeline) {
+      try {
+        globalTimelineGroups = buildTimelineGroups(globalTimelineData || timeline || []);
+        const scoreEl = document.getElementById("scoreVal");
+        const sim = scoreEl ? Number(scoreEl.textContent.replace('%','') || 0).toFixed(0) : '0';
+        updateDashboard(sim, globalTimelineGroups.length, Array.isArray(photoUrls) ? photoUrls.length : 0);
+      } catch(e) { console.warn('timeline grouping patch failed', e); }
+      return _origRenderPhotos ? _origRenderPhotos(photoUrls, timeline) : undefined;
+    };
+  })();
 })();
 </script>
 
-<script>
-// ── ORIGINAL TIMELINE GROUPING PATCH (Restored perfectly) ──
-let globalTimelineGroups = [];
-
-function buildTimelineGroups(timelineArr) {
-  const timeline = Array.isArray(timelineArr) ? timelineArr : [];
-  const map = new Map();
-  for (const it of timeline) {
-    if (!it || typeof it !== 'object') continue;
-    const eid = (it.event_id || it.eventId || it.event_key || it.eventKey || it.entry_id || it.entryId || '').toString().trim();
-    const gid = eid || (it.entry_id || it.entryId || '').toString().trim() || Math.random().toString(36).slice(2);
-    if (!map.has(gid)) {
-      map.set(gid, { group_id: gid, event_id: eid || gid, form_type: it.form_type || it.ft || 'unknown', created_at: it.created_at || '0', created_at_iso: it.created_at_iso || '', with_label: it.with_label || '', face_count: it.face_count || 0, district: it.district || (it.data||{}).district || '', vidhansabha: it.vidhansabha || (it.data||{}).vidhansabha || '', mandal: it.mandal || (it.data||{}).mandal || '', items: [it] });
-    } else {
-      const g = map.get(gid);
-      g.items.push(it);
-      const ca = Number(it.created_at || 0);
-      const ga = Number(g.created_at || 0);
-      if (ca > ga) { g.created_at = it.created_at || g.created_at; g.created_at_iso = it.created_at_iso || g.created_at_iso; g.district = it.district || g.district; g.vidhansabha = it.vidhansabha || g.vidhansabha; g.mandal = it.mandal || g.mandal; g.form_type = it.form_type || it.ft || g.form_type; }
-    }
-  }
-  const groups = Array.from(map.values());
-  groups.sort((a, b) => Number(b.created_at||0) - Number(a.created_at||0));
-  return groups;
-}
-
-function updateDashboard(similarity, timelineCount, photoCount) {
-  const el2 = { timelineCount: document.getElementById("timelineCount"), photoCount: document.getElementById("photoCountVal") };
-  if (el2.timelineCount) el2.timelineCount.textContent = `${timelineCount}`;
-  if (el2.photoCount) el2.photoCount.textContent = `${photoCount}`;
-}
-
-function renderTimelineGroups(groups) {
-  const grid = document.getElementById("viewTimeline");
-  if (!grid) return;
-  // Use the existing renderTimeline by flattening groups to representative items
-  const repItems = groups.map(g => {
-    const rep = (g.items && g.items[0]) ? g.items[0] : {};
-    return Object.assign({}, rep, { _groupPhotos: g.items, _itemCount: g.items.length });
+<!-- Service Worker for PWA -->
+<script id="sw-js">
+  // sw.js content embedded
+  self.addEventListener('install', (event) => {
+    event.waitUntil(
+      caches.open('eventlens-v1').then((cache) => {
+        return cache.addAll([
+          '/',
+          // Add other assets to cache
+        ]);
+      })
+    );
   });
-  // We call the main render directly
-  if (typeof window._renderTimelineMain === 'function') window._renderTimelineMain(repItems, window.globalPhotoMap || new Map());
-}
 
-function applyFilter() {
-  const groups = Array.isArray(globalTimelineGroups) ? globalTimelineGroups : [];
-  if (window.currentFilter === 'all') { renderTimelineGroups(groups); return; }
-  const filtered = groups.filter(g => { const ft = (g.form_type || '').toString(); return ft === window.currentFilter; });
-  renderTimelineGroups(filtered);
-}
-
-(function patchSearchSubmitHook() {
-  const _origRenderPhotos = window.renderPhotos;
-  window.renderPhotos = function(photoUrls, timeline) {
-    try {
-      globalTimelineGroups = buildTimelineGroups(window.globalTimelineData || timeline || []);
-      const scoreEl = document.getElementById("scoreVal");
-      const sim = scoreEl ? Number(scoreEl.textContent.replace('%','') || 0).toFixed(0) : '0';
-      updateDashboard(sim, globalTimelineGroups.length, Array.isArray(photoUrls) ? photoUrls.length : 0);
-    } catch(e) { console.warn('timeline grouping patch failed', e); }
-    
-    // Call original grid render
-    if (_origRenderPhotos) _origRenderPhotos(photoUrls, timeline);
-    
-    // Call patched timeline list render
-    applyFilter();
-  };
-})();
+  self.addEventListener('fetch', (event) => {
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request);
+      })
+    );
+  });
+</script>
+<script>
+  // Register embedded SW
+  if ('serviceWorker' in navigator) {
+    const swContent = document.getElementById('sw-js').text;
+    const blob = new Blob([swContent], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(url);
+  }
 </script>
 
 </body>
