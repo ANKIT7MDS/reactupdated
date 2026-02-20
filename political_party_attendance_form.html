@@ -46,6 +46,30 @@
       window.__EL_applyPreviewSettings = __applyPreview;
     })();
 
+
+// --- Photo preview helpers ---
+function previewImage(event) {
+  const file = event && event.target && event.target.files && event.target.files[0];
+  const preview = $("preview");
+  const container = $("preview-container");
+  const placeholder = $("upload-placeholder");
+  if (!file || !preview || !container || !placeholder) return;
+  preview.src = URL.createObjectURL(file);
+  container.classList.remove("hidden");
+  placeholder.classList.add("hidden");
+}
+function clearImage(ev) {
+  try { if (ev && ev.preventDefault) ev.preventDefault(); } catch(e) {}
+  const input = $("selfie");
+  const preview = $("preview");
+  const container = $("preview-container");
+  const placeholder = $("upload-placeholder");
+  if (input) input.value = "";
+  if (preview) preview.src = "";
+  if (container) container.classList.add("hidden");
+  if (placeholder) placeholder.classList.remove("hidden");
+}
+
 </script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
@@ -275,7 +299,29 @@ body.mode-light select option{ background:#ffffff; color:#0f172a; }
           <textarea id="remarks" rows="3" class="w-full rounded-lg px-3 py-2.5 text-sm input-field" placeholder="Remarks / Notes"></textarea>
         </div>
 
-        <button type="submit" id="submitBtn" class="w-full brand-bg text-white font-extrabold py-3 rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 hover:opacity-95">
+        
+            <!-- Photo (Selfie) -->
+            <div class="space-y-2">
+                <label class="block text-xs font-semibold text-slate-200 uppercase tracking-wider">फोटो (Photo) <span class="text-red-400">*</span></label>
+                <div class="relative group">
+                    <input type="file" id="selfie" accept="image/*" capture="user" class="hidden" onchange="previewImage(event)">
+                    <label for="selfie" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/15 rounded-xl cursor-pointer hover:border-orange-400 hover:bg-white/5 transition-all overflow-hidden" id="dropzone">
+                        <div id="preview-container" class="hidden w-full h-full relative">
+                            <img id="preview" class="w-full h-full object-cover" alt="preview">
+                            <button type="button" onclick="clearImage(event)" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 w-7 h-7 flex items-center justify-center shadow-lg hover:scale-110 transition">
+                              <i class="fa-solid fa-times text-xs"></i>
+                            </button>
+                        </div>
+                        <div id="upload-placeholder" class="text-center p-4">
+                            <i class="fa-solid fa-camera text-2xl text-slate-400 mb-2 group-hover:text-orange-300 transition"></i>
+                            <p class="text-xs text-slate-300/80">फोटो लें / Upload Photo</p>
+                            <p class="text-[10px] text-slate-400 mt-1">JPG / PNG</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+<button type="submit" id="submitBtn" class="w-full brand-bg text-white font-extrabold py-3 rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 hover:opacity-95">
           <span>सुरक्षित करें (Save)</span><i class="fa-solid fa-paper-plane text-xs"></i>
         </button>
       </form>
@@ -2649,41 +2695,65 @@ function applyLocationAutofill(info) {
       showStatus("", false);
 
       try {
+        const file = $("selfie").files && $("selfie").files[0];
+        if (!file) throw new Error("Photo अनिवार्य है (Photo Required)");
+
         const data = {};
         FIELD_IDS.forEach((id) => {
           const el = $(id);
           if (el) data[id] = (el.value || "").trim();
         });
 
-        if (!data.program_name) throw new Error("कृपया कार्यक्रम चुनें");
-        if (!data.district) throw new Error("कृपया जिला चुनें");
-        if (!data.vidhansabha) throw new Error("कृपया विधानसभा चुनें");
+        // ensure stable event grouping if needed
+        const batchId = "B" + Date.now() + "_" + Math.random().toString(16).slice(2);
+        data.event_tag = batchId;
 
-        let res;
-        if (isPublicMode()) {
-          res = await apiCall("public_create_entry", {
-            token,
-            form_type: FORM_TYPE,
-            file_kind: "none",
-            payload: data
-          });
-        } else {
-          if (!cidParam) throw new Error("Missing Collection ID (cid)");
-          res = await apiCall("create_entry", {
-            collection_id: cidParam,
-            form_type: FORM_TYPE,
-            file_kind: "none",
-            payload: data
-          });
+        // Basic validations (keep minimal / non-breaking)
+        if (!data.mobile) throw new Error("Mobile नंबर आवश्यक है");
+        if (!data.name) throw new Error("Name आवश्यक है");
+
+        const cid = (cidParam || "").trim();
+        if (!cid) throw new Error("missing cid/collection_id");
+        const formType = "party_attendance";
+
+        const sha = await sha256Hex(file);
+
+        // 1) create entry
+        const c1 = await apiCall("public_create_entry", {
+          collection_id: cid,
+          cid: cid,
+          token: token || "",
+          form_type: formType,
+          file_name: file.name || "photo.jpg",
+          mime_type: file.type || "image/jpeg",
+          sha256: sha,
+          payload: Object.assign({}, data, { form_type: formType, ft: formType, cid: cid, collection_id: cid })
+        });
+
+        // 2) upload
+        if (c1 && c1.upload_url) {
+          await uploadToS3(c1.upload_url, file);
         }
 
-        const finalizeAction = isPublicMode() ? "public_finalize_entry" : "finalize_entry";
-        await apiCall(finalizeAction, { finalize_token: res.finalize_token, entry_id: res.entry_id });
+        // 3) finalize -> indexing happens here
+        await apiCall("public_finalize_entry", { finalize_token: c1.finalize_token });
 
-        $("main-container").classList.add("hidden");
-        $("success-screen").classList.remove("hidden");
+        // success UI
+        showStatus("✅ Saved successfully!", false);
+
+        try {
+          // optional success screen if exists
+          const s = $("success-screen");
+          const m = $("main-container");
+          if (s && m) { m.classList.add("hidden"); s.classList.remove("hidden"); }
+        } catch(e) {}
+
+        $("f").reset();
+        clearImage(null);
+
       } catch (err) {
         showStatus("❌ " + (err.message || "Error"), true);
+      } finally {
         btn.disabled = false;
         btn.innerHTML = old;
       }
