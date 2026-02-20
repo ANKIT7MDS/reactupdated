@@ -25,11 +25,13 @@
             scandown: 'scandown 2.5s linear infinite',
             pulseRing: 'pulseRing 2s ease infinite',
             fadein: 'fadein 0.5s ease forwards',
+            shimmer: 'shimmer 2s infinite linear forwards',
           },
           keyframes: {
             scandown: { '0%': { top: '0%', opacity: 0 }, '10%': { opacity: 1 }, '90%': { opacity: 1 }, '100%': { top: '100%', opacity: 0 } },
             pulseRing: { '0%,100%': { boxShadow: '0 0 0 0 rgba(212,160,23,0.4)' }, '50%': { boxShadow: '0 0 0 12px rgba(212,160,23,0)' } },
             fadein: { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+            shimmer: { '0%': { backgroundPosition: '-1000px 0' }, '100%': { backgroundPosition: '1000px 0' } },
           }
         }
       }
@@ -86,9 +88,7 @@
       box-shadow: 0 4px 20px rgba(212,160,23,0.35); transition: all 0.2s ease;
     }
     .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(212,160,23,0.5); }
-    
-    .btn-ghost { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #D1D9E6; transition: all 0.2s ease; }
-    .btn-ghost:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
 
     .tab-btn {
       font-weight: 600; color: #64748b; border-bottom: 2px solid transparent; transition: all 0.25s ease; padding-bottom: 12px;
@@ -116,6 +116,13 @@
       background: linear-gradient(to bottom, rgba(212,160,23,0.6) 0%, rgba(212,160,23,0.1) 80%, transparent 100%);
     }
 
+    .skeleton {
+      background: rgba(17,32,68,0.5);
+      background-image: linear-gradient(to right, rgba(17,32,68,0.5) 0%, rgba(26,48,96,0.7) 20%, rgba(17,32,68,0.5) 40%, rgba(17,32,68,0.5) 100%);
+      background-repeat: no-repeat; background-size: 1000px 100%;
+      animation: shimmer 2s infinite linear forwards;
+    }
+
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(212,160,23,0.3); border-radius: 10px; }
@@ -141,7 +148,16 @@
         scanLine.classList.remove("hidden");
       } catch (e) { console.error(e); }
     }
-    function setImgSrc(imgEl, url) { if(imgEl) { imgEl.referrerPolicy = "no-referrer"; imgEl.src = url; } }
+    function setImgSrcWithRetry(imgEl, url, maxRetries = 2) {
+      if (!imgEl) return;
+      let attempt = 0; imgEl.referrerPolicy = "no-referrer";
+      const load = () => { imgEl.src = url; };
+      imgEl.onerror = () => {
+        if (attempt < maxRetries) { attempt += 1; setTimeout(load, 350 * attempt); return; }
+        imgEl.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='1.5'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E";
+      };
+      load();
+    }
   </script>
 </head>
 
@@ -159,7 +175,7 @@
             <span class="font-display text-white text-xl tracking-wide">EventLens</span>
             <span class="font-display text-sm text-gold-500">AI</span>
           </div>
-          <p class="text-[9px] uppercase tracking-widest text-slate-400">Political Intelligence</p>
+          <p class="text-[9px] uppercase tracking-widest text-slate-400">Political Intelligence Unit</p>
         </div>
       </div>
     </div>
@@ -167,10 +183,10 @@
 
   <!-- ══ MAIN LAYOUT ══ -->
   <div class="max-w-7xl mx-auto px-4 py-8 relative z-10">
-    <div id="mainGrid" class="grid lg:grid-cols-12 gap-8 transition-all duration-500">
-
-      <!-- ══ LEFT COLUMN (Upload) ══ -->
-      <div id="leftCol" class="lg:col-span-12 max-w-md mx-auto w-full transition-all duration-500 space-y-5">
+    
+    <!-- ══ VIEW 1: UPLOAD SECTION (Centers perfectly, no side columns) ══ -->
+    <div id="uploadView" class="flex items-center justify-center min-h-[75vh] transition-all duration-500">
+      <div class="w-full max-w-md">
         
         <div class="glass rounded-3xl relative overflow-hidden gold-top p-6 sm:p-8 animate-fadein shadow-2xl shadow-gold-500/10">
           <div class="text-center mb-6">
@@ -178,7 +194,7 @@
             <p class="text-xs text-slate-400 mt-1">चेहरे से इवेंट्स और गैलरी खोजें</p>
           </div>
 
-          <!-- Camera Zone -->
+          <!-- Camera Zone (Big) -->
           <div class="relative mb-4">
             <label class="upload-zone rounded-2xl flex flex-col items-center justify-center cursor-pointer w-full aspect-[4/3]">
               <input id="selfieInput" accept="image/*" capture="user" type="file" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="previewImage(this)" />
@@ -212,66 +228,72 @@
         </div>
 
       </div>
+    </div>
 
-      <!-- ══ RIGHT COLUMN (Results - Hidden Initially) ══ -->
-      <div id="rightCol" class="hidden lg:col-span-8 transition-all duration-700 opacity-0 space-y-6">
+    <!-- ══ VIEW 2: FULL RESULTS SECTION (Hidden initially) ══ -->
+    <div id="resultView" class="hidden max-w-5xl mx-auto transition-all duration-700 opacity-0 space-y-6">
+      
+      <!-- Top Profile Info (मैच, नाम, मोबाइल, काउंट) -->
+      <div class="glass rounded-2xl p-5 md:p-6 animate-fadein relative overflow-hidden flex flex-col md:flex-row gap-6 justify-between items-center shadow-2xl">
+        <div class="absolute top-0 left-0 w-1.5 h-full bg-jade-400"></div>
         
-        <!-- Profile & Stats Header -->
-        <div class="glass rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fadein relative overflow-hidden">
-          <div class="absolute top-0 left-0 w-1 h-full bg-jade-400"></div>
-          
-          <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full flex items-center justify-center bg-jade-400/10 border border-jade-400/30">
-              <i class="fa-solid fa-check-double text-2xl text-jade-400"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-2 mb-1">
-                <h3 class="font-bold text-white text-xl tracking-wide">मैच मिला!</h3>
-                <span id="scoreVal" class="bg-jade-400/20 text-jade-400 px-2 py-0.5 rounded text-xs font-bold border border-jade-400/30">98%</span>
-              </div>
-              <p class="text-sm text-slate-300 font-medium">
-                <span id="photoCountVal" class="text-gold-400 font-bold">0</span> फोटो &bull; 
-                <span id="eventCountVal" class="text-gold-400 font-bold">0</span> इवेंट्स
-              </p>
-            </div>
+        <!-- Match & Stats -->
+        <div class="flex items-center gap-4 w-full md:w-auto">
+          <div class="w-16 h-16 rounded-full flex items-center justify-center bg-jade-400/10 border border-jade-400/30 shrink-0">
+            <span id="scoreVal" class="text-xl font-bold text-jade-400 tracking-tight">0%</span>
           </div>
-
-          <!-- Name & Mobile Input (Right Side) -->
-          <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-            <div class="relative w-full sm:w-40">
-              <i class="fa-regular fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-              <input id="nameInput" type="text" placeholder="नाम" class="w-full bg-black/40 border border-white/10 rounded-lg pl-8 pr-3 py-2.5 text-sm text-white focus:border-gold-500 focus:outline-none transition-colors" />
-            </div>
-            <div class="relative w-full sm:w-40">
-              <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-              <input id="mobileInput" type="tel" placeholder="मोबाइल नंबर" class="w-full bg-black/40 border border-white/10 rounded-lg pl-8 pr-3 py-2.5 text-sm text-white focus:border-gold-500 focus:outline-none transition-colors" />
+          <div>
+            <h3 class="font-bold text-white text-lg tracking-wide mb-1">मैच मिला!</h3>
+            <div class="flex items-center gap-3 text-sm text-slate-300">
+              <span class="bg-black/30 px-2 py-1 rounded border border-white/5"><span id="photoCountVal" class="text-gold-400 font-bold">0</span> फोटो</span>
+              <span class="bg-black/30 px-2 py-1 rounded border border-white/5"><span id="timelineCount" class="text-gold-400 font-bold">0</span> इवेंट्स</span>
             </div>
           </div>
         </div>
 
-        <!-- Tabs -->
-        <div class="flex items-center border-b border-gold-500/20 bg-navy-950/80 sticky top-16 z-30 pt-2 px-1 backdrop-blur-md">
-          <button id="btnTabPhotos" class="tab-btn tab-active flex-1 text-center text-sm py-3 flex justify-center items-center gap-2">
-            <i class="fa-solid fa-images text-lg"></i> <span class="tracking-wide">फोटो ग्रिड</span>
-          </button>
-          <button id="btnTabTimeline" class="tab-btn flex-1 text-center text-sm py-3 flex justify-center items-center gap-2">
-            <i class="fa-solid fa-timeline text-lg"></i> <span class="tracking-wide">टाइमलाइन</span>
-          </button>
-        </div>
-
-        <!-- Photos View -->
-        <div id="viewPhotos" class="animate-fadein pt-2">
-          <div id="photosGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-            <!-- Photos Injected -->
+        <!-- Name & Mobile Inputs (जरुरी) -->
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto bg-navy-950/50 p-3 rounded-xl border border-white/5">
+          <div class="relative w-full sm:w-48">
+            <i class="fa-regular fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gold-500 text-xs"></i>
+            <input id="nameInput" type="text" placeholder="कार्यकर्ता का नाम *" class="w-full bg-black/60 border border-white/10 rounded-lg pl-8 pr-3 py-2.5 text-sm text-white focus:border-gold-500 focus:outline-none transition-colors font-semibold placeholder:font-normal placeholder:text-slate-500" />
+          </div>
+          <div class="relative w-full sm:w-48">
+            <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-gold-500 text-xs"></i>
+            <input id="mobileInput" type="tel" placeholder="मोबाइल नंबर *" class="w-full bg-black/60 border border-white/10 rounded-lg pl-8 pr-3 py-2.5 text-sm text-white focus:border-gold-500 focus:outline-none transition-colors font-semibold placeholder:font-normal placeholder:text-slate-500" />
           </div>
         </div>
-
-        <!-- Timeline View -->
-        <div id="viewTimeline" class="hidden relative pl-8 pt-4 timeline-rail space-y-6 animate-fadein pb-8">
-            <!-- Timeline Injected -->
-        </div>
-
       </div>
+
+      <!-- Main Tabs -->
+      <div class="flex items-center border-b border-gold-500/20 bg-navy-950/80 sticky top-16 z-30 pt-2 px-1 backdrop-blur-md">
+        <button id="btnTabPhotos" class="tab-btn tab-active flex-1 text-center text-sm py-3 flex justify-center items-center gap-2">
+          <i class="fa-solid fa-images text-lg"></i> <span class="tracking-wide">फोटो ग्रिड</span>
+        </button>
+        <button id="btnTabTimeline" class="tab-btn flex-1 text-center text-sm py-3 flex justify-center items-center gap-2">
+          <i class="fa-solid fa-timeline text-lg"></i> <span class="tracking-wide">टाइमलाइन</span>
+        </button>
+      </div>
+
+      <!-- Skeleton Loader (While searching) -->
+      <div id="skeletonLoader" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+        <div class="aspect-square rounded-xl skeleton"></div>
+        <div class="aspect-square rounded-xl skeleton"></div>
+        <div class="aspect-square rounded-xl skeleton"></div>
+        <div class="aspect-square rounded-xl skeleton hidden sm:block"></div>
+      </div>
+
+      <!-- Photos View Container -->
+      <div id="viewPhotos" class="animate-fadein pt-4">
+        <div id="photosGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+          <!-- Photos Injected Here -->
+        </div>
+      </div>
+
+      <!-- Timeline View Container -->
+      <div id="viewTimeline" class="hidden relative pl-8 pt-6 timeline-rail space-y-6 animate-fadein pb-8">
+          <!-- Timeline Injected Here -->
+      </div>
+
     </div>
   </div>
 
@@ -333,35 +355,44 @@
   </div>
 
 
-<!-- ══ ALL JS LOGIC ══ -->
+<!-- ══ ALL JS LOGIC (Original AWS + AI Backend Preserved 100%) ══ -->
 <script>
 (() => {
-  // API Config (Replace with real AWS credentials if needed)
+  // ── ORIGINAL API CONFIG ──
   const API_ID = "vxid0yoovj";
   const REGION = "ap-south-1";
   const BASE_URL = `https://${API_ID}.execute-api.${REGION}.amazonaws.com/prod`;
+  const apiKey = ""; // Gemini API Key
 
-  // State
-  let globalTimeline = [];
-  let globalPhotos = []; // {url, eventObj, index}
+  const qs = new URLSearchParams(window.location.search);
+  const token = qs.get("token") || "";
+
+  // ── STATE ──
+  let globalTimelineData = [];
+  let globalPhotoMap = new Map();
+  window.globalTimelineData = [];
+  window.globalPhotoMap = new Map();
   let currentFilter = 'all';
+  window.currentFilter = currentFilter;
+  let globalPptPhotos = []; // For PPT Slideshow
 
   const el = {
-    leftCol: document.getElementById("leftCol"),
-    rightCol: document.getElementById("rightCol"),
+    uploadView: document.getElementById("uploadView"),
+    resultView: document.getElementById("resultView"),
     selfieInput: document.getElementById("selfieInput"),
     uploadInput: document.getElementById("uploadInput"),
     searchBtn: document.getElementById("searchBtn"),
     statusBox: document.getElementById("statusBox"),
+    skeletonLoader: document.getElementById("skeletonLoader"),
     
-    // Stats Header
+    // Header Stats
     scoreVal: document.getElementById("scoreVal"),
     photoCountVal: document.getElementById("photoCountVal"),
-    eventCountVal: document.getElementById("eventCountVal"),
+    timelineCount: document.getElementById("timelineCount"), // Grouped events count
     nameInput: document.getElementById("nameInput"),
     mobileInput: document.getElementById("mobileInput"),
 
-    // Tabs & Views
+    // Tabs & Content
     btnTabPhotos: document.getElementById("btnTabPhotos"),
     btnTabTimeline: document.getElementById("btnTabTimeline"),
     viewPhotos: document.getElementById("viewPhotos"),
@@ -369,7 +400,26 @@
     photosGrid: document.getElementById("photosGrid"),
   };
 
-  // ── Tabs Logic ──
+  // ── ORIGINAL API CALL FUNCTION ──
+  async function apiCall(action, payload, tokenOpt) {
+    const isPublic = !!tokenOpt;
+    const url = isPublic ? `${BASE_URL}/political/public/search` : `${BASE_URL}/political/search`;
+    const body = { action, payload: payload || {} };
+    if (isPublic) body.token = tokenOpt;
+    const headers = { "Content-Type": "application/json" };
+    if (!isPublic) {
+      const idToken = localStorage.getItem("id_token") || localStorage.getItem("idToken") || "";
+      if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
+    }
+    const resp = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
+    const txt = await resp.text();
+    let json = {};
+    try { json = JSON.parse(txt); } catch (e) { json = { message: txt || "Invalid JSON" }; }
+    if (!resp.ok) throw new Error(json.message || `HTTP ${resp.status}`);
+    return json;
+  }
+
+  // ── TABS LOGIC ──
   function switchTab(tab) {
     if (tab === 'timeline') {
       el.viewTimeline.classList.remove('hidden');
@@ -390,15 +440,18 @@
   el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
   el.btnTabPhotos.addEventListener('click', () => switchTab('photos'));
 
-  // ── Helpers ──
+  // ── HELPERS ──
   function isNonEmpty(v) { return v !== null && v !== undefined && String(v).trim() !== ""; }
   function escapeHtml(s) { return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
   function prettyIso(iso) {
     if (!iso) return "";
     const date = new Date(iso);
-    return isNaN(date) ? iso : date.toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    return isNaN(date) ? iso : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   }
-
+  function parseS3KeyFromUrl(url) {
+    try { const u = new URL(url); const p = u.pathname || ""; return p.startsWith("/") ? p.slice(1) : p; } 
+    catch (e) { return ""; }
+  }
   function getEventFormDate(formType, data) {
     if (!data) return "";
     const pick = (...keys) => { for (const k of keys) { if (data[k]) return data[k]; } return ""; };
@@ -407,14 +460,18 @@
     if (formType === "party_attendance") return pick("attendance_date","event_date","दिनांक");
     return pick("event_date","program_date","दिनांक","date");
   }
-
-  function getEventPhotos(item) {
+  function getEventPhotos(item, photoUrlByKey) {
     if (Array.isArray(item.photos) && item.photos.length) return item.photos;
     if (Array.isArray(item.photo_urls) && item.photo_urls.length) return item.photo_urls;
+    const s3Key = item.s3_key || "";
+    if (isNonEmpty(s3Key) && photoUrlByKey) {
+      const u = photoUrlByKey.get(s3Key);
+      if (u) return [u];
+    }
     return [];
   }
 
-  // ── PPT Slideshow Controller ──
+  // ── PPT SLIDESHOW CONTROLLER ──
   const PPT = (() => {
     let currentIdx = 0;
     const overlay = document.getElementById("pptOverlay");
@@ -426,23 +483,21 @@
     const list = document.getElementById("pptDetailsList");
     const counter = document.getElementById("pptCounter");
 
-    // Zoom Logic
     let scale = 1;
     img.addEventListener('wheel', (e) => {
       e.preventDefault();
       scale += e.deltaY * -0.005;
-      scale = Math.min(Math.max(1, scale), 4); // limits 1x to 4x
+      scale = Math.min(Math.max(1, scale), 4);
       img.style.transform = `scale(${scale})`;
     });
 
     function resetZoom() { scale = 1; img.style.transform = `scale(1)`; }
 
     function open(idx) {
-      if (!globalPhotos.length) return;
+      if (!globalPptPhotos.length) return;
       currentIdx = idx;
       updateView();
       overlay.classList.remove("hidden");
-      // Small delay for animation
       setTimeout(() => overlay.classList.remove("opacity-0"), 10);
       document.body.style.overflow = "hidden";
     }
@@ -450,22 +505,19 @@
     function close() {
       overlay.classList.add("opacity-0");
       resetZoom();
-      setTimeout(() => {
-        overlay.classList.add("hidden");
-        document.body.style.overflow = "auto";
-      }, 300);
+      setTimeout(() => { overlay.classList.add("hidden"); document.body.style.overflow = "auto"; }, 300);
     }
 
     function goTo(dir) {
-      currentIdx = (currentIdx + dir + globalPhotos.length) % globalPhotos.length;
+      currentIdx = (currentIdx + dir + globalPptPhotos.length) % globalPptPhotos.length;
       updateView();
     }
 
     function updateView() {
       resetZoom();
-      const p = globalPhotos[currentIdx];
+      const p = globalPptPhotos[currentIdx];
       img.src = p.url;
-      counter.textContent = `${currentIdx + 1} / ${globalPhotos.length}`;
+      counter.textContent = `${currentIdx + 1} / ${globalPptPhotos.length}`;
 
       const item = p.eventObj || {};
       const data = item.data || {};
@@ -484,7 +536,6 @@
       locTxt.textContent = locStr || "स्थान उपलब्ध नहीं";
       typeBadge.textContent = form.replace(/_/g, ' ');
 
-      // Build List
       list.innerHTML = "";
       const addRow = (k, v) => {
         if (!v) return;
@@ -516,158 +567,282 @@
     return { open };
   })();
 
-
-  // ── Render Renderers ──
-  function renderAll(timelineArr, rawPhotos) {
-    globalTimeline = timelineArr || [];
-    globalPhotos = [];
+  // ── RENDER PHOTOS (Grid & Prepares PPT data) ──
+  // Original patch hooked into `window.renderPhotos`, so we keep that name and signature.
+  window.renderPhotos = function(photoUrls, timeline) {
     el.photosGrid.innerHTML = "";
-    el.viewTimeline.innerHTML = "";
+    globalPptPhotos = [];
+    
+    if (!Array.isArray(photoUrls) || photoUrls.length === 0) {
+      el.photosGrid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500 font-medium">कोई फोटो नहीं मिली</div>`;
+      return;
+    }
 
-    // Map photo URLs to Event objects for PPT view
-    const photoToEvent = new Map();
-    globalTimeline.forEach(item => {
-      const ps = getEventPhotos(item);
-      ps.forEach(url => photoToEvent.set(url, item));
+    const byKey = new Map();
+    photoUrls.forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k) && !byKey.has(k)) byKey.set(k, u); });
+    
+    // Map URLs back to timeline events for details
+    const eventByKey = new Map();
+    (timeline || []).forEach(t => { if (isNonEmpty(t.s3_key)) eventByKey.set(t.s3_key, t); });
+
+    Array.from(byKey.entries()).forEach(([k, url], idx) => {
+      globalPptPhotos.push({ url, eventObj: eventByKey.get(k) || {}, index: idx });
+
+      const div = document.createElement("div");
+      div.className = "photo-item group relative";
+      const img = document.createElement("img");
+      setImgSrcWithRetry(img, url);
+      img.loading = "lazy";
+      div.appendChild(img);
+
+      div.innerHTML += `
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2 md:p-3 pointer-events-none">
+          <span class="text-white text-[10px] md:text-xs font-semibold truncate"><i class="fa-solid fa-expand mr-1 text-gold-400"></i> ज़ूम करें</span>
+        </div>`;
+      
+      div.addEventListener("click", () => PPT.open(idx));
+      el.photosGrid.appendChild(div);
     });
-
-    // Handle raw photos array or extract from timeline if missing
-    let finalPhotos = Array.isArray(rawPhotos) && rawPhotos.length > 0 ? rawPhotos : Array.from(photoToEvent.keys());
-
-    // 1. Render Photo Grid
-    if (finalPhotos.length === 0) {
-      el.photosGrid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500">कोई फोटो नहीं मिली</div>`;
-    } else {
-      finalPhotos.forEach((url, idx) => {
-        const ev = photoToEvent.get(url) || {};
-        globalPhotos.push({ url, eventObj: ev, index: idx });
-
-        const div = document.createElement("div");
-        div.className = "photo-item group relative";
-        div.innerHTML = `<img src="${url}" loading="lazy" alt="Event" />
-                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2 md:p-3">
-                           <span class="text-white text-[10px] md:text-xs font-semibold truncate"><i class="fa-solid fa-expand mr-1 text-gold-400"></i> ज़ूम करें</span>
-                         </div>`;
-        div.addEventListener("click", () => PPT.open(idx));
-        el.photosGrid.appendChild(div);
-      });
-    }
-
-    // 2. Render Timeline (कब कहाँ आये)
-    if (globalTimeline.length === 0) {
-      el.viewTimeline.innerHTML = `<div class="text-center py-10 text-slate-500">कोई टाइमलाइन रिकॉर्ड नहीं</div>`;
-    } else {
-      globalTimeline.forEach((item, index) => {
-        const data = item.data || {};
-        const form = item.form_type || item.ft || "Event";
-        const formDate = getEventFormDate(form, data);
-        const displayDate = formDate || prettyIso(item.created_at_iso || "");
-        
-        let title = data.program_name || data["कार्यक्रम_का_नाम"] || form.replace(/_/g, ' ');
-        const loc = [item.district, item.vidhansabha, data.venue || data.tour_location].filter(Boolean).join(", ");
-        
-        const ps = getEventPhotos(item);
-
-        const wrp = document.createElement("div");
-        wrp.className = "relative pl-4";
-        wrp.innerHTML = `
-          <div class="absolute w-3 h-3 rounded-full bg-gold-500 border-2 border-navy-950 z-10" style="left: -33px; top: 24px;"></div>
-          <div class="bg-navy-900/60 border border-gold-500/10 rounded-xl p-4 md:p-5 hover:border-gold-500/40 hover:bg-navy-900 transition-all cursor-pointer group">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-              <h3 class="font-bold text-white text-base leading-snug group-hover:text-gold-400 transition-colors">${escapeHtml(title)}</h3>
-              <span class="bg-gold-500/10 text-gold-400 border border-gold-500/20 px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap"><i class="fa-regular fa-clock mr-1"></i>${escapeHtml(displayDate)}</span>
-            </div>
-            ${loc ? `<div class="text-xs text-slate-400 mb-3"><i class="fa-solid fa-location-dot text-gold-500/50 mr-1.5"></i>${escapeHtml(loc)}</div>` : ''}
-            
-            ${ps.length > 0 ? `
-              <div class="flex gap-2 overflow-x-auto pb-1 mt-3 border-t border-white/5 pt-3">
-                ${ps.slice(0, 4).map(u => `<img src="${u}" class="w-12 h-12 rounded object-cover border border-white/10" />`).join('')}
-                ${ps.length > 4 ? `<div class="w-12 h-12 rounded bg-navy-950 flex items-center justify-center text-xs text-gold-400 font-bold border border-white/10">+${ps.length-4}</div>` : ''}
-              </div>
-            ` : ''}
-          </div>
-        `;
-
-        // Click on timeline opens PPT with the first photo of that event (if exists)
-        wrp.addEventListener("click", () => {
-          if (ps.length > 0) {
-            const globalIdx = globalPhotos.findIndex(gp => gp.url === ps[0]);
-            if (globalIdx !== -1) PPT.open(globalIdx);
-          } else {
-             // If no photo, we can simulate PPT open with placeholder or just alert
-             alert("इस इवेंट में कोई फोटो संलग्न नहीं है।");
-          }
-        });
-        el.viewTimeline.appendChild(wrp);
-      });
-    }
   }
 
-  function setStatus(msg, isError=false) {
+  // ── RENDER TIMELINE (List) ──
+  // The patch at the bottom calls `window._renderTimelineMain`
+  window._renderTimelineMain = function(timeline, photoUrlByKey) {
+    el.viewTimeline.innerHTML = "";
+    if (!Array.isArray(timeline) || timeline.length === 0) {
+      el.viewTimeline.innerHTML = `<div class="text-center py-10 text-slate-500 font-medium">कोई इवेंट नहीं मिला</div>`;
+      return;
+    }
+
+    const sorted = [...timeline].sort((a, b) => {
+      const pDate = (item) => {
+        const fd = getEventFormDate(item.form_type || item.ft || "", item.data || {});
+        if (fd) {
+          const parts = fd.split(/[-/]/);
+          if (parts.length === 3) {
+            const d = parts[0].length === 4 ? new Date(parts[0], parts[1]-1, parts[2]) : new Date(parts[2], parts[1]-1, parts[0]);
+            if (!isNaN(d)) return d.getTime();
+          }
+        }
+        return parseInt(item.created_at || "0", 10);
+      };
+      return pDate(b) - pDate(a);
+    });
+
+    sorted.forEach((item, index) => {
+      const data = item.data || {};
+      const form = item.form_type || item.ft || "Event";
+      const formDate = getEventFormDate(form, data);
+      const displayDate = formDate || prettyIso(item.created_at_iso || "");
+      
+      let title = data.program_name || data["कार्यक्रम_का_नाम"] || form.replace(/_/g, ' ');
+      const loc = [item.district, item.vidhansabha, data.venue || data.tour_location].filter(Boolean).join(", ");
+      
+      const ps = getEventPhotos(item, photoUrlByKey);
+
+      const wrp = document.createElement("div");
+      wrp.className = "relative pl-4 mb-5";
+      wrp.innerHTML = `
+        <div class="absolute w-3 h-3 rounded-full bg-gold-500 border-2 border-navy-950 z-10" style="left: -33px; top: 24px;"></div>
+        <div class="bg-navy-900/60 border border-gold-500/10 rounded-xl p-4 md:p-5 hover:border-gold-500/40 hover:bg-navy-900 transition-all cursor-pointer group">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+            <h3 class="font-bold text-white text-base leading-snug group-hover:text-gold-400 transition-colors">${escapeHtml(title)}</h3>
+            <span class="bg-gold-500/10 text-gold-400 border border-gold-500/20 px-2 py-1 rounded text-[10px] font-bold whitespace-nowrap"><i class="fa-regular fa-clock mr-1"></i>${escapeHtml(displayDate)}</span>
+          </div>
+          ${loc ? `<div class="text-xs text-slate-400 mb-3"><i class="fa-solid fa-location-dot text-gold-500/50 mr-1.5"></i>${escapeHtml(loc)}</div>` : ''}
+          
+          ${ps.length > 0 ? `
+            <div class="flex gap-2 overflow-x-auto pb-1 mt-3 border-t border-white/5 pt-3">
+              ${ps.slice(0, 4).map(u => `<img src="${u}" class="w-12 h-12 rounded object-cover border border-white/10" />`).join('')}
+              ${ps.length > 4 ? `<div class="w-12 h-12 rounded bg-navy-950 flex items-center justify-center text-xs text-gold-400 font-bold border border-white/10">+${ps.length-4}</div>` : ''}
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      // Click opens PPT
+      wrp.addEventListener("click", () => {
+        if (ps.length > 0) {
+          const pptIdx = globalPptPhotos.findIndex(gp => gp.url === ps[0]);
+          if (pptIdx !== -1) PPT.open(pptIdx);
+        } else {
+           // Fallback if no photo
+           const mockEvObj = { url:"", eventObj: item, index: 0 };
+           const oldPhotos = [...globalPptPhotos];
+           globalPptPhotos = [mockEvObj];
+           PPT.open(0);
+           // Restore after close 
+           setTimeout(() => globalPptPhotos = oldPhotos, 500);
+        }
+      });
+      el.viewTimeline.appendChild(wrp);
+    });
+  }
+
+  function setStatus(msg, type="info") {
     if (!msg) { el.statusBox.classList.add("hidden"); return; }
     el.statusBox.classList.remove("hidden");
-    el.statusBox.className = `mt-4 text-center text-sm font-medium px-4 py-2 rounded-lg ${isError ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-gold-500/10 text-gold-400 border border-gold-500/30'}`;
+    const isErr = type === "error";
+    el.statusBox.className = `mt-4 text-center text-sm font-medium px-4 py-2 rounded-lg ${isErr ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-gold-500/10 text-gold-400 border border-gold-500/30'}`;
     el.statusBox.innerHTML = msg;
   }
 
-  // ── MOCK/API Search Logic ──
-  async function doSearch() {
-    const file = (el.selfieInput.files && el.selfieInput.files[0]) || (el.uploadInput.files && el.uploadInput.files[0]);
-    if (!file) { setStatus("कृपया पहले सेल्फी या फोटो अपलोड करें", true); return; }
-
-    el.searchBtn.disabled = true;
-    el.searchBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> खोज रहे हैं...';
-    setStatus('<i class="fa-solid fa-spinner fa-spin mr-2"></i> चेहरा और डेटाबेस स्कैन हो रहा है...');
-
-    // Simulate API Call / Network Delay
-    setTimeout(() => {
-      el.searchBtn.disabled = false;
-      el.searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> खोज शुरू करें';
-      setStatus("");
-
-      // Mock Response Data
-      const mockRes = {
-        similarity: "96",
-        profile: { name: "राम कुमार", mobile: "9876543210" },
-        photo_urls: [
-           "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=400&h=400&fit=crop",
-           "https://images.unsplash.com/photo-1541872526848-18e9526e0e64?w=400&h=400&fit=crop",
-           "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=400&h=400&fit=crop",
-           "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=400&fit=crop"
-        ],
-        timeline: [
-          { district: "Bhopal", vidhansabha: "Govindpura", form_type: "president_tour_form", created_at_iso: "2024-01-15T10:00:00Z", data: { program_name: "युवा सम्मेलन", venue: "BHEL Dussehra Maidan", total_attendance: "5000" }, photos: ["https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=400&h=400&fit=crop", "https://images.unsplash.com/photo-1541872526848-18e9526e0e64?w=400&h=400&fit=crop"] },
-          { district: "Bhopal", form_type: "mandal_reporting", created_at_iso: "2023-12-05T14:30:00Z", data: { program_name: "मंडल बैठक", venue: "Kolar Office" }, photos: ["https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=400&h=400&fit=crop"] }
-        ]
-      };
-
-      // Real integration would use fetch() here instead of mockRes.
-
-      // Transition Layout
-      el.leftCol.className = "lg:col-span-4 max-w-none w-full transition-all duration-700 space-y-5";
-      el.rightCol.classList.remove("hidden");
-      setTimeout(() => el.rightCol.classList.remove("opacity-0"), 100);
-
-      // Populate Top Profile Header
-      el.scoreVal.textContent = mockRes.similarity + "%";
-      el.eventCountVal.textContent = mockRes.timeline.length;
-      el.photoCountVal.textContent = mockRes.photo_urls.length;
-      
-      if(mockRes.profile.name) el.nameInput.value = mockRes.profile.name;
-      if(mockRes.profile.mobile) el.mobileInput.value = mockRes.profile.mobile;
-
-      // Render Views
-      renderAll(mockRes.timeline, mockRes.photo_urls);
-      switchTab('photos'); // Default tab
-
-      // Scroll to top on mobile
-      if(window.innerWidth < 1024) {
-         setTimeout(() => el.rightCol.scrollIntoView({behavior:'smooth'}), 300);
+  // ── ORIGINAL DO_FACE_SEARCH (Restored perfectly) ──
+  if (el.uploadInput) {
+    el.uploadInput.addEventListener("change", function() {
+      if (this.files && this.files[0] && el.selfieInput) {
+        try { const dt = new DataTransfer(); dt.items.add(this.files[0]); el.selfieInput.files = dt.files; } catch(e) {}
+        previewImage(this);
       }
-    }, 1500);
+    });
   }
 
-  el.searchBtn.addEventListener("click", doSearch);
+  async function doFaceSearch() {
+    const file = (el.selfieInput && el.selfieInput.files && el.selfieInput.files[0]) || (el.uploadInput && el.uploadInput.files && el.uploadInput.files[0]);
+    if (!file) { setStatus("कृपया पहले सेल्फी या फोटो अपलोड करें", "error"); return; }
+
+    el.searchBtn.disabled = true;
+    el.searchBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>खोज रहे हैं...';
+    setStatus('<i class="fa-solid fa-spinner fa-spin mr-2"></i> चेहरा और डेटाबेस स्कैन हो रहा है...', "info");
+
+    try {
+      // SHA-256 for caching
+      let photoSha256 = "";
+      try {
+        const buf = await file.arrayBuffer();
+        const hashBuf = await crypto.subtle.digest("SHA-256", buf);
+        photoSha256 = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,"0")).join("");
+      } catch(e) {}
+
+      // Init Search
+      const init = await apiCall("init_search", { mime_type: file.type || "image/jpeg", sha256: photoSha256 }, token);
+      const uploadUrl = init.upload_url || init.url;
+      const searchId = init.search_id || init.searchId;
+
+      // Upload to S3 if needed
+      if (!init.cache_hit) {
+        await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+      }
+
+      setStatus('<i class="fa-solid fa-spinner fa-spin mr-2"></i> डेटाबेस में परिणाम खोजे जा रहे हैं...', "info");
+      
+      // Run Search
+      const res = await apiCall("run_search", { search_id: searchId }, token);
+      
+      const tCount = Array.isArray(res.events || res.timeline) ? (res.events || res.timeline).length : 0;
+      
+      if (res.message === "NO_MATCH" || tCount === 0) {
+        setStatus("इस चेहरे का कोई रिकॉर्ड नहीं मिला।", "error");
+      } else {
+        // SUCCESS: Transition Layout
+        setStatus("");
+        el.uploadView.classList.add("hidden");
+        el.resultView.classList.remove("hidden");
+        setTimeout(() => el.resultView.classList.remove("opacity-0"), 50);
+
+        // Populate Top Header
+        const sim = isNonEmpty(res.similarity) ? Number(res.similarity).toFixed(0) : "0";
+        el.scoreVal.textContent = sim + "%";
+        
+        const profile = res.profile || {};
+        if (profile.name) el.nameInput.value = profile.name;
+        if (profile.mobile) el.mobileInput.value = profile.mobile;
+
+        // Render Data
+        const timeline = (res.events && Array.isArray(res.events) && res.events.length) ? res.events : (res.timeline || []);
+        window.globalTimelineData = timeline;
+        
+        window.globalPhotoMap = new Map();
+        (res.photo_urls || []).forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k)) window.globalPhotoMap.set(k, u); });
+
+        // Trigger the patched renderPhotos
+        window.renderPhotos(res.photo_urls || [], timeline);
+        switchTab('photos');
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus(err.message || "Connection Error", "error");
+    } finally {
+      el.searchBtn.disabled = false;
+      el.searchBtn.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-2"></i>खोज शुरू करें';
+    }
+  }
+
+  el.searchBtn.addEventListener("click", doFaceSearch);
+
+})();
+</script>
+
+<script>
+// ── ORIGINAL TIMELINE GROUPING PATCH (Restored perfectly) ──
+let globalTimelineGroups = [];
+
+function buildTimelineGroups(timelineArr) {
+  const timeline = Array.isArray(timelineArr) ? timelineArr : [];
+  const map = new Map();
+  for (const it of timeline) {
+    if (!it || typeof it !== 'object') continue;
+    const eid = (it.event_id || it.eventId || it.event_key || it.eventKey || it.entry_id || it.entryId || '').toString().trim();
+    const gid = eid || (it.entry_id || it.entryId || '').toString().trim() || Math.random().toString(36).slice(2);
+    if (!map.has(gid)) {
+      map.set(gid, { group_id: gid, event_id: eid || gid, form_type: it.form_type || it.ft || 'unknown', created_at: it.created_at || '0', created_at_iso: it.created_at_iso || '', with_label: it.with_label || '', face_count: it.face_count || 0, district: it.district || (it.data||{}).district || '', vidhansabha: it.vidhansabha || (it.data||{}).vidhansabha || '', mandal: it.mandal || (it.data||{}).mandal || '', items: [it] });
+    } else {
+      const g = map.get(gid);
+      g.items.push(it);
+      const ca = Number(it.created_at || 0);
+      const ga = Number(g.created_at || 0);
+      if (ca > ga) { g.created_at = it.created_at || g.created_at; g.created_at_iso = it.created_at_iso || g.created_at_iso; g.district = it.district || g.district; g.vidhansabha = it.vidhansabha || g.vidhansabha; g.mandal = it.mandal || g.mandal; g.form_type = it.form_type || it.ft || g.form_type; }
+    }
+  }
+  const groups = Array.from(map.values());
+  groups.sort((a, b) => Number(b.created_at||0) - Number(a.created_at||0));
+  return groups;
+}
+
+function updateDashboard(similarity, timelineCount, photoCount) {
+  const el2 = { timelineCount: document.getElementById("timelineCount"), photoCount: document.getElementById("photoCountVal") };
+  if (el2.timelineCount) el2.timelineCount.textContent = `${timelineCount}`;
+  if (el2.photoCount) el2.photoCount.textContent = `${photoCount}`;
+}
+
+function renderTimelineGroups(groups) {
+  const grid = document.getElementById("viewTimeline");
+  if (!grid) return;
+  // Use the existing renderTimeline by flattening groups to representative items
+  const repItems = groups.map(g => {
+    const rep = (g.items && g.items[0]) ? g.items[0] : {};
+    return Object.assign({}, rep, { _groupPhotos: g.items, _itemCount: g.items.length });
+  });
+  // We call the main render directly
+  if (typeof window._renderTimelineMain === 'function') window._renderTimelineMain(repItems, window.globalPhotoMap || new Map());
+}
+
+function applyFilter() {
+  const groups = Array.isArray(globalTimelineGroups) ? globalTimelineGroups : [];
+  if (window.currentFilter === 'all') { renderTimelineGroups(groups); return; }
+  const filtered = groups.filter(g => { const ft = (g.form_type || '').toString(); return ft === window.currentFilter; });
+  renderTimelineGroups(filtered);
+}
+
+(function patchSearchSubmitHook() {
+  const _origRenderPhotos = window.renderPhotos;
+  window.renderPhotos = function(photoUrls, timeline) {
+    try {
+      globalTimelineGroups = buildTimelineGroups(window.globalTimelineData || timeline || []);
+      const scoreEl = document.getElementById("scoreVal");
+      const sim = scoreEl ? Number(scoreEl.textContent.replace('%','') || 0).toFixed(0) : '0';
+      updateDashboard(sim, globalTimelineGroups.length, Array.isArray(photoUrls) ? photoUrls.length : 0);
+    } catch(e) { console.warn('timeline grouping patch failed', e); }
+    
+    // Call original grid render
+    if (_origRenderPhotos) _origRenderPhotos(photoUrls, timeline);
+    
+    // Call patched timeline list render
+    applyFilter();
+  };
 })();
 </script>
 
