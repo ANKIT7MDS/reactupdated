@@ -2737,6 +2737,9 @@ function applyLocationAutofill(info) {
           if (el) data[id] = (el.value || "").trim();
         });
 
+        const batchId = "B" + Date.now() + "_" + Math.random().toString(16).slice(2);
+        data.event_tag = batchId;
+
         if (!data.district) throw new Error("कृपया जिला चुनें");
         if (!data.vidhansabha) throw new Error("कृपया विधानसभा चुनें");
 
