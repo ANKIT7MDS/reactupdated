@@ -345,11 +345,25 @@ const SEARCH_URL = "political-search.html";  // path to search page
 const qs = n => { try { return new URLSearchParams(window.location.search).get(n)||""; } catch(e){return "";} };
 const $ = id => document.getElementById(id);
 const token = qs("token")||"";
-const cidParam = (qs("cid")||qs("collection_id")||"").trim();
+let cidParam = (qs("cid")||qs("collection_id")||"").trim(); // mutable — resolved from token if empty
 const debug = qs("debug")==="1";
 const FORM_TYPE = "visitor_form";
 
 function isPublicMode() { return !!token; }
+
+// ─── RESOLVE collection_id FROM TOKEN ───
+// Called once at init — extracts collection_id from public_get_config response
+async function resolveCollectionId() {
+  if (cidParam) return; // already have it from URL
+  if (!token) return;
+  try {
+    const res = await apiCall("public_get_config", { token, form_type: FORM_TYPE });
+    const cid = res.collection_id || res.cid ||
+      (res.config && (res.config.collection_id || res.config.cid)) ||
+      (res.settings && (res.settings.collection_id || res.settings.cid)) || "";
+    if (cid) { cidParam = cid.trim(); if(debug) console.log("resolved cidParam:", cidParam); }
+  } catch(e) { if(debug) console.warn("resolveCollectionId failed", e); }
+}
 
 // ─── OFFLINE QUEUE ───
 let offlineQueue = JSON.parse(localStorage.getItem("el_offline_queue")||"[]");
@@ -403,32 +417,30 @@ async function apiCall(action, payload) {
 }
 
 async function searchByImage(imageBlob) {
-  // Use public search endpoint with presigned upload
-  const searchPayload = isPublicMode()
-    ? { token, form_type:FORM_TYPE }
-    : { collection_id:cidParam, form_type:FORM_TYPE };
+  // Ensure we have collection_id before searching
+  if (!cidParam && token) await resolveCollectionId();
   
-  // First get upload URL for face search
-  const initRes = await apiCall("public_create_entry", {
-    ...searchPayload,
-    file_name: "selfie.jpg",
-    mime_type: "image/jpeg",
-    payload: { _search_only: true }
-  });
+  const collectionId = cidParam;
+  if (!collectionId && !token) throw new Error("Collection ID missing — URL में ?cid= या ?token= जोड़ें");
+
+  // Use public_create_entry to get S3 upload URL for face search
+  const createPayload = { token, form_type: FORM_TYPE, file_name: "selfie.jpg", mime_type: "image/jpeg", payload: { _search_only: true } };
+  if (collectionId) createPayload.collection_id = collectionId;
+
+  const initRes = await apiCall("public_create_entry", createPayload);
   
-  if (initRes.upload_url) {
+  if (initRes.upload_url && !initRes.duplicate) {
     await fetch(initRes.upload_url, { method:"PUT", body:imageBlob, headers:{"Content-Type":"image/jpeg"} });
   }
   
-  // Now search
+  // Now search using s3_key
+  const searchPayload = { s3_key: initRes.s3_key, days: 365 };
+  if (token) searchPayload.token = token;
+  if (collectionId) searchPayload.collection_id = collectionId;
+
   const sRes = await fetch(`${BASE_URL}/political/search`, {
     method:"POST", cache:"no-store",
-    body:JSON.stringify({ action:"public_search", payload: {
-      collection_id: cidParam || (token ? undefined : cidParam),
-      token,
-      s3_key: initRes.s3_key,
-      days: 365
-    }})
+    body: JSON.stringify({ action: "public_search", payload: searchPayload })
   });
   const sText = await sRes.text();
   return JSON.parse(sText);
@@ -548,9 +560,10 @@ function retakeSelfie() {
 async function tryFaceMatch(file) {
   // Create entry first to get upload URL
   const sha = await sha256Hex(file);
-  const payload = isPublicMode()
-    ? { token, form_type:FORM_TYPE, sha256:sha, file_name:"selfie.jpg", mime_type:"image/jpeg", payload:{} }
-    : { collection_id:cidParam, form_type:FORM_TYPE, sha256:sha, file_name:"selfie.jpg", mime_type:"image/jpeg", payload:{} };
+  // Always send both token + collection_id
+  const payload = { form_type:FORM_TYPE, sha256:sha, file_name:"selfie.jpg", mime_type:"image/jpeg", payload:{} };
+  if (token) payload.token = token;
+  if (cidParam) payload.collection_id = cidParam;
   
   const createRes = await apiCall(isPublicMode() ? "public_create_entry" : "create_entry", payload);
   entryId = createRes.entry_id;
@@ -705,6 +718,15 @@ async function loadBranding() {
       : { collection_id:cidParam, form_type:FORM_TYPE };
     const action = isPublicMode() ? "public_get_config" : "admin_get_config";
     const res = await apiCall(action, payload);
+    
+    // Resolve collection_id from response if not already set
+    if (!cidParam) {
+      const cid = res.collection_id || res.cid ||
+        (res.config && (res.config.collection_id || res.config.cid)) ||
+        (res.settings && (res.settings.collection_id || res.settings.cid)) || "";
+      if (cid) { cidParam = cid.trim(); if(debug) console.log("cidParam from branding:", cidParam); }
+    }
+    
     remoteCfg = res && (res.config || res.settings || res.data || res);
     applyBranding(remoteCfg);
   } catch(e) { if(debug) console.log("branding failed", e); }
@@ -793,9 +815,9 @@ async function lookupMobile() {
   if (mobile.length !== 10) return;
   $("mobile-loader").classList.remove("hidden");
   try {
-    const payload = isPublicMode()
-      ? { token, form_type:FORM_TYPE, mobile }
-      : { collection_id:cidParam, form_type:FORM_TYPE, mobile };
+    const payload = { form_type:FORM_TYPE, mobile };
+    if (token) payload.token = token;
+    if (cidParam) payload.collection_id = cidParam;
     const res = await apiCall(isPublicMode() ? "public_lookup_mobile" : "lookup_mobile", payload);
     const info = res && (res.profile || res.data || res);
     if (info && (info.name||info.designation||info.district)) {
@@ -2780,11 +2802,17 @@ async function submitToBackend(formData, fileOrDataUrl, fileName = "selfie.jpg")
 
   const sha = await sha256Hex(file);
 
+  // Helper: build payload with both token + collection_id (Lambda needs both)
+  function buildApiPayload(extra) {
+    const p = { form_type: FORM_TYPE, ...extra };
+    if (token) p.token = token;
+    if (cidParam) p.collection_id = cidParam;
+    return p;
+  }
+
   // If we already have entry from face-match step, reuse it
   if (!entryId || !finalizationToken) {
-    const createPayload = isPublicMode()
-      ? { token, form_type:FORM_TYPE, sha256:sha, file_name:fileName, mime_type:"image/jpeg", payload:formData }
-      : { collection_id:cidParam, form_type:FORM_TYPE, sha256:sha, file_name:fileName, mime_type:"image/jpeg", payload:formData };
+    const createPayload = buildApiPayload({ sha256:sha, file_name:fileName, mime_type:"image/jpeg", payload:formData });
     const createRes = await apiCall(isPublicMode() ? "public_create_entry" : "create_entry", createPayload);
     entryId = createRes.entry_id;
     finalizationToken = createRes.finalize_token;
@@ -2794,11 +2822,8 @@ async function submitToBackend(formData, fileOrDataUrl, fileName = "selfie.jpg")
       await fetch(uploadUrl, { method:"PUT", body:file, headers:{"Content-Type":"image/jpeg"} });
     }
   } else {
-    // Update payload on existing entry (we already uploaded)
-    // patch formData into existing entry by creating a new finalize with updated payload
-    const updatePayload = isPublicMode()
-      ? { token, form_type:FORM_TYPE, sha256:sha, file_name:fileName, mime_type:"image/jpeg", payload:formData }
-      : { collection_id:cidParam, form_type:FORM_TYPE, sha256:sha, file_name:fileName, mime_type:"image/jpeg", payload:formData };
+    // Existing entry — update payload
+    const updatePayload = buildApiPayload({ sha256:sha, file_name:fileName, mime_type:"image/jpeg", payload:formData });
     const res2 = await apiCall(isPublicMode() ? "public_create_entry" : "create_entry", updatePayload);
     finalizationToken = res2.finalize_token;
     entryId = res2.entry_id;
