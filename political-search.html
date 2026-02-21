@@ -501,6 +501,35 @@
           </div>
         </div>
 
+        <!-- ─ TEXT SEARCH PANEL (Name / Mobile direct search) ─ -->
+        <div id="textSearchCard" class="glass rounded-2xl relative overflow-hidden" style="border-top:2px solid rgba(148,88,255,0.4);">
+          <div class="p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:rgba(148,88,255,0.12);border:1px solid rgba(148,88,255,0.25)">
+                <i class="fa-solid fa-keyboard text-xs" style="color:#9458ff"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-white text-xs leading-tight">नाम / मोबाइल से खोजें</h3>
+                <p class="text-[10px]" style="color:#475569">सेल्फी के बिना direct search</p>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div class="relative">
+                <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:#475569"></i>
+                <input id="txtSearchName" type="text" placeholder="नाम टाइप करें (min 3 अक्षर)" class="field-input pl-8 w-full" />
+              </div>
+              <div class="relative">
+                <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:#475569"></i>
+                <input id="txtSearchMobile" type="tel" placeholder="मोबाइल नंबर (10 अंक)" class="field-input pl-8 w-full" maxlength="10" />
+              </div>
+              <button id="txtSearchBtn" class="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2" style="background:rgba(148,88,255,0.15);border:1px solid rgba(148,88,255,0.3);color:#b07aff;">
+                <i class="fa-solid fa-magnifying-glass text-[10px]"></i> टेक्स्ट से खोजें
+              </button>
+              <div id="txtSearchStatus" class="hidden text-center text-[10px] py-1"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- ─ STEP 2: Match + Mandatory Name/Mobile ─ -->
         <div id="step2Card" class="hidden glass rounded-2xl relative overflow-hidden animate-slidein" style="border-top:2px solid rgba(62,207,178,0.5);">
           <div class="p-4 sm:p-5">
@@ -649,11 +678,20 @@
           </div>
 
           <!-- Filter pills (timeline only) -->
-          <div id="timelineFilters" class="hidden items-center gap-2 px-4 py-3 overflow-x-auto border-b" style="border-color:rgba(212,160,23,0.08);">
+          <div id="timelineFilters" class="hidden items-center gap-2 px-4 py-3 overflow-x-auto border-b flex-wrap" style="border-color:rgba(212,160,23,0.08);">
             <button class="filter-btn filter-pill active" data-filter="all">सभी</button>
-            <button class="filter-btn filter-pill" data-filter="tour">Tours</button>
-            <button class="filter-btn filter-pill" data-filter="report">Reports</button>
-            <button class="filter-btn filter-pill" data-filter="other">Others</button>
+            <button class="filter-btn filter-pill" data-filter="visitor_form">Visitor</button>
+            <button class="filter-btn filter-pill" data-filter="president_tour_form">Tour</button>
+            <button class="filter-btn filter-pill" data-filter="party_attendance">Attendance</button>
+            <button class="filter-btn filter-pill" data-filter="mandal_reporting_form">Mandal</button>
+            <div class="ml-auto flex items-center gap-2 flex-shrink-0">
+              <input type="date" id="tlFromDate" class="rounded-lg px-2 py-1 text-[10px] font-medium" style="background:rgba(15,23,42,0.7);border:1px solid rgba(212,160,23,0.2);color:#94a3b8;width:120px;" title="From Date">
+              <span class="text-[10px]" style="color:#475569">—</span>
+              <input type="date" id="tlToDate" class="rounded-lg px-2 py-1 text-[10px] font-medium" style="background:rgba(15,23,42,0.7);border:1px solid rgba(212,160,23,0.2);color:#94a3b8;width:120px;" title="To Date">
+              <button id="btnDownloadTimeline" title="Timeline Download करें" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold" style="background:rgba(212,160,23,0.1);border:1px solid rgba(212,160,23,0.3);color:#D4A017;">
+                <i class="fa-solid fa-download text-[9px]"></i><span class="hidden sm:inline">Export</span>
+              </button>
+            </div>
             <div id="btnAiReportTimeline" class="hidden"></div>
           </div>
 
@@ -856,6 +894,93 @@
     });
   }
 
+  // ── TEXT SEARCH (Name / Mobile) ──
+  const txtSearchBtn = document.getElementById("txtSearchBtn");
+  if (txtSearchBtn) {
+    txtSearchBtn.addEventListener("click", doTextSearch);
+  }
+  const txtMobileInput = document.getElementById("txtSearchMobile");
+  if (txtMobileInput) {
+    txtMobileInput.addEventListener("input", () => {
+      if ((txtMobileInput.value || "").trim().length === 10) doTextSearch();
+    });
+  }
+
+  async function doTextSearch() {
+    const nameVal = (document.getElementById("txtSearchName").value || "").trim();
+    const mobileVal = (document.getElementById("txtSearchMobile").value || "").trim();
+    if (!nameVal && !mobileVal) { setTxtStatus("नाम या मोबाइल जरूरी है", "error"); return; }
+    if (mobileVal && mobileVal.length !== 10) { setTxtStatus("10 अंक का मोबाइल नंबर डालें", "error"); return; }
+
+    const btn = document.getElementById("txtSearchBtn");
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>खोज रहे हैं...';
+    setTxtStatus("", "");
+    el.emptyState.classList.add("hidden");
+    el.skeletonLoader.classList.remove("hidden");
+    el.resultsContainer.classList.add("hidden");
+    el.statsDashboard.classList.add("hidden");
+
+    try {
+      const payload = {};
+      if (token) payload.token = token;
+      else payload.collection_id = (qs.get("cid") || qs.get("collection_id") || "");
+      if (nameVal) payload.name = nameVal;
+      if (mobileVal) payload.mobile = mobileVal;
+      payload.form_type = "search";
+
+      const res = await apiCall("text_search", payload, token);
+      const timeline = res.events || res.timeline || res.items || [];
+      const photoUrls = res.photo_urls || [];
+
+      el.skeletonLoader.classList.add("hidden");
+
+      if (!timeline.length) {
+        setTxtStatus(`"${nameVal || mobileVal}" — कोई रिकॉर्ड नहीं मिला`, "error");
+        el.emptyState.classList.remove("hidden");
+        el.emptyState.querySelector("h3").textContent = "कोई मैच नहीं मिला";
+        el.emptyState.querySelector("p").textContent = `"${nameVal || mobileVal}" का कोई रिकॉर्ड नहीं है।`;
+        return;
+      }
+
+      globalTimelineData = timeline;
+      globalPhotoMap = new Map();
+      photoUrls.forEach(u => { const k = parseS3KeyFromUrl(u); if (k) globalPhotoMap.set(k, u); });
+
+      const tCount = timeline.length, pCount = photoUrls.length;
+      const sim = res.similarity ? Number(res.similarity).toFixed(0) : "";
+
+      // Pre-fill step2 name/mobile from first match
+      const profile = res.profile || (timeline[0] && timeline[0].data) || {};
+      if (el.nameInput) el.nameInput.value = profile.name || nameVal || "";
+      if (el.mobileInput) el.mobileInput.value = profile.mobile || mobileVal || "";
+
+      updateDashboard(sim || "—", tCount, pCount);
+      applyFilter();
+      renderPhotos(photoUrls, timeline);
+      switchTab("timeline");
+      setTxtStatus(`${tCount} event${tCount > 1 ? "s" : ""} मिले`, "success");
+      if (window.innerWidth < 1024) el.statsDashboard.scrollIntoView({ behavior: "smooth" });
+    } catch(e) {
+      el.skeletonLoader.classList.add("hidden");
+      el.emptyState.classList.remove("hidden");
+      setTxtStatus(e.message || "Search Error", "error");
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-magnifying-glass text-[10px]"></i> टेक्स्ट से खोजें';
+    }
+  }
+
+  function setTxtStatus(msg, type) {
+    const el2 = document.getElementById("txtSearchStatus");
+    if (!el2) return;
+    if (!msg) { el2.classList.add("hidden"); return; }
+    el2.classList.remove("hidden");
+    el2.style.color = type === "error" ? "#ff7088" : type === "success" ? "#34d399" : "#94a3b8";
+    el2.textContent = msg;
+  }
+
+
   // ── Tab Logic ──
   function switchTab(tab) {
     if (tab === 'timeline') {
@@ -888,21 +1013,66 @@
         applyFilter();
       });
     });
+    // Date range filter
+    const fromEl = document.getElementById("tlFromDate");
+    const toEl = document.getElementById("tlToDate");
+    if (fromEl) fromEl.addEventListener("change", applyFilter);
+    if (toEl) toEl.addEventListener("change", applyFilter);
+    // Download button
+    const dlBtn = document.getElementById("btnDownloadTimeline");
+    if (dlBtn) dlBtn.addEventListener("click", downloadTimelineHtml);
   }
   function applyFilter() {
     if (!globalTimelineData.length) return;
     let filtered = globalTimelineData;
+
+    // Form type filter
     if (currentFilter !== 'all') {
-      filtered = globalTimelineData.filter(item => {
+      filtered = filtered.filter(item => {
         const type = (item.form_type || "").toLowerCase();
-        const pType = ((item.data || {}).program_type || "").toLowerCase();
-        if (currentFilter === 'tour') return type.includes('tour') || pType.includes('tour');
-        if (currentFilter === 'report') return type.includes('mandal') || type.includes('report');
-        if (currentFilter === 'other') return !type.includes('tour') && !pType.includes('tour') && !type.includes('mandal') && !type.includes('report');
-        return true;
+        return type === currentFilter || type.includes(currentFilter.replace("_form",""));
       });
     }
+
+    // Date range filter
+    const fromEl = document.getElementById("tlFromDate");
+    const toEl = document.getElementById("tlToDate");
+    if (fromEl && fromEl.value) {
+      const fromMs = new Date(fromEl.value + "T00:00:00").getTime();
+      filtered = filtered.filter(item => {
+        const ms = new Date(item.created_at_iso || item.created_at || 0).getTime();
+        return ms >= fromMs;
+      });
+    }
+    if (toEl && toEl.value) {
+      const toMs = new Date(toEl.value + "T23:59:59").getTime();
+      filtered = filtered.filter(item => {
+        const ms = new Date(item.created_at_iso || item.created_at || 0).getTime();
+        return ms <= toMs;
+      });
+    }
+
     renderTimeline(filtered, globalPhotoMap);
+  }
+
+  function downloadTimelineHtml() {
+    if (!globalTimelineData.length) return;
+    const name = (document.getElementById("nameInput") || {}).value || "कार्यकर्ता";
+    const rows = globalTimelineData.map(item => {
+      const ft = item.form_type || "";
+      const d = item.data || {};
+      const date = item.created_at_iso ? item.created_at_iso.slice(0,10) : "";
+      const prog = d.program_name || d.program_type || ft;
+      const dist = d.district || "";
+      const vidhan = d.vidhansabha || "";
+      return `<tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px 10px">${date}</td><td style="padding:6px 10px">${ft}</td><td style="padding:6px 10px">${prog}</td><td style="padding:6px 10px">${dist}</td><td style="padding:6px 10px">${vidhan}</td></tr>`;
+    }).join("");
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${name} - Timeline</title><style>body{font-family:sans-serif;padding:20px;color:#1e293b}h2{color:#f97316}table{width:100%;border-collapse:collapse}th{background:#f97316;color:white;padding:8px 10px;text-align:left}tr:nth-child(even){background:#f8fafc}@media print{body{padding:0}}</style></head><body><h2>📋 ${name} — Activity Timeline</h2><p style="color:#64748b">Total Events: ${globalTimelineData.length} | Generated: ${new Date().toLocaleDateString('hi-IN')}</p><table><tr><th>दिनांक</th><th>Form Type</th><th>कार्यक्रम</th><th>जिला</th><th>विधानसभा</th></tr>${rows}</table></body></html>`;
+    const blob = new Blob([html], {type:"text/html"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${name}_timeline.html`;
+    a.click();
   }
 
   // ── AI Report ──
