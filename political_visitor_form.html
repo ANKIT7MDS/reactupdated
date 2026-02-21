@@ -665,16 +665,34 @@ function showStatsPopup(profile, events, photoUrls) {
 function closePopup() {
   $("stats-popup").classList.remove("show");
   // Auto-fill form with ALL matched data
-  if (matchedFaceData && matchedFaceData.profile) {
-    const p = matchedFaceData.profile;
-    if (p.name && $("name")) $("name").value = p.name;
-    if (p.mobile && $("mobile")) $("mobile").value = p.mobile;
-    if (p.designation && $("designation")) $("designation").value = p.designation;
-    if (p.address && $("address")) $("address").value = p.address;
-    // District → Vidhansabha → Mandal cascade (after initDistrictCascade runs)
-    $("form-match-badge").classList.remove("hidden");
-    $("match-summary").textContent = "✅ डेटा auto-fill हुआ";
-    // Store profile for location fill after cascade is initialized
+  if (matchedFaceData) {
+    // Backend may return profile under different keys
+    const p = matchedFaceData.profile || matchedFaceData.data || matchedFaceData.identity || matchedFaceData || {};
+    
+    if (debug) console.log("Profile data for autofill:", JSON.stringify(p));
+
+    // Name — try multiple keys
+    const nameVal = p.name || p["नाम"] || p.full_name || p.visitor_name || "";
+    if (nameVal && $("name")) $("name").value = nameVal;
+
+    // Mobile
+    const mobileVal = p.mobile || p.phone || p.mobile_no || p["मोबाइल"] || "";
+    if (mobileVal && $("mobile")) $("mobile").value = mobileVal;
+
+    // Designation
+    const desigVal = p.designation || p["पद"] || p.post || p.role || "";
+    if (desigVal && $("designation")) $("designation").value = desigVal;
+
+    // Address
+    const addrVal = p.address || p["पता"] || p.ward || p.booth || "";
+    if (addrVal && $("address")) $("address").value = addrVal;
+
+    if (nameVal || mobileVal) {
+      $("form-match-badge").classList.remove("hidden");
+      $("match-summary").textContent = "✅ डेटा auto-fill हुआ";
+    }
+
+    // Location cascade — stored for after initDistrictCascade()
     window._pendingLocationFill = p;
   }
   proceedToForm();
@@ -2743,9 +2761,12 @@ function initDistrictCascade() {
 
 function applyLocationAutofill(info) {
   if (!info) return;
-  const d = (info.district||"").trim();
-  const v = (info.vidhansabha||"").trim();
-  const m = (info.mandal||"").trim();
+  // Try all possible key names from backend
+  const d = (info.district || info["जिला"] || info.dist || "").trim();
+  const v = (info.vidhansabha || info["विधानसभा"] || info.vidhan_sabha || info.constituency || "").trim();
+  const m = (info.mandal || info["मंडल"] || info.mandal_name || "").trim();
+
+  if (debug) console.log("Location autofill — district:", d, "vidhan:", v, "mandal:", m);
   if (!d) return;
 
   const dSel = $("district");
@@ -2753,17 +2774,25 @@ function applyLocationAutofill(info) {
   const mSel = $("mandal");
   if (!dSel) return;
 
+  // Set district — triggers change event which populates vidhansabha options
   dSel.value = d;
   dSel.dispatchEvent(new Event("change"));
 
-  if (v && vSel) {
+  if (v) {
     setTimeout(() => {
+      // Check if option exists in dropdown
+      const vOpts = Array.from(vSel.options).map(o => o.value);
+      if (debug) console.log("Vidhansabha options:", vOpts.slice(0,5), "looking for:", v);
       vSel.value = v;
       vSel.dispatchEvent(new Event("change"));
-      if (m && mSel) {
-        setTimeout(() => { mSel.value = m; }, 150);
+      if (m) {
+        setTimeout(() => {
+          const mOpts = Array.from(mSel.options).map(o => o.value);
+          if (debug) console.log("Mandal options:", mOpts.slice(0,5), "looking for:", m);
+          mSel.value = m;
+        }, 200);
       }
-    }, 150);
+    }, 200);
   }
 }
 
@@ -2874,17 +2903,20 @@ function showSuccess(formData) {
 }
 
 function openTimeline() {
-  // Redirect to search page with token/cid + name/mobile for direct search
   const params = new URLSearchParams();
   if (token) params.set("token", token);
   else if (cidParam) params.set("cid", cidParam);
-  
-  // Pass name/mobile so search page can auto-search without selfie
+
+  // Pass name/mobile for text fallback
   const nameVal = ($("name") && $("name").value) ? $("name").value.trim() : "";
   const mobileVal = ($("mobile") && $("mobile").value) ? $("mobile").value.trim() : "";
   if (nameVal) params.set("autosearch_name", nameVal);
   if (mobileVal) params.set("autosearch_mobile", mobileVal);
-  
+
+  // Pass s3_key of already-uploaded selfie — search page uses this directly
+  // so user doesn't need to upload selfie again
+  if (s3Key) params.set("autosearch_s3key", s3Key);
+
   const url = `${SEARCH_URL}?${params.toString()}`;
   window.location.href = url;
 }
