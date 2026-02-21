@@ -1518,6 +1518,131 @@
     return json;
   }
 
+  // ── BRANDING (Admin-controlled) ──
+  async function loadSearchBranding() {
+    try {
+      const isPublic = !!token;
+      const brandPayload = isPublic
+        ? { token, form_type:"search" }
+        : { collection_id: (qs.get("cid")||qs.get("collection_id")||""), form_type:"search" };
+      const brandAction = isPublic ? "public_get_config" : "admin_get_config";
+      const brandUrl = isPublic ? `${BASE_URL}/political/public/forms` : `${BASE_URL}/political/forms`;
+      const bRes = await fetch(brandUrl, {
+        method:"POST", cache:"no-store",
+        body:JSON.stringify({ action:brandAction, payload:brandPayload })
+      });
+      const bData = await bRes.json();
+      const cfg = bData && (bData.config || bData.settings || bData.data || bData);
+      if (!cfg) return;
+
+      // Merge defaults + search form-specific
+      const defaults = cfg.defaults || {};
+      const branding = (defaults.branding) || {};
+      const forms = cfg.forms || {};
+      // Try both "search" and "search_form" keys
+      const ft = forms["search"] || forms["search_form"] || {};
+      const ftBrand = ft.branding || {};
+
+      // Colors
+      const c1 = ft.primary_color || ftBrand.color1 || branding.color1 || (cfg.global && cfg.global.theme && cfg.global.theme.primary) || "#D4A017";
+      const c2 = ft.secondary_color || ftBrand.color2 || branding.color2 || (cfg.global && cfg.global.theme && cfg.global.theme.secondary) || "#E63950";
+      // Apply as CSS overrides for search's gold/crimson scheme
+      const root = document.documentElement;
+      if (c1 && c1 !== "#D4A017") {
+        root.style.setProperty("--gold-400", c1);
+        root.style.setProperty("--gold-500", c1);
+        // Update inline styles won't work well, so inject style tag
+        const styleEl = document.createElement("style");
+        styleEl.id = "el-brand-override";
+        styleEl.textContent = `
+          :root{--gold-400:${c1};--gold-500:${c1};--crimson-500:${c2};}
+          .brand-bg-search { background:linear-gradient(135deg,${c1},${c2}) !important; }
+          .logo-icon { background:linear-gradient(135deg,${c1},${c2}) !important; }
+        `;
+        document.head.appendChild(styleEl);
+      }
+
+      // Logo
+      const logoUrl = ft.logo_url || ftBrand.logo_url || (ftBrand.logo && ftBrand.logo.url) || (branding.logo && branding.logo.url) || "";
+      if (logoUrl) {
+        const logoWrap = document.querySelector(".logo-icon");
+        if (logoWrap) {
+          logoWrap.innerHTML = `<img src="${logoUrl}" alt="logo" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" onerror="this.parentElement.innerHTML='<i class=\\'fa-solid fa-bolt text-base\\' style=\\'color:#060D1F\\'></i>'">`;
+        }
+      }
+
+      // Org name
+      const title = ft.title || ftBrand.title || branding.title || "";
+      if (title) {
+        const nameEl = document.querySelector(".font-display.text-white");
+        if (nameEl) nameEl.textContent = title;
+      }
+
+      // Header image
+      const headerUrl = ft.header_url || (ftBrand.header && ftBrand.header.url) || (branding.header && branding.header.url) || "";
+      if (headerUrl) {
+        const nav = document.querySelector("nav.navbar");
+        if (nav) {
+          const headerBar = document.createElement("div");
+          headerBar.style.cssText = "width:100%;overflow:hidden;max-height:80px;";
+          const img = document.createElement("img");
+          img.src = headerUrl;
+          img.style.cssText = "width:100%;height:80px;object-fit:cover;object-position:center;";
+          img.onerror = () => headerBar.remove();
+          img.onload = () => nav.parentElement.insertBefore(headerBar, nav.nextSibling);
+          headerBar.appendChild(img);
+        }
+      }
+
+      // Background
+      const bgUrl = ft.background_url || (ftBrand.background && ftBrand.background.url) || (branding.background && branding.background.url) || "";
+      if (bgUrl) {
+        const bgImg = new Image();
+        bgImg.onload = () => {
+          document.body.style.backgroundImage = `url('${bgUrl}')`;
+          document.body.style.backgroundSize = "cover";
+          document.body.style.backgroundAttachment = "fixed";
+          document.body.style.backgroundPosition = "center";
+        };
+        bgImg.src = bgUrl;
+      }
+
+      // Footer text
+      const footer = ft.footer_text || branding.footer_text || "";
+      if (footer) {
+        let fEl = document.getElementById("el-footer-text");
+        if (!fEl) {
+          fEl = document.createElement("div");
+          fEl.id = "el-footer-text";
+          fEl.style.cssText = "text-align:center;padding:16px;font-size:11px;color:#334155;";
+          document.body.appendChild(fEl);
+        }
+        fEl.textContent = footer;
+      }
+    } catch(e) {
+      // Branding is non-critical — fail silently
+      console.log("Search branding load skipped:", e.message);
+    }
+  }
+
+  // Admin Console live-preview bridge for search page
+  window.addEventListener("message", ev => {
+    const d = ev && ev.data;
+    if (!d || typeof d !== "object" || d.type !== "EL_PREVIEW_SETTINGS") return;
+    // Re-apply branding from preview payload
+    const cfg = d.payload || {};
+    loadSearchBranding();
+  });
+  try {
+    if (window.parent && window.parent !== window) {
+      const cid = qs.get("cid") || qs.get("collection_id") || "";
+      window.parent.postMessage({ type:"EL_PREVIEW_READY", cid, form_type:"search" }, "*");
+    }
+  } catch(e) {}
+
+  // Load branding on page init
+  loadSearchBranding();
+
   // ── Upload sync ──
   if (el.uploadInput) {
     el.uploadInput.addEventListener("change", function() {
