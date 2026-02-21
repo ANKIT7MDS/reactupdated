@@ -1217,54 +1217,44 @@
         const allNames = [];
         const addName = (n) => { const t = String(n||"").trim(); if (t && t.length > 1 && !allNames.includes(t)) allNames.push(t); };
 
-        // Source 1: item.with_label — could be "Name1, Name2" or "Name1 with Name2 and Name3"
-        if (withLabel && withLabel.trim()) {
+        // Source 1: item.with_names[] — PRIMARY FIELD — array of matched person names
+        if (Array.isArray(item.with_names)) {
+          item.with_names.forEach(n => {
+            if (typeof n === 'string') addName(n);
+            else if (n && typeof n === 'object') addName(n.name || n.label || n.display_name || "");
+          });
+        }
+
+        // Source 2: item.with_label — fallback string "Name1, Name2"
+        if (allNames.length === 0 && withLabel && withLabel.trim()) {
           const raw = withLabel
-            .replace(/\bwith\b/gi, ',')
-            .replace(/\band\b/gi, ',')
-            .replace(/\bएंड\b/g, ',')
-            .replace(/\bऔर\b/g, ',')
-            .replace(/\bतथा\b/g, ',');
+            .replace(/\bwith\b/gi, ',').replace(/\band\b/gi, ',')
+            .replace(/\bएंड\b/g, ',').replace(/\bऔर\b/g, ',').replace(/\bतथा\b/g, ',');
           raw.split(',').forEach(n => addName(n));
         }
 
-        // Source 2: item.faces[] — array of matched face objects
-        const faceSources = [item.faces, item.matched_faces, item.identified_faces, item.face_list];
+        // Source 3: item.faces[] / item.matched_faces[]
+        const faceSources = [item.faces, item.matched_faces, item.identified_faces];
         faceSources.forEach(arr => {
           if (!Array.isArray(arr)) return;
           arr.forEach(f => {
             if (!f) return;
-            // face object could have name in many keys
-            const n = f.name || f.Name || f.label || f.person_name || f.personName ||
-                      f.matched_name || f.matchedName || f.display_name || f.displayName || "";
-            addName(n);
+            addName(f.name || f.Name || f.label || f.person_name || f.matched_name || "");
           });
         });
 
-        // Source 3: photos array — if photos are objects {url, name} or {url, person}
+        // Source 4: photos array — if photos are objects {url, name}
         if (Array.isArray(item.photos)) {
           item.photos.forEach(p => {
-            if (typeof p === 'object' && p !== null) {
-              addName(p.name || p.person_name || p.personName || p.label || p.matched_name || "");
-            }
+            if (p && typeof p === 'object') addName(p.name || p.person_name || p.label || "");
           });
         }
 
-        // Source 4: item.names[] or item.attendee_names[]
-        const nameArraySources = [item.names, item.attendee_names, item.person_names, data.names, data.attendee_names];
-        nameArraySources.forEach(arr => {
-          if (Array.isArray(arr)) arr.forEach(n => addName(typeof n === 'string' ? n : (n.name || n.label || "")));
-          else if (typeof arr === 'string' && arr.trim()) arr.split(',').forEach(n => addName(n));
-        });
-
-        // Source 5: item-level name fields (visitor_form has item.name)
+        // Source 5: visitor_form direct name
         if (form === "visitor_form") addName(item.name || data.name || data["नाम"]);
 
-        // Console log for debugging (remove in production)
-        if (allNames.length === 0 && (withLabel || faceCount > 0)) {
-          console.log('[EventLens] No names parsed. item keys:', Object.keys(item).join(', '));
-          console.log('[EventLens] with_label:', withLabel, '| face_count:', faceCount);
-        }
+        // with_more tells us how many more people were matched beyond with_names
+        const withMore = Number(item.with_more || 0);
 
         // Build thumbnail strip
         const strip = document.createElement("div");
@@ -1310,12 +1300,19 @@
           nameRow.style.cssText = "margin-top:5px;padding:5px 8px;border-radius:8px;background:rgba(212,160,23,0.05);border:1px solid rgba(212,160,23,0.1);";
           const maxShow = 3;
           const shown = allNames.slice(0, maxShow);
-          const remaining = allNames.length - shown.length;
+          // Total remaining = names not shown + with_more (backend's extra count)
+          const remaining = (allNames.length - shown.length) + withMore;
           let nameText = shown.map(n => `<span style="color:#EFC24A;font-weight:700;">${escapeHtml(n)}</span>`).join(' <span style="color:#334155;">•</span> ');
           if (remaining > 0) nameText += ` <span style="color:#475569;font-size:9px;">& ${remaining} अन्य</span>`;
           nameRow.innerHTML = `<div style="display:flex;align-items:center;gap:5px;"><i class="fa-solid fa-users text-[9px]" style="color:#D4A017;flex-shrink:0;"></i><span style="font-size:10px;color:#94a3b8;line-height:1.4;">${nameText}</span></div>`;
           photoSection.appendChild(nameRow);
-        } else if (faceCount > 0) {
+        } else if (withMore > 0) {
+          // with_more present but no names — show count
+          const nameRow = document.createElement("div");
+          nameRow.style.cssText = "margin-top:4px;font-size:10px;color:#475569;display:flex;align-items:center;gap:4px;";
+          nameRow.innerHTML = `<i class="fa-solid fa-users text-[8px]"></i><span>${withMore} अन्य लोग भी उपस्थित</span>`;
+          photoSection.appendChild(nameRow);
+        } else if (faceCount > 1) {
           const nameRow = document.createElement("div");
           nameRow.style.cssText = "margin-top:4px;font-size:10px;color:#475569;display:flex;align-items:center;gap:4px;";
           nameRow.innerHTML = `<i class="fa-solid fa-users text-[8px]"></i><span>${faceCount} लोग पहचाने गए</span>`;
@@ -1351,6 +1348,10 @@
     push("🎤 वक्ता", data.other_speakers || data["वक्ता"]);
     push("🏷️ पदनाम", data.designation || data["पदनाम"]);
     if (item.with_label) push("🤝 साथ में", item.with_label);
+    if (Array.isArray(item.with_names) && item.with_names.length > 0) {
+      const nameStr = item.with_names.join(", ") + (item.with_more > 0 ? ` & ${item.with_more} अन्य` : "");
+      push("👥 पहचाने गए लोग", nameStr);
+    }
     push("📄 विवरण", data.program_details || data.report_summary || data["विवरण"]);
     push("👤 अतिथि", data.guests || data["अतिथि"]);
     push("📞 मोबाइल", data.mobile || data["मोबाइल"]);
