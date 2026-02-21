@@ -1921,14 +1921,83 @@
   // ── AUTO-SEARCH from URL params (when coming from visitor form) ──
   const autoName = qs.get("autosearch_name") || "";
   const autoMobile = qs.get("autosearch_mobile") || "";
-  if (autoName || autoMobile) {
-    // Pre-fill step2 fields and auto-run text search
+  const autoS3Key = qs.get("autosearch_s3key") || "";
+
+  if (autoName || autoMobile || autoS3Key) {
     if (el.nameInput && autoName) el.nameInput.value = autoName;
     if (el.mobileInput && autoMobile) el.mobileInput.value = autoMobile;
-    // Show loading immediately
     setTimeout(() => {
-      doAutoTextSearch(autoName, autoMobile);
-    }, 500);
+      if (autoS3Key) {
+        // Use already-uploaded selfie s3key — no new upload needed
+        doAutoS3Search(autoS3Key, autoName, autoMobile);
+      } else {
+        doAutoTextSearch(autoName, autoMobile);
+      }
+    }, 400);
+  }
+
+  // Search using existing s3_key (selfie already uploaded from visitor form)
+  async function doAutoS3Search(s3key, nameVal, mobileVal) {
+    el.emptyState.classList.add("hidden");
+    el.skeletonLoader.classList.remove("hidden");
+    el.resultsContainer.classList.add("hidden");
+    el.statsDashboard.classList.add("hidden");
+    setStatus("चेहरे से रिकॉर्ड खोजा जा रहा है...", "loading");
+
+    try {
+      const isPublic = !!token;
+      const searchPayload = { s3_key: s3key, days: 730 };
+      if (isPublic) searchPayload.token = token;
+      else searchPayload.collection_id = (qs.get("cid") || qs.get("collection_id") || "");
+
+      const url2 = isPublic ? `${BASE_URL}/political/public/search` : `${BASE_URL}/political/search`;
+      const res2 = await fetch(url2, {
+        method: "POST", cache: "no-store",
+        body: JSON.stringify({ action: "run_search", payload: searchPayload })
+      });
+      const data = await res2.json().catch(() => ({}));
+
+      // If face search gives no result, fall back to text search
+      const timeline = data.events || data.timeline || [];
+      const photoUrls = data.photo_urls || [];
+
+      if (!timeline.length && (nameVal || mobileVal)) {
+        // Face not found — fallback to text search
+        return doAutoTextSearch(nameVal, mobileVal);
+      }
+
+      el.skeletonLoader.classList.add("hidden");
+
+      if (!timeline.length) {
+        setStatus("कोई रिकॉर्ड नहीं मिला", "error");
+        el.emptyState.classList.remove("hidden");
+        el.emptyState.querySelector("h3").textContent = "कोई रिकॉर्ड नहीं मिला";
+        el.emptyState.querySelector("p").textContent = "इस चेहरे का कोई रिकॉर्ड नहीं है।";
+        return;
+      }
+
+      globalTimelineData = timeline;
+      globalPhotoMap = new Map();
+      photoUrls.forEach(u => { const k = parseS3KeyFromUrl(u); if (k) globalPhotoMap.set(k, u); });
+
+      // Pre-fill name/mobile from profile or URL params
+      const profile = data.profile || {};
+      if (el.nameInput) el.nameInput.value = profile.name || nameVal || "";
+      if (el.mobileInput) el.mobileInput.value = profile.mobile || mobileVal || "";
+
+      const sim = data.similarity ? Number(data.similarity).toFixed(0) : "—";
+      updateDashboard(sim, timeline.length, photoUrls.length);
+      applyFilter();
+      renderPhotos(photoUrls, timeline);
+      switchTab("timeline");
+      setStatus("", "info");
+    } catch(e) {
+      el.skeletonLoader.classList.add("hidden");
+      // Fallback to text search on error
+      if (nameVal || mobileVal) return doAutoTextSearch(nameVal, mobileVal);
+      el.emptyState.classList.remove("hidden");
+      setStatus(e.message || "Error", "error");
+    }
   }
 
   async function doAutoTextSearch(nameVal, mobileVal) {
