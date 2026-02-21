@@ -764,6 +764,7 @@
 
   const qs = new URLSearchParams(window.location.search);
   const token = qs.get("token") || "";
+  let resolvedCid = qs.get("cid") || qs.get("collection_id") || ""; // may be resolved from token
 
   let galleryImages = [];
   let currentGalleryIndex = 0;
@@ -1674,6 +1675,13 @@
       });
       const bData = await bRes.json();
       const cfg = bData && (bData.config || bData.settings || bData.data || bData);
+      // Extract collection_id from branding response (needed when only token in URL)
+      if (!resolvedCid) {
+        const cid = bData.collection_id || bData.cid ||
+          (bData.config && (bData.config.collection_id || bData.config.cid)) ||
+          (bData.settings && (bData.settings.collection_id || bData.settings.cid)) || "";
+        if (cid) resolvedCid = cid.trim();
+      }
       if (!cfg) return;
 
       // Merge defaults + search form-specific
@@ -1927,11 +1935,27 @@
     if (el.nameInput && autoName) el.nameInput.value = autoName;
     if (el.mobileInput && autoMobile) el.mobileInput.value = autoMobile;
     if (autoS3Key) {
-      // s3key available — use visitor's already-uploaded selfie for face search
-      setTimeout(() => doAutoS3Search(autoS3Key, autoName, autoMobile), 400);
+      // Wait for branding/CID resolution THEN search
+      // branding call populates resolvedCid from token
+      (async () => {
+        // If CID not yet resolved, call public_get_config directly
+        if (!resolvedCid && token) {
+          try {
+            const r = await fetch(`${BASE_URL}/political/forms`, {
+              method: "POST", cache: "no-store",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "public_get_config", payload: { token, form_type: "visitor_form" } })
+            });
+            const d = await r.json().catch(() => ({}));
+            const cid = d.collection_id || d.cid ||
+              (d.config && (d.config.collection_id || d.config.cid)) ||
+              (d.settings && (d.settings.collection_id || d.settings.cid)) || "";
+            if (cid) resolvedCid = cid.trim();
+          } catch(e) { console.warn("CID resolve failed:", e); }
+        }
+        doAutoS3Search(autoS3Key, autoName, autoMobile);
+      })();
     }
-    // If only name/mobile but no s3key — do nothing, let user take new selfie
-    // (text_search action not supported by backend)
   }
 
   // Search using existing s3_key (selfie already uploaded from visitor form)
@@ -1945,14 +1969,14 @@
     try {
       // Use same public_search action as visitor form (s3_key direct search)
       // token must go in payload AND in body for public endpoint
-      const cid = qs.get("cid") || qs.get("collection_id") || "";
+      // Use resolvedCid (extracted from branding/public_get_config response)
       const searchPayload = { s3_key: s3key, days: 730 };
-      if (token) searchPayload.token = token;
-      if (cid)   searchPayload.collection_id = cid;
+      if (token)       searchPayload.token = token;
+      if (resolvedCid) searchPayload.collection_id = resolvedCid;
 
       const url2 = `${BASE_URL}/political/search`;
       const body = { action: "public_search", payload: searchPayload };
-      if (token) body.token = token;  // also at body level for some endpoints
+      if (token) body.token = token;
 
       const res2 = await fetch(url2, {
         method: "POST", cache: "no-store",
