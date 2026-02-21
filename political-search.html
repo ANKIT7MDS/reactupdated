@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>EventLens AI — Karyakarta Intelligence</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { display: ['Cinzel', 'serif'], body: ['DM Sans', 'sans-serif'] },
+          fontFamily: { display: ['Cinzel', 'serif'], body: ['Outfit', 'sans-serif'], hindi: ['Noto Sans Devanagari', 'sans-serif'] },
           colors: {
             navy: { 950: '#02050A', 900: '#060D1F', 800: '#0B1530', 700: '#112044', 600: '#1A3060' },
             gold: { 300: '#F5D78A', 400: '#EFC24A', 500: '#D4A017', 600: '#B8880F' },
@@ -40,7 +40,7 @@
         radial-gradient(circle at 50% 100%, rgba(230,57,80,0.04) 0%, transparent 60%);
       background-attachment: fixed;
       color: #D1D9E6;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Outfit', sans-serif;
       min-height: 100vh; min-height: 100dvh;
       -webkit-tap-highlight-color: transparent;
     }
@@ -210,21 +210,20 @@
     .timeline-dot { background: var(--navy-900); border: 3px solid var(--gold-400); box-shadow: 0 0 0 4px rgba(2,5,10,1), 0 0 12px rgba(212,160,23,0.6); transition: all 0.4s ease; }
     .timeline-item:hover .timeline-dot { transform: scale(1.3); box-shadow: 0 0 0 4px rgba(2,5,10,1), 0 0 20px rgba(212,160,23,1); background: var(--gold-400); }
     
-    .timeline-card-premium {
-       background: linear-gradient(145deg, rgba(17,32,68,0.5) 0%, rgba(6,13,31,0.8) 100%);
-       border: 1px solid rgba(255,255,255,0.08); 
-       border-left: 4px solid var(--gold-400);
-       border-radius: 24px;
-       padding: 20px;
-       backdrop-filter: blur(20px);
-       transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    .event-card {
+      background: linear-gradient(145deg, rgba(17,32,68,0.4) 0%, rgba(6,13,31,0.6) 100%);
+      border: 1px solid rgba(255,255,255,0.06); 
+      border-left: 4px solid rgba(212,160,23,0.4);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
-    .timeline-card-premium:hover {
-       background: linear-gradient(145deg, rgba(17,32,68,0.7) 0%, rgba(6,13,31,0.9) 100%);
-       transform: translateX(8px) translateY(-2px); 
-       box-shadow: 0 20px 40px rgba(0,0,0,0.6), -5px 0 30px rgba(212,160,23,0.2); 
-       border-color: rgba(212,160,23,0.4); 
+    .event-card:hover { 
+      border-left-color: var(--gold-400); 
+      background: linear-gradient(145deg, rgba(17,32,68,0.6) 0%, rgba(6,13,31,0.8) 100%);
+      transform: translateX(8px) translateY(-2px); 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5), -5px 0 25px rgba(212,160,23,0.15); 
+      border-color: rgba(255,255,255,0.15); 
     }
 
     /* ─── Photo Grid ─── */
@@ -277,7 +276,122 @@
     .step-line { flex: 1; height: 2px; background: rgba(255,255,255,0.06); transition: background 0.5s ease; border-radius: 2px; }
     .step-line.done { background: linear-gradient(90deg, var(--jade-400), rgba(255,255,255,0.1)); box-shadow: 0 0 8px rgba(62,207,178,0.4); }
 
-    /* ─── Utilities ─── */
+    /* ─── Aurora Background ─── */
+    @keyframes aurora1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-20px) scale(1.05)} 66%{transform:translate(-20px,15px) scale(0.95)} }
+    @keyframes aurora2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-25px,20px) scale(1.08)} 66%{transform:translate(20px,-10px) scale(0.93)} }
+    .aurora-orb-1 { position:fixed;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(212,160,23,0.07) 0%,transparent 70%);top:-100px;left:-150px;animation:aurora1 18s ease-in-out infinite;pointer-events:none;z-index:0; }
+    .aurora-orb-2 { position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(62,207,178,0.05) 0%,transparent 70%);bottom:-100px;right:-100px;animation:aurora2 22s ease-in-out infinite;pointer-events:none;z-index:0; }
+    .aurora-orb-3 { position:fixed;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(230,57,80,0.04) 0%,transparent 70%);top:40%;left:40%;animation:aurora1 28s ease-in-out infinite reverse;pointer-events:none;z-index:0; }
+
+    /* ─── Toast Notifications ─── */
+    #toastContainer { position:fixed;top:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:12px;pointer-events:none; }
+    .toast { display:flex;align-items:center;gap:14px;padding:14px 20px;border-radius:18px;backdrop-filter:blur(40px);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;min-width:280px;max-width:360px;pointer-events:all;border:1px solid;transform:translateX(120%);opacity:0;transition:all 0.5s cubic-bezier(0.16,1,0.3,1);box-shadow:0 20px 50px rgba(0,0,0,0.5); }
+    .toast.show { transform:translateX(0);opacity:1; }
+    .toast.hide { transform:translateX(120%);opacity:0; }
+    .toast-success { background:rgba(6,13,31,0.95);border-color:rgba(62,207,178,0.4);color:#f1f5f9; }
+    .toast-success .toast-icon { color:#3ECFB2; }
+    .toast-error { background:rgba(6,13,31,0.95);border-color:rgba(230,57,80,0.4);color:#f1f5f9; }
+    .toast-error .toast-icon { color:#E63950; }
+    .toast-loading { background:rgba(6,13,31,0.95);border-color:rgba(212,160,23,0.4);color:#f1f5f9; }
+    .toast-loading .toast-icon { color:#D4A017; }
+    .toast-icon { font-size:18px;flex-shrink:0; }
+    .toast-close { margin-left:auto;opacity:0.5;cursor:pointer;font-size:14px;transition:opacity 0.2s;flex-shrink:0; }
+    .toast-close:hover { opacity:1; }
+
+    /* ─── Profile Hero Banner ─── */
+    #profileHero { border-radius:28px;overflow:hidden;position:relative;background:linear-gradient(135deg,rgba(17,32,68,0.6) 0%,rgba(2,5,10,0.9) 100%);border:1px solid rgba(212,160,23,0.2);box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.03);backdrop-filter:blur(40px); }
+    #profileHero::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(212,160,23,0.06) 0%,transparent 50%,rgba(62,207,178,0.04) 100%);pointer-events:none; }
+    .profile-avatar { width:80px;height:80px;border-radius:50%;border:3px solid rgba(212,160,23,0.5);box-shadow:0 0 0 6px rgba(212,160,23,0.08),0 0 30px rgba(212,160,23,0.3);object-fit:cover;flex-shrink:0;transition:all 0.4s ease; }
+    .profile-avatar:hover { box-shadow:0 0 0 8px rgba(212,160,23,0.15),0 0 40px rgba(212,160,23,0.5);transform:scale(1.05); }
+    .profile-name { font-family:'Cinzel',serif;font-size:1.5rem;font-weight:700;background:linear-gradient(135deg,#FFEAA7 0%,#D4A017 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:0.02em;line-height:1.2; }
+    @media(max-width:640px){ .profile-name{font-size:1.15rem;} }
+
+    /* ─── Animated Counter ─── */
+    .count-animate { transition:all 0.1s ease; }
+
+    /* ─── Face Scan Animation (Upload zone) ─── */
+    @keyframes faceScanRing { 0%{transform:scale(0.8);opacity:0} 50%{opacity:1} 100%{transform:scale(1.4);opacity:0} }
+    @keyframes faceScanDash { 0%{stroke-dashoffset:283} 100%{stroke-dashoffset:0} }
+    .face-scan-ring { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5; }
+    .face-scan-svg { width:140px;height:140px; }
+    .face-scan-circle { fill:none;stroke:rgba(212,160,23,0.6);stroke-width:2;stroke-dasharray:283;stroke-dashoffset:283;animation:faceScanDash 2s linear infinite;stroke-linecap:round; }
+    .face-scan-circle-2 { fill:none;stroke:rgba(62,207,178,0.4);stroke-width:1;stroke-dasharray:283;stroke-dashoffset:283;animation:faceScanDash 2s linear infinite 1s;stroke-linecap:round; }
+    @keyframes scanCorner { 0%,100%{opacity:0.4} 50%{opacity:1} }
+    .scan-corner { position:absolute;width:20px;height:20px;border-color:rgba(212,160,23,0.8);border-style:solid;animation:scanCorner 2s ease-in-out infinite; }
+    .scan-corner-tl { top:20px;left:20px;border-width:3px 0 0 3px;animation-delay:0s; }
+    .scan-corner-tr { top:20px;right:20px;border-width:3px 3px 0 0;animation-delay:0.25s; }
+    .scan-corner-bl { bottom:20px;left:20px;border-width:0 0 3px 3px;animation-delay:0.5s; }
+    .scan-corner-br { bottom:20px;right:20px;border-width:0 3px 3px 0;animation-delay:0.75s; }
+
+    /* ─── Ripple Effect ─── */
+    .ripple-container { position:relative;overflow:hidden; }
+    .ripple { position:absolute;border-radius:50%;background:rgba(255,255,255,0.25);transform:scale(0);animation:rippleAnim 0.6s linear;pointer-events:none; }
+    @keyframes rippleAnim { to{transform:scale(4);opacity:0} }
+
+    /* ─── Mobile Bottom Bar ─── */
+    #mobileBottomBar { display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(2,5,10,0.95);backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,0.08);padding:12px 20px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -20px 50px rgba(0,0,0,0.6); }
+    @media(max-width:1023px){ #mobileBottomBar{display:flex;gap:12px;align-items:center;} }
+    @media(max-width:1023px){ .safe-area-bottom{padding-bottom:calc(96px + env(safe-area-inset-bottom));} }
+
+    /* ─── Premium Skeleton Loader ─── */
+    .skeleton { background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmerAnim 1.8s ease-in-out infinite; }
+    @keyframes shimmerAnim { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .skeleton-scan-line { position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(212,160,23,0.6),transparent);animation:skeletonScan 2s ease-in-out infinite; }
+    @keyframes skeletonScan { 0%{top:0;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:100%;opacity:0} }
+
+    /* ─── Enhanced Filter Pills with count badge ─── */
+    .filter-count { display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:10px;font-size:10px;font-weight:800;padding:0 6px;background:rgba(255,255,255,0.1);color:#94a3b8;margin-left:6px;transition:all 0.3s; }
+    .filter-pill.active .filter-count { background:rgba(212,160,23,0.3);color:#D4A017; }
+
+    /* ─── WhatsApp Share Button ─── */
+    .btn-whatsapp { background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;font-weight:800;letter-spacing:0.03em;box-shadow:0 8px 25px rgba(37,211,102,0.3);transition:all 0.3s ease;border-radius:16px;min-height:48px; }
+    .btn-whatsapp:hover { transform:translateY(-2px);box-shadow:0 12px 35px rgba(37,211,102,0.5); }
+    .btn-whatsapp:active { transform:scale(0.97); }
+
+    /* ─── Timeline card premium ─── */
+    .timeline-card-premium {
+      background:linear-gradient(145deg,rgba(17,32,68,0.5) 0%,rgba(6,13,31,0.7) 100%);
+      border:1px solid rgba(255,255,255,0.07);
+      border-left:4px solid rgba(212,160,23,0.5);
+      border-radius:24px;padding:24px;
+      transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+      backdrop-filter:blur(20px);
+      box-shadow:0 10px 30px rgba(0,0,0,0.2);
+      position:relative;overflow:hidden;
+    }
+    .timeline-card-premium::before { content:'';position:absolute;top:0;right:0;width:200px;height:200px;background:radial-gradient(circle at top right,rgba(212,160,23,0.05),transparent 70%);pointer-events:none; }
+    .timeline-card-premium:hover { border-left-color:var(--gold-400);background:linear-gradient(145deg,rgba(17,32,68,0.7) 0%,rgba(6,13,31,0.9) 100%);transform:translateX(6px) translateY(-3px);box-shadow:0 20px 50px rgba(0,0,0,0.4),-5px 0 25px rgba(212,160,23,0.12);border-color:rgba(255,255,255,0.12); }
+    .timeline-card-premium.tour { border-left-color:rgba(62,207,178,0.5); }
+    .timeline-card-premium.tour:hover { border-left-color:#3ECFB2;box-shadow:0 20px 50px rgba(0,0,0,0.4),-5px 0 25px rgba(62,207,178,0.12); }
+    .timeline-card-premium.attendance { border-left-color:rgba(96,165,250,0.5); }
+    .timeline-card-premium.attendance:hover { border-left-color:#60A5FA;box-shadow:0 20px 50px rgba(0,0,0,0.4),-5px 0 25px rgba(96,165,250,0.12); }
+    .timeline-card-premium.mandal { border-left-color:rgba(167,139,250,0.5); }
+    .timeline-card-premium.visitor { border-left-color:rgba(249,115,22,0.5); }
+
+    /* ─── Arc chart for stats ─── */
+    .arc-svg { width:60px;height:40px;overflow:visible; }
+    .arc-bg { fill:none;stroke:rgba(255,255,255,0.08);stroke-width:5;stroke-linecap:round; }
+    .arc-fill { fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1.5s cubic-bezier(0.2,0.8,0.2,1); }
+
+    /* ─── Stagger animations ─── */
+    .stagger-item { opacity:0;animation:fadeup 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .stagger-item:nth-child(1){animation-delay:0.05s}
+    .stagger-item:nth-child(2){animation-delay:0.1s}
+    .stagger-item:nth-child(3){animation-delay:0.15s}
+    .stagger-item:nth-child(4){animation-delay:0.2s}
+    .stagger-item:nth-child(5){animation-delay:0.25s}
+    .stagger-item:nth-child(6){animation-delay:0.3s}
+    .stagger-item:nth-child(7){animation-delay:0.35s}
+    .stagger-item:nth-child(8){animation-delay:0.4s}
+
+    /* ─── Navbar enhanced ─── */
+    .nav-status-dot { width:8px;height:8px;border-radius:50%;background:#3ECFB2;box-shadow:0 0 8px rgba(62,207,178,0.8);animation:pulseRing 2s infinite; }
+
+    /* ─── Enhanced Upload zone ─── */
+    .upload-zone-inner { transition:all 0.5s cubic-bezier(0.4,0,0.2,1); }
+    .upload-zone:hover .upload-zone-inner, .upload-zone:focus-within .upload-zone-inner { transform:scale(1.03); }
+
+
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
@@ -286,20 +400,6 @@
     .safe-area-bottom { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
     .hide-scroll::-webkit-scrollbar { display: none; }
     .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* ─── Recognized Person Chip Premium Style ─── */
-    .recognized-chip {
-      background: rgba(62,207,178,0.15);
-      border: 1px solid rgba(62,207,178,0.4);
-      color: #3ECFB2;
-      box-shadow: 0 0 15px rgba(62,207,178,0.15);
-      transition: all 0.3s ease;
-    }
-    .recognized-chip:hover {
-      background: rgba(62,207,178,0.25);
-      box-shadow: 0 0 20px rgba(62,207,178,0.4);
-      transform: translateY(-2px);
-    }
 
     /* Modal & Slideshow Overrides */
     #slideshowOverlay { position: fixed; inset: 0; z-index: 9999; display: none; flex-direction: column; background: rgba(0,0,0,0.98); backdrop-filter: blur(20px); }
@@ -387,6 +487,13 @@
 </head>
 
 <body class="font-body">
+  <!-- Aurora background -->
+  <div class="aurora-orb-1"></div>
+  <div class="aurora-orb-2"></div>
+  <div class="aurora-orb-3"></div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
 
   <!-- ══ NAVBAR ══ -->
   <nav class="navbar sticky top-0 z-40">
@@ -402,7 +509,10 @@
               <span class="font-display text-white text-xl sm:text-2xl font-bold tracking-wide">EventLens</span>
               <span class="font-display text-base sm:text-lg text-gradient-gold font-bold">AI</span>
             </div>
-            <p class="text-[10px] sm:text-xs uppercase font-extrabold text-slate-400 hidden sm:block mt-1 tracking-[0.2em]">Karyakarta Intelligence</p>
+            <div class="hidden sm:flex items-center gap-2 mt-1">
+              <div class="nav-status-dot"></div>
+              <p class="text-[10px] uppercase font-extrabold text-slate-400 tracking-[0.2em]">Karyakarta Intelligence</p>
+            </div>
           </div>
         </div>
         <div class="flex items-center gap-4">
@@ -420,7 +530,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12 relative z-10 safe-area-bottom">
     <div class="grid lg:grid-cols-12 gap-8 lg:gap-12">
 
-      <!-- ══ LEFT COLUMN (Sticky on Desktop) ══ -->
+      <!-- ══ LEFT COLUMN (Now Sticky on Desktop) ══ -->
       <div class="lg:col-span-4 relative">
         <div class="sticky top-28 space-y-6 sm:space-y-8">
           
@@ -468,12 +578,24 @@
               <div class="relative mb-6">
                 <label class="upload-zone rounded-3xl flex flex-col items-center justify-center cursor-pointer min-h-[280px]">
                   <input id="selfieInput" accept="image/*" capture="user" type="file" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="previewImage(this)" />
-                  <div id="uploadPlaceholder" class="flex flex-col items-center justify-center py-10 pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.02]">
-                    <div class="w-28 h-28 rounded-full flex items-center justify-center mb-6 pulse-ring bg-slate-900/80 border border-gold-400/40 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-                      <i class="fa-solid fa-camera text-5xl text-gold-400"></i>
+                  <div id="uploadPlaceholder" class="flex flex-col items-center justify-center py-10 pointer-events-none select-none upload-zone-inner relative">
+                    <!-- Scan corners -->
+                    <div class="scan-corner scan-corner-tl"></div>
+                    <div class="scan-corner scan-corner-tr"></div>
+                    <div class="scan-corner scan-corner-bl"></div>
+                    <div class="scan-corner scan-corner-br"></div>
+                    <div class="w-28 h-28 rounded-full flex items-center justify-center mb-6 pulse-ring bg-slate-900/80 border border-gold-400/40 backdrop-blur-md shadow-[0_10px_30px_rgba(0,0,0,0.5)] relative">
+                      <!-- Face scan SVG ring -->
+                      <div class="face-scan-ring">
+                        <svg class="face-scan-svg" viewBox="0 0 100 100">
+                          <circle class="face-scan-circle" cx="50" cy="50" r="45"/>
+                          <circle class="face-scan-circle-2" cx="50" cy="50" r="40"/>
+                        </svg>
+                      </div>
+                      <i class="fa-solid fa-camera text-5xl text-gold-400 relative z-10"></i>
                     </div>
-                    <span class="font-bold text-white text-xl mb-2 tracking-wide">📸 Camera खोलें</span>
-                    <span class="text-sm text-slate-400 font-medium px-6 text-center">सेल्फी लेने के लिए यहाँ टैप करें</span>
+                    <span class="font-bold text-white text-xl mb-2 tracking-wide" style="font-family:'Noto Sans Devanagari',sans-serif;">📸 Camera खोलें</span>
+                    <span class="text-sm text-slate-400 font-medium px-6 text-center" style="font-family:'Noto Sans Devanagari',sans-serif;">सेल्फी लेने के लिए यहाँ टैप करें</span>
                   </div>
                   <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover rounded-3xl z-10 shadow-2xl" alt="Preview" />
                   <div id="scanLine" class="hidden absolute left-0 w-full scan-line z-10 pointer-events-none" style="animation:scandown 2.5s ease-in-out infinite;"></div>
@@ -518,7 +640,7 @@
                   </label>
                   <div class="relative group">
                     <i class="fa-solid fa-user absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none group-focus-within:text-gold-400 transition-colors"></i>
-                    <input id="nameInput" type="text" placeholder="कार्यकर्ता का पूरा नाम" class="field-input pl-14" autocomplete="name" />
+                    <input id="nameInput" type="text" placeholder="कार्यकर्ता का पूरा नाम" class="field-input pl-14" autocomplete="name" style="font-family:'Noto Sans Devanagari','Outfit',sans-serif;" />
                   </div>
                 </div>
                 <div>
@@ -545,31 +667,75 @@
 
           <!-- ─ Stats (visible after results load) ─ -->
           <div id="statsDashboard" class="hidden space-y-5 animate-fadeup">
-            <div class="grid grid-cols-3 gap-4">
-              <div class="stat-card p-5 group overflow-hidden">
+            <!-- Profile Hero Banner -->
+            <div id="profileHero" class="hidden p-5 sm:p-6">
+              <div class="flex items-center gap-4 relative z-10">
+                <img id="profileAvatarImg" class="profile-avatar hidden" src="" alt="Profile" />
+                <div id="profileAvatarPlaceholder" class="profile-avatar flex items-center justify-center bg-gold-400/10 border-gold-400/40">
+                  <i class="fa-solid fa-user text-2xl text-gold-400"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div id="profileNameDisplay" class="profile-name truncate">—</div>
+                  <div class="flex items-center gap-3 mt-2 flex-wrap">
+                    <span id="profileMobileDisplay" class="text-xs font-mono text-slate-400 tracking-widest hidden"></span>
+                    <span class="text-[10px] px-2.5 py-1 rounded-lg bg-teal-400/10 border border-teal-400/30 text-teal-400 font-extrabold uppercase tracking-widest">✓ Identified</span>
+                  </div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                  <div class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1">Match</div>
+                  <div class="font-display text-2xl font-bold text-gradient-teal" id="similarityText">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 sm:gap-4">
+              <div class="stat-card p-4 sm:p-5 group overflow-hidden">
                 <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-500 group-hover:scale-110"><i class="fa-solid fa-fingerprint text-8xl text-teal-400"></i></div>
-                <div class="text-[10px] font-extrabold uppercase tracking-widest mb-3 text-slate-400">Match</div>
-                <div class="text-4xl font-display font-bold text-gradient-teal mb-4" id="scoreVal">—</div>
+                <!-- Arc chart -->
+                <div class="flex justify-end mb-2">
+                  <svg class="arc-svg" viewBox="0 0 60 40">
+                    <path class="arc-bg" d="M 5 35 A 25 25 0 0 1 55 35" />
+                    <path id="arcMatch" class="arc-fill" d="M 5 35 A 25 25 0 0 1 55 35" stroke="#3ECFB2" stroke-dasharray="78.5" stroke-dashoffset="78.5"/>
+                  </svg>
+                </div>
+                <div class="text-[10px] font-extrabold uppercase tracking-widest mb-2 text-slate-400">Match</div>
+                <div class="text-3xl sm:text-4xl font-display font-bold text-gradient-teal mb-3" id="scoreVal">—</div>
                 <div class="rounded-full overflow-hidden bg-white/10 h-1.5 shadow-inner">
                   <div id="scoreBar" class="stat-bar-fill w-0 bg-gradient-to-r from-teal-500 to-emerald-300"></div>
                 </div>
               </div>
-              <div class="stat-card p-5 group overflow-hidden">
+              <div class="stat-card p-4 sm:p-5 group overflow-hidden">
                 <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-500 group-hover:scale-110"><i class="fa-solid fa-map-location-dot text-8xl text-gold-400"></i></div>
-                <div class="text-[10px] font-extrabold uppercase tracking-widest mb-3 text-slate-400">Events</div>
-                <div class="text-4xl font-display font-bold text-white tracking-wide" id="eventCountVal">0</div>
+                <div class="flex justify-end mb-2">
+                  <svg class="arc-svg" viewBox="0 0 60 40">
+                    <path class="arc-bg" d="M 5 35 A 25 25 0 0 1 55 35" />
+                    <path id="arcEvents" class="arc-fill" d="M 5 35 A 25 25 0 0 1 55 35" stroke="#D4A017" stroke-dasharray="78.5" stroke-dashoffset="78.5"/>
+                  </svg>
+                </div>
+                <div class="text-[10px] font-extrabold uppercase tracking-widest mb-2 text-slate-400">Events</div>
+                <div class="text-3xl sm:text-4xl font-display font-bold text-white tracking-wide count-animate" id="eventCountVal">0</div>
                 <div id="timelineCount" class="hidden"></div>
               </div>
-              <div class="stat-card p-5 group overflow-hidden">
+              <div class="stat-card p-4 sm:p-5 group overflow-hidden">
                 <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-500 group-hover:scale-110"><i class="fa-solid fa-camera-retro text-8xl text-gold-400"></i></div>
-                <div class="text-[10px] font-extrabold uppercase tracking-widest mb-3 text-slate-400">Photos</div>
-                <div class="text-4xl font-display font-bold text-white tracking-wide" id="photoCountVal">0</div>
+                <div class="flex justify-end mb-2">
+                  <svg class="arc-svg" viewBox="0 0 60 40">
+                    <path class="arc-bg" d="M 5 35 A 25 25 0 0 1 55 35" />
+                    <path id="arcPhotos" class="arc-fill" d="M 5 35 A 25 25 0 0 1 55 35" stroke="#EFC24A" stroke-dasharray="78.5" stroke-dashoffset="78.5"/>
+                  </svg>
+                </div>
+                <div class="text-[10px] font-extrabold uppercase tracking-widest mb-2 text-slate-400">Photos</div>
+                <div class="text-3xl sm:text-4xl font-display font-bold text-white tracking-wide count-animate" id="photoCountVal">0</div>
                 <div id="photoCount" class="hidden"></div>
               </div>
             </div>
-            <div class="flex gap-4">
-              <button id="copySummaryBtnMobile" class="flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest btn-ghost border border-white/10 bg-white/5 hover:bg-white/10">
-                <i class="fa-solid fa-share-nodes text-gold-400 text-lg"></i> Share Report
+
+            <div class="flex gap-3">
+              <button id="copySummaryBtnMobile" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-widest btn-ghost border border-white/10 bg-white/5 hover:bg-white/10">
+                <i class="fa-solid fa-share-nodes text-gold-400 text-base"></i> Share
+              </button>
+              <button id="whatsappShareBtn" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-widest btn-whatsapp">
+                <i class="fa-brands fa-whatsapp text-base"></i> WhatsApp
               </button>
               <div id="btnAiReport" class="hidden"></div>
             </div>
@@ -585,32 +751,42 @@
         <div id="emptyState" class="glass rounded-[40px] flex flex-col items-center justify-center text-center p-10 min-h-[600px] relative overflow-hidden">
           <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9zdmc+')] opacity-50"></div>
           
-          <div class="w-40 h-40 rounded-full flex items-center justify-center mb-10 bg-slate-900/60 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-float relative z-10">
-             <div class="absolute inset-0 rounded-full border-2 border-gold-400/20 border-t-gold-400/60 animate-[spin_4s_linear_infinite]"></div>
-             <div class="absolute inset-2 rounded-full border border-teal-400/10 border-b-teal-400/50 animate-[spin_6s_linear_infinite_reverse]"></div>
-            <i class="fa-solid fa-microchip text-6xl text-slate-500"></i>
+          <!-- Animated face scan placeholder -->
+          <div class="w-44 h-44 rounded-full flex items-center justify-center mb-10 bg-slate-900/60 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-float relative z-10">
+            <svg class="absolute" width="176" height="176" viewBox="0 0 176 176">
+              <circle cx="88" cy="88" r="80" fill="none" stroke="rgba(212,160,23,0.15)" stroke-width="1"/>
+              <circle cx="88" cy="88" r="80" fill="none" stroke="rgba(212,160,23,0.5)" stroke-width="2" stroke-dasharray="502" stroke-dashoffset="502" style="animation:faceScanDash 3s linear infinite;transform-origin:center;"/>
+              <circle cx="88" cy="88" r="68" fill="none" stroke="rgba(62,207,178,0.3)" stroke-width="1" stroke-dasharray="427" stroke-dashoffset="427" style="animation:faceScanDash 3s linear infinite 1.5s;transform-origin:center;"/>
+            </svg>
+            <!-- Corner brackets -->
+            <div style="position:absolute;top:12px;left:12px;width:24px;height:24px;border-top:3px solid rgba(212,160,23,0.7);border-left:3px solid rgba(212,160,23,0.7);border-radius:4px 0 0 0;animation:scanCorner 2s ease-in-out infinite;"></div>
+            <div style="position:absolute;top:12px;right:12px;width:24px;height:24px;border-top:3px solid rgba(212,160,23,0.7);border-right:3px solid rgba(212,160,23,0.7);border-radius:0 4px 0 0;animation:scanCorner 2s ease-in-out infinite 0.25s;"></div>
+            <div style="position:absolute;bottom:12px;left:12px;width:24px;height:24px;border-bottom:3px solid rgba(212,160,23,0.7);border-left:3px solid rgba(212,160,23,0.7);border-radius:0 0 0 4px;animation:scanCorner 2s ease-in-out infinite 0.5s;"></div>
+            <div style="position:absolute;bottom:12px;right:12px;width:24px;height:24px;border-bottom:3px solid rgba(212,160,23,0.7);border-right:3px solid rgba(212,160,23,0.7);border-radius:0 0 4px 0;animation:scanCorner 2s ease-in-out infinite 0.75s;"></div>
+            <i class="fa-solid fa-microchip text-6xl text-slate-500 relative z-10"></i>
           </div>
           <h3 class="font-display text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-4 tracking-widest uppercase relative z-10">AI Engine Ready</h3>
-          <p class="text-lg text-slate-400 max-w-md leading-relaxed mb-12 relative z-10">बाईं तरफ फोटो अपलोड करें और हमारा एडवांस्ड AI सिस्टम पूरे डेटाबेस को मिलीसेकंड्स में स्कैन करेगा।</p>
+          <p class="text-base text-slate-400 max-w-md leading-relaxed mb-12 relative z-10" style="font-family:'Noto Sans Devanagari',sans-serif;">बाईं तरफ फोटो अपलोड करें और हमारा एडवांस्ड AI सिस्टम पूरे डेटाबेस को मिलीसेकंड्स में स्कैन करेगा।</p>
           
-          <div class="grid grid-cols-3 gap-6 w-full max-w-lg relative z-10">
-            <div class="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:bg-white/10 hover:border-gold-400/30 group shadow-lg">
+          <div class="grid grid-cols-3 gap-4 sm:gap-6 w-full max-w-lg relative z-10">
+            <div class="p-5 sm:p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:bg-white/10 hover:border-gold-400/30 group shadow-lg">
               <i class="fa-solid fa-face-viewfinder mb-4 text-3xl text-gold-400/60 group-hover:text-gold-400 transition-colors"></i>
-              <span class="text-xs font-bold text-slate-300 block uppercase tracking-widest">Face AI</span>
+              <span class="text-[11px] font-bold text-slate-300 block uppercase tracking-widest">Face AI</span>
             </div>
-            <div class="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:bg-white/10 hover:border-teal-400/30 group shadow-lg">
+            <div class="p-5 sm:p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:bg-white/10 hover:border-teal-400/30 group shadow-lg">
               <i class="fa-solid fa-bolt mb-4 text-3xl text-teal-400/60 group-hover:text-teal-400 transition-colors"></i>
-              <span class="text-xs font-bold text-slate-300 block uppercase tracking-widest">Fast</span>
+              <span class="text-[11px] font-bold text-slate-300 block uppercase tracking-widest">Instant</span>
             </div>
-            <div class="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:bg-white/10 hover:border-red-400/30 group shadow-lg">
+            <div class="p-5 sm:p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:bg-white/10 hover:border-red-400/30 group shadow-lg">
               <i class="fa-solid fa-shield-halved mb-4 text-3xl text-red-400/60 group-hover:text-red-400 transition-colors"></i>
-              <span class="text-xs font-bold text-slate-300 block uppercase tracking-widest">Secure</span>
+              <span class="text-[11px] font-bold text-slate-300 block uppercase tracking-widest">Secure</span>
             </div>
           </div>
         </div>
 
         <!-- Skeleton Loader -->
-        <div id="skeletonLoader" class="hidden glass rounded-[40px] p-10 min-h-[600px]">
+        <div id="skeletonLoader" class="hidden glass rounded-[40px] p-10 min-h-[600px] relative overflow-hidden">
+          <div class="skeleton-scan-line"></div>
           <div class="flex gap-5 mb-12 border-b border-white/10 pb-8">
             <div class="h-12 w-40 rounded-2xl skeleton"></div>
             <div class="h-12 w-40 rounded-2xl skeleton"></div>
@@ -649,17 +825,17 @@
           </div>
 
           <!-- Filter pills (timeline only) -->
-          <div id="timelineFilters" class="hidden items-center gap-4 px-8 py-5 bg-white/5 border-b border-white/5 overflow-x-auto hide-scroll">
-            <button class="filter-btn filter-pill active" data-filter="all">सभी</button>
-            <button class="filter-btn filter-pill" data-filter="visitor_form">Visitor</button>
-            <button class="filter-btn filter-pill" data-filter="president_tour_form">Tour</button>
-            <button class="filter-btn filter-pill" data-filter="party_attendance">Attendance</button>
-            <button class="filter-btn filter-pill" data-filter="mandal_reporting_form">Mandal</button>
-            <div class="ml-auto flex items-center gap-4 flex-shrink-0 pl-6 border-l border-white/10">
-              <input type="date" id="tlFromDate" class="rounded-xl px-4 py-2.5 text-xs font-bold bg-slate-900/80 border border-white/10 text-slate-300 w-[140px] focus:border-gold-400 outline-none transition-colors" title="From Date">
+          <div id="timelineFilters" class="hidden items-center gap-3 px-6 py-4 bg-white/5 border-b border-white/5 overflow-x-auto hide-scroll">
+            <button class="filter-btn filter-pill active" data-filter="all" style="font-family:'Noto Sans Devanagari',sans-serif;">सभी <span class="filter-count" id="countAll">0</span></button>
+            <button class="filter-btn filter-pill" data-filter="visitor_form">Visitor <span class="filter-count" id="countVisitor">0</span></button>
+            <button class="filter-btn filter-pill" data-filter="president_tour_form">Tour <span class="filter-count" id="countTour">0</span></button>
+            <button class="filter-btn filter-pill" data-filter="party_attendance">Attendance <span class="filter-count" id="countAttendance">0</span></button>
+            <button class="filter-btn filter-pill" data-filter="mandal_reporting_form">Mandal <span class="filter-count" id="countMandal">0</span></button>
+            <div class="ml-auto flex items-center gap-3 flex-shrink-0 pl-4 border-l border-white/10">
+              <input type="date" id="tlFromDate" class="rounded-xl px-3 py-2 text-xs font-bold bg-slate-900/80 border border-white/10 text-slate-300 w-[130px] focus:border-gold-400 outline-none transition-colors" title="From Date">
               <span class="text-slate-500"><i class="fa-solid fa-arrow-right-long"></i></span>
-              <input type="date" id="tlToDate" class="rounded-xl px-4 py-2.5 text-xs font-bold bg-slate-900/80 border border-white/10 text-slate-300 w-[140px] focus:border-gold-400 outline-none transition-colors" title="To Date">
-              <button id="btnDownloadTimeline" title="Timeline Download करें" class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/30 transition-all">
+              <input type="date" id="tlToDate" class="rounded-xl px-3 py-2 text-xs font-bold bg-slate-900/80 border border-white/10 text-slate-300 w-[130px] focus:border-gold-400 outline-none transition-colors" title="To Date">
+              <button id="btnDownloadTimeline" title="Timeline Download करें" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/30 transition-all">
                 <i class="fa-solid fa-file-export text-slate-400"></i><span class="hidden sm:inline">Export</span>
               </button>
             </div>
@@ -749,6 +925,24 @@
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(212,160,23,0.6); }
+    
+    /* Timeline Card Override for Premium look */
+    .timeline-card-premium {
+       background: linear-gradient(145deg, rgba(17,32,68,0.5) 0%, rgba(6,13,31,0.8) 100%);
+       border: 1px solid rgba(255,255,255,0.08); 
+       border-left: 4px solid var(--gold-400);
+       border-radius: 24px;
+       padding: 20px;
+       backdrop-filter: blur(20px);
+       transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .timeline-card-premium:hover {
+       background: linear-gradient(145deg, rgba(17,32,68,0.7) 0%, rgba(6,13,31,0.9) 100%);
+       transform: translateX(8px) translateY(-2px); 
+       box-shadow: 0 20px 40px rgba(0,0,0,0.6), -5px 0 30px rgba(212,160,23,0.2); 
+       border-color: rgba(212,160,23,0.4); 
+    }
   </style>
 
 <!-- ══ JAVASCRIPT (Untouched, Logic completely preserved) ══ -->
@@ -820,7 +1014,7 @@
       else { el.className = "step-num pending"; el.textContent = i + 1; }
     });
     lines.forEach((el, i) => {
-      if (el) el.className = "step-line mx-2" + (i + 1 < n ? " done" : "");
+      if (el) el.className = "step-line" + (i + 1 < n ? " done" : "");
     });
     labels.forEach((el, i) => {
       if (!el) return;
@@ -948,6 +1142,7 @@
     const text = `*EventLens Search Result*\nSimilarity: ${score}\nEvents Found: ${events}\nPhotos Found: ${photos}\n\nGenerated by EventLens AI`;
     navigator.clipboard.writeText(text).then(() => {
       [el.copySummaryBtn, el.copySummaryBtnMobile].forEach(b => { if (!b) return; const o = b.innerHTML; b.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Copied!'; setTimeout(() => b.innerHTML = o, 2000); });
+      if (typeof showToast === 'function') showToast('Report copied to clipboard!', 'success');
     });
   }
   if (el.copySummaryBtn) el.copySummaryBtn.addEventListener('click', doCopy);
@@ -1001,10 +1196,20 @@
   function prettyIso(iso) { if (!isNonEmpty(iso)) return ""; const d = new Date(iso); return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
   function setStatus(msg, type = "info") {
     if (!el.statusBox) return;
-    el.statusBox.classList.remove("hidden");
-    const colors = { error: 'bg-red-500/10 border-red-500/30 text-red-400', success: 'bg-teal-400/10 border-teal-400/30 text-teal-400', loading: 'bg-gold-400/10 border-gold-400/30 text-gold-400' };
-    const style = colors[type] || 'bg-white/5 border-white/10 text-slate-300';
-    el.statusBox.innerHTML = `<div class="inline-flex items-center gap-3 px-6 py-3 rounded-2xl text-sm font-bold border ${style} backdrop-blur-md shadow-xl">${type==='loading'?'<i class="fa-solid fa-circle-notch fa-spin"></i>':''}${escapeHtml(msg)}</div>`;
+    if (msg) {
+      el.statusBox.classList.remove("hidden");
+      const colors = { error: 'bg-red-500/10 border-red-500/30 text-red-400', success: 'bg-teal-400/10 border-teal-400/30 text-teal-400', loading: 'bg-gold-400/10 border-gold-400/30 text-gold-400' };
+      const style = colors[type] || 'bg-white/5 border-white/10 text-slate-300';
+      el.statusBox.innerHTML = `<div class="inline-flex items-center gap-3 px-6 py-3 rounded-2xl text-sm font-bold border ${style} backdrop-blur-md shadow-xl">${type==='loading'?'<i class="fa-solid fa-circle-notch fa-spin"></i>':''}${escapeHtml(msg)}</div>`;
+      // Show toast for error/success
+      if (typeof showToast === 'function') {
+        if (type === 'error' && msg) showToast(msg, 'error');
+        else if (type === 'success' && msg) showToast(msg, 'success');
+      }
+    } else {
+      el.statusBox.classList.add("hidden");
+      el.statusBox.innerHTML = "";
+    }
   }
 
   function updateDashboard(sim, events, photos) {
@@ -1019,9 +1224,45 @@
     el.scoreVal.textContent = `${simNum.toFixed(0)}%`;
     el.scoreBar.style.width = `${Math.min(simNum,100)}%`;
     el.scoreBar.style.background = simNum > 80 ? 'linear-gradient(90deg,#2AB89C,#3ECFB2)' : simNum > 50 ? 'linear-gradient(90deg,#D4A017,#EFC24A)' : 'linear-gradient(90deg,#C41E37,#E63950)';
-    el.eventCountVal.textContent = events;
-    el.photoCountVal.textContent = photos;
+    // Animated counters
+    if (typeof animateCounter === 'function') {
+      animateCounter(el.eventCountVal, String(events));
+      animateCounter(el.photoCountVal, String(photos));
+    } else {
+      el.eventCountVal.textContent = events;
+      el.photoCountVal.textContent = photos;
+    }
+    // Arc charts
+    if (typeof updateArc === 'function') {
+      updateArc('arcMatch', simNum);
+      updateArc('arcEvents', Math.min((parseInt(events)||0)/50*100, 100));
+      updateArc('arcPhotos', Math.min((parseInt(photos)||0)/100*100, 100));
+    }
+    // Profile hero
+    const nameVal = el.nameInput?.value || '';
+    const mobileVal = el.mobileInput?.value || '';
+    if (nameVal && typeof updateProfileHero === 'function') updateProfileHero(nameVal, mobileVal, '');
+    // Filter count badges
+    updateFilterCounts(window.globalTimelineData || []);
     setStep(3);
+    // Toast on success
+    if (typeof showToast === 'function') showToast(`${events} events और ${photos} photos मिले!`, 'success');
+  }
+
+  function updateFilterCounts(timeline) {
+    const counts = { all: timeline.length, visitor_form: 0, president_tour_form: 0, party_attendance: 0, mandal_reporting_form: 0 };
+    timeline.forEach(item => {
+      const ft = (item.form_type || item.ft || '').toLowerCase();
+      if (ft.includes('visitor')) counts.visitor_form++;
+      else if (ft.includes('president') || ft.includes('tour')) counts.president_tour_form++;
+      else if (ft.includes('attendance')) counts.party_attendance++;
+      else if (ft.includes('mandal')) counts.mandal_reporting_form++;
+    });
+    const map = { all: 'countAll', visitor_form: 'countVisitor', president_tour_form: 'countTour', party_attendance: 'countAttendance', mandal_reporting_form: 'countMandal' };
+    Object.entries(map).forEach(([key, id]) => {
+      const el2 = document.getElementById(id);
+      if (el2) el2.textContent = counts[key] || 0;
+    });
   }
 
   function get(obj, key, fallback = "") { if (!obj) return fallback; const v = obj[key]; return isNonEmpty(v) ? v : fallback; }
@@ -1144,9 +1385,11 @@
       const withLabel=item.with_label||"", faceCount=Number(item.face_count||0);
       const iconColor=iconColorMap[icon]||'#D4A017';
 
-      const wrapper = document.createElement("div"); wrapper.className = "relative pl-4 sm:pl-6 timeline-item"; wrapper.style.animationDelay = `${index*50}ms`;
+      const wrapper = document.createElement("div"); wrapper.className = "relative pl-4 sm:pl-6 timeline-item stagger-item"; wrapper.style.animationDelay = `${index*60}ms`;
       const dot = document.createElement("div"); dot.className = "timeline-dot absolute w-5 h-5 rounded-full z-10"; dot.style.cssText = "left:-36px; top:24px;"; wrapper.appendChild(dot);
-      const card = document.createElement("div"); card.className = "timeline-card-premium cursor-pointer";
+      const card = document.createElement("div");
+      const cardClass = form === 'president_tour_form' ? 'tour' : form === 'party_attendance' ? 'attendance' : form === 'mandal_reporting_form' || form === 'mandal_reporting' ? 'mandal' : form === 'visitor_form' ? 'visitor' : '';
+      card.className = `timeline-card-premium cursor-pointer ${cardClass}`;
 
       const mandal = item.mandal || data.mandal || "";
       const guests = data.guests || data["अतिथि"] || "";
@@ -1201,11 +1444,6 @@
         const allNames = [];
         const addName = (n) => { const t = String(n||"").trim(); if (t && t.length > 1 && !allNames.includes(t)) allNames.push(t); };
 
-        // **NEW BACKEND FIELD SUPPORT**: 'recognized_people' list sent by lambda
-        if (Array.isArray(item.recognized_people)) {
-          item.recognized_people.forEach(n => addName(n));
-        }
-
         if (Array.isArray(item.with_names)) {
           item.with_names.forEach(n => {
             if (typeof n === 'string') addName(n);
@@ -1228,10 +1466,6 @@
 
         const withMore = Number(item.with_more || 0);
 
-        // Filter out the searched person's own name from the chips if possible
-        const searchedName = (document.getElementById("nameInput") ? document.getElementById("nameInput").value.trim().toLowerCase() : "");
-        const finalNames = allNames.filter(n => n.toLowerCase() !== searchedName);
-
         const strip = document.createElement("div");
         strip.style.cssText = "display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;";
         const maxShow = 5;
@@ -1244,7 +1478,17 @@
           im.onmouseenter = () => { im.style.borderColor = "var(--gold-400)"; im.style.transform = "scale(1.1) translateY(-4px)"; im.style.boxShadow = "0 10px 20px rgba(212,160,23,0.3)"; };
           im.onmouseleave = () => { im.style.borderColor = "rgba(255,255,255,0.1)"; im.style.transform = "scale(1)"; im.style.boxShadow = "0 4px 10px rgba(0,0,0,0.3)"; };
 
-          thumb.appendChild(im);
+          if (allNames[pi]) {
+            const nameEl = document.createElement("div");
+            const firstName = allNames[pi].split(' ')[0]; 
+            nameEl.style.cssText = "font-size:10px;font-weight:800;color:#cbd5e1;text-align:center;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2;";
+            nameEl.title = allNames[pi]; 
+            nameEl.textContent = firstName;
+            thumb.appendChild(im);
+            thumb.appendChild(nameEl);
+          } else {
+            thumb.appendChild(im);
+          }
           strip.appendChild(thumb);
         });
 
@@ -1257,41 +1501,26 @@
 
         photoSection.appendChild(strip);
 
-        // ── PREMIUM: AI Recognized Persons Block ──
-        if (finalNames.length > 0) {
-          const aiRow = document.createElement("div");
-          aiRow.className = "mt-4 p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 to-transparent border border-teal-500/20 backdrop-blur-md shadow-inner";
-          aiRow.style.borderLeft = "2px solid #3ECFB2";
-
-          // Generate pills
-          let chips = finalNames.slice(0, 4).map(n => 
-            `<span class="recognized-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold">
-              <i class="fa-solid fa-user-check text-[10px]"></i> ${escapeHtml(n)}
-             </span>`
-          ).join('');
-
-          if (finalNames.length > 4) {
-             chips += `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold" style="background:rgba(255,255,255,0.05);color:#94a3b8;">+${finalNames.length - 4} अन्य</span>`;
-          }
-
-          aiRow.innerHTML = `
-            <div class="flex items-center gap-2 mb-3">
-              <i class="fa-solid fa-microchip text-teal-400 text-sm animate-pulse"></i>
-              <span class="text-[10px] font-extrabold uppercase tracking-[0.15em] text-teal-400">AI Recognized Persons</span>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              ${chips}
-            </div>
-          `;
-          photoSection.appendChild(aiRow);
-        } else if (item.with_more > 0 || faceCount > 1) {
-          // If we know there are faces but backend didn't map names yet
-          const fallbackCount = item.with_more || faceCount;
-          const aiRow = document.createElement("div");
-          aiRow.className = "mt-4 flex items-center gap-2 px-4 py-3 rounded-xl";
-          aiRow.style.background = "rgba(62,207,178,0.05)";
-          aiRow.innerHTML = `<i class="fa-solid fa-users" style="color:#3ECFB2;font-size:14px;"></i><span class="text-xs font-bold" style="color:#94a3b8">${fallbackCount} अन्य लोग पहचाने गए (AI Processing)</span>`;
-          photoSection.appendChild(aiRow);
+        if (allNames.length > 0) {
+          const nameRow = document.createElement("div");
+          nameRow.style.cssText = "margin-top:8px;padding:10px 14px;border-radius:12px;background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);backdrop-filter:blur(10px);";
+          const maxShow = 3;
+          const shown = allNames.slice(0, maxShow);
+          const remaining = (allNames.length - shown.length) + withMore;
+          let nameText = shown.map(n => `<span style="color:#F5D78A;font-weight:800;">${escapeHtml(n)}</span>`).join(' <span style="color:#64748b;margin:0 4px;">•</span> ');
+          if (remaining > 0) nameText += ` <span style="color:#94a3b8;font-size:11px;font-weight:700;">& ${remaining} अन्य</span>`;
+          nameRow.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-users text-[11px]" style="color:#D4A017;flex-shrink:0;"></i><span style="font-size:12px;color:#f1f5f9;line-height:1.5;">${nameText}</span></div>`;
+          photoSection.appendChild(nameRow);
+        } else if (withMore > 0) {
+          const nameRow = document.createElement("div");
+          nameRow.style.cssText = "margin-top:8px;font-size:12px;font-weight:700;color:#cbd5e1;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:10px;";
+          nameRow.innerHTML = `<i class="fa-solid fa-users text-[11px]"></i><span>${withMore} अन्य लोग भी उपस्थित</span>`;
+          photoSection.appendChild(nameRow);
+        } else if (faceCount > 1) {
+          const nameRow = document.createElement("div");
+          nameRow.style.cssText = "margin-top:8px;font-size:12px;font-weight:700;color:#cbd5e1;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:10px;";
+          nameRow.innerHTML = `<i class="fa-solid fa-users text-[11px]"></i><span>${faceCount} लोग पहचाने गए</span>`;
+          photoSection.appendChild(nameRow);
         }
 
         card.appendChild(photoSection);
@@ -1322,15 +1551,8 @@
     push("🎤 वक्ता", data.other_speakers || data["वक्ता"]);
     push("🏷️ पदनाम", data.designation || data["पदनाम"]);
     if (item.with_label) push("🤝 साथ में", item.with_label);
-    
-    // Merge backend 'recognized_people' and 'with_names' for details view
-    let detailNames = [];
-    if (Array.isArray(item.recognized_people)) detailNames.push(...item.recognized_people);
-    if (Array.isArray(item.with_names)) detailNames.push(...item.with_names.map(n => typeof n === 'object' ? n.name : n));
-    detailNames = [...new Set(detailNames)].filter(n => n); // unique
-
-    if (detailNames.length > 0) {
-      const nameStr = detailNames.join(", ") + (item.with_more > 0 ? ` & ${item.with_more} अन्य` : "");
+    if (Array.isArray(item.with_names) && item.with_names.length > 0) {
+      const nameStr = item.with_names.join(", ") + (item.with_more > 0 ? ` & ${item.with_more} अन्य` : "");
       push("👥 पहचाने गए लोग", nameStr);
     }
     push("📄 विवरण", data.program_details || data.report_summary || data["विवरण"]);
@@ -1610,7 +1832,7 @@
           el.matchPills.innerHTML = `<span class="px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-widest bg-gold-400/10 border border-gold-400/30 text-gold-400 shadow-md">${pCount} फोटो</span><span class="px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-widest bg-teal-400/10 border border-teal-400/30 text-teal-400 shadow-md">${tCount} इवेंट</span><span class="px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-widest bg-teal-400/20 border border-teal-400/50 text-teal-400 shadow-[0_0_15px_rgba(62,207,178,0.3)]">${sim}% मैच</span>`;
         }
         if (el.matchTitle) el.matchTitle.textContent = "✅ मैच मिल गया!";
-        if (el.matchSubtitle) el.matchSubtitle.textContent = "डेटा अनलॉक करने के लिए विवरण भरें";
+        if (el.matchSubtitle) el.matchSubtitle.textContent = "डेटा देखने के लिए विवरण भरें";
         const profile = res.profile||{};
         if (el.nameInput&&profile.name) el.nameInput.value = profile.name;
         if (el.mobileInput&&profile.mobile) el.mobileInput.value = profile.mobile;
@@ -1784,8 +2006,215 @@
 })();
 </script>
 
-<script>
-// ── Timeline Grouping Patch ──
+  <!-- ══ MOBILE BOTTOM BAR ══ -->
+  <div id="mobileBottomBar">
+    <button id="mobileSearchBtn" class="btn-primary flex-1 text-sm flex items-center justify-center gap-2 ripple-container" style="min-height:48px;">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span id="mobileBottomBtnText">चेहरा खोजें</span>
+    </button>
+    <button id="mobileConfirmBtn" class="btn-success hidden flex-1 text-sm flex items-center justify-center gap-2 ripple-container" style="min-height:48px;">
+      <i class="fa-solid fa-unlock-keyhole"></i>
+      <span>रिपोर्ट अनलॉक करें</span>
+    </button>
+  </div>
+
+  <script>
+  // ── Toast System ──
+  function showToast(msg, type = 'success', duration = 3500) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const icons = { success:'fa-circle-check', error:'fa-circle-xmark', loading:'fa-spinner fa-spin' };
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `<i class="fa-solid ${icons[type]||icons.success} toast-icon"></i><span style="flex:1;font-family:'Outfit',sans-serif;">${msg}</span><i class="fa-solid fa-xmark toast-close"></i>`;
+    container.appendChild(toast);
+    toast.querySelector('.toast-close').addEventListener('click', () => dismissToast(toast));
+    requestAnimationFrame(() => { requestAnimationFrame(() => { toast.classList.add('show'); }); });
+    if (type !== 'loading') setTimeout(() => dismissToast(toast), duration);
+    return toast;
+  }
+  function dismissToast(toast) {
+    if (!toast || toast._dismissed) return;
+    toast._dismissed = true;
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 500);
+  }
+
+  // ── Ripple Effect ──
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.ripple-container');
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px;`;
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+
+  // ── Animated Counter ──
+  function animateCounter(el, target, duration = 1200) {
+    if (!el) return;
+    const start = parseInt(el.textContent.replace(/[^0-9]/g,'')) || 0;
+    const num = parseInt(target) || 0;
+    if (start === num) return;
+    const startTime = performance.now();
+    function update(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(start + (num - start) * eased);
+      el.textContent = current;
+      if (progress < 1) requestAnimationFrame(update);
+      else el.textContent = target;
+    }
+    requestAnimationFrame(update);
+  }
+
+  // ── Arc chart updater ──
+  function updateArc(arcId, percent) {
+    const arc = document.getElementById(arcId);
+    if (!arc) return;
+    const total = 78.5;
+    arc.style.strokeDashoffset = total - (total * Math.min(percent/100, 1));
+  }
+
+  // ── Profile Hero updater ──
+  function updateProfileHero(name, mobile, photoUrl) {
+    const hero = document.getElementById('profileHero');
+    const nameEl = document.getElementById('profileNameDisplay');
+    const mobileEl = document.getElementById('profileMobileDisplay');
+    const avatarImg = document.getElementById('profileAvatarImg');
+    const avatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
+    if (!hero) return;
+    if (name) {
+      hero.classList.remove('hidden');
+      if (nameEl) nameEl.textContent = name;
+    }
+    if (mobile && mobileEl) {
+      mobileEl.textContent = mobile;
+      mobileEl.classList.remove('hidden');
+    }
+    if (photoUrl && avatarImg) {
+      avatarImg.src = photoUrl;
+      avatarImg.classList.remove('hidden');
+      if (avatarPlaceholder) avatarPlaceholder.classList.add('hidden');
+    }
+  }
+
+  // ── WhatsApp Share ──
+  const whatsappBtn = document.getElementById('whatsappShareBtn');
+  if (whatsappBtn) {
+    whatsappBtn.addEventListener('click', () => {
+      const score = document.getElementById('scoreVal')?.textContent || '—';
+      const events = document.getElementById('eventCountVal')?.textContent || '0';
+      const photos = document.getElementById('photoCountVal')?.textContent || '0';
+      const name = document.getElementById('nameInput')?.value || 'कार्यकर्ता';
+      const text = `🔍 *EventLens AI - Search Report*\n\n👤 नाम: ${name}\n🎯 Match: ${score}\n📅 Events: ${events}\n📸 Photos: ${photos}\n\n_Generated by EventLens AI_`;
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    });
+  }
+
+  // ── Mobile bottom bar sync ──
+  (function() {
+    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+    const mobileConfirmBtn = document.getElementById('mobileConfirmBtn');
+    const realSearchBtn = document.getElementById('searchBtn');
+    const realConfirmBtn = document.getElementById('confirmBtn');
+    if (mobileSearchBtn && realSearchBtn) {
+      mobileSearchBtn.addEventListener('click', () => { realSearchBtn.click(); });
+    }
+    if (mobileConfirmBtn && realConfirmBtn) {
+      mobileConfirmBtn.addEventListener('click', () => { realConfirmBtn.click(); });
+    }
+    // Show confirm when step2 is visible
+    const step2 = document.getElementById('step2Card');
+    if (step2) {
+      const obs = new MutationObserver(() => {
+        const isVisible = !step2.classList.contains('hidden');
+        if (mobileSearchBtn) mobileSearchBtn.classList.toggle('hidden', isVisible);
+        if (mobileSearchBtn) mobileSearchBtn.classList.toggle('flex', !isVisible);
+        if (mobileConfirmBtn) mobileConfirmBtn.classList.toggle('hidden', !isVisible);
+        if (mobileConfirmBtn) mobileConfirmBtn.classList.toggle('flex', isVisible);
+      });
+      obs.observe(step2, { attributes: true, attributeFilter: ['class'] });
+    }
+  })();
+
+  // ── Intercept setStatus for toast ──
+  (function() {
+    const _origSet = window.setStatus;
+    // Patch after page load since setStatus is defined in main script
+    window.addEventListener('DOMContentLoaded', () => {});
+    // Monkey-patch updateDashboard to trigger profile hero + animated counters
+    const _origUpdate = window.updateDashboard;
+    window.updateDashboard = function(similarity, timelineCount, photoCount) {
+      if (typeof _origUpdate === 'function') _origUpdate(similarity, timelineCount, photoCount);
+      // Animated counters
+      const eVal = document.getElementById('eventCountVal');
+      const pVal = document.getElementById('photoCountVal');
+      const sVal = document.getElementById('scoreVal');
+      if (eVal) animateCounter(eVal, timelineCount);
+      if (pVal) animateCounter(pVal, photoCount);
+      // Arc charts
+      const simNum = parseFloat(similarity) || 0;
+      updateArc('arcMatch', simNum);
+      const maxEvents = 50;
+      updateArc('arcEvents', (parseInt(timelineCount)||0)/maxEvents*100);
+      const maxPhotos = 100;
+      updateArc('arcPhotos', (parseInt(photoCount)||0)/maxPhotos*100);
+      // Profile hero from input
+      const nameVal = document.getElementById('nameInput')?.value || '';
+      const mobileVal = document.getElementById('mobileInput')?.value || '';
+      if (nameVal) updateProfileHero(nameVal, mobileVal, '');
+    };
+  })();
+
+  // ── Add ripple to primary buttons ──
+  document.querySelectorAll('.btn-primary, .btn-success').forEach(btn => {
+    btn.classList.add('ripple-container');
+  });
+
+  // ── Add stagger to photo grid items ──
+  const _origRenderPhotos = window.renderPhotos;
+  if (typeof _origRenderPhotos === 'function') {
+    window.renderPhotos = function(photoUrls, timeline) {
+      const result = _origRenderPhotos(photoUrls, timeline);
+      const grid = document.getElementById('photosGrid');
+      if (grid) {
+        Array.from(grid.children).forEach((el, i) => {
+          el.classList.add('stagger-item');
+          el.style.animationDelay = `${i * 40}ms`;
+        });
+      }
+      return result;
+    };
+  }
+
+  // ── Toast on search actions ──
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchBtn = document.getElementById('searchBtn');
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (searchBtn) {
+      const _origClick = searchBtn.onclick;
+      searchBtn.addEventListener('click', function() {
+        const input = document.getElementById('selfieInput') || document.getElementById('uploadInput');
+        const hasFile = input && input.files && input.files.length > 0;
+        if (hasFile) showToast('AI स्कैन शुरू हो गया...', 'loading', 4000);
+      });
+    }
+    // Update profile hero when confirm is clicked
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function() {
+        const nameVal = document.getElementById('nameInput')?.value || '';
+        const mobileVal = document.getElementById('mobileInput')?.value || '';
+        if (nameVal) updateProfileHero(nameVal, mobileVal, '');
+      });
+    }
+  });
+  </script>
 let globalTimelineGroups = [];
 function buildTimelineGroups(timelineArr) {
   const timeline = Array.isArray(timelineArr) ? timelineArr : [];
@@ -1794,14 +2223,8 @@ function buildTimelineGroups(timelineArr) {
     if (!it||typeof it!=='object') continue;
     const eid = (it.event_id||it.eventId||it.event_key||it.eventKey||it.entry_id||it.entryId||'').toString().trim();
     const gid = eid||(it.entry_id||it.entryId||'').toString().trim()||Math.random().toString(36).slice(2);
-    if (!map.has(gid)) { map.set(gid,{group_id:gid,event_id:eid||gid,form_type:it.form_type||it.ft||'unknown',created_at:it.created_at||'0',created_at_iso:it.created_at_iso||'',with_label:it.with_label||'',face_count:it.face_count||0,district:it.district||(it.data||{}).district||'',vidhansabha:it.vidhansabha||(it.data||{}).vidhansabha||'',mandal:it.mandal||(it.data||{}).mandal||'',items:[it], recognized_people: it.recognized_people}); }
-    else { 
-        const g=map.get(gid); 
-        g.items.push(it); 
-        const ca=Number(it.created_at||0),ga=Number(g.created_at||0); 
-        if (ca>ga){g.created_at=it.created_at||g.created_at;g.created_at_iso=it.created_at_iso||g.created_at_iso;g.district=it.district||g.district;g.vidhansabha=it.vidhansabha||g.vidhansabha;g.mandal=it.mandal||g.mandal;g.form_type=it.form_type||it.ft||g.form_type;} 
-        if (Array.isArray(it.recognized_people)) { g.recognized_people = [...new Set([...(g.recognized_people || []), ...it.recognized_people])]; }
-    }
+    if (!map.has(gid)) { map.set(gid,{group_id:gid,event_id:eid||gid,form_type:it.form_type||it.ft||'unknown',created_at:it.created_at||'0',created_at_iso:it.created_at_iso||'',with_label:it.with_label||'',face_count:it.face_count||0,district:it.district||(it.data||{}).district||'',vidhansabha:it.vidhansabha||(it.data||{}).vidhansabha||'',mandal:it.mandal||(it.data||{}).mandal||'',items:[it]}); }
+    else { const g=map.get(gid); g.items.push(it); const ca=Number(it.created_at||0),ga=Number(g.created_at||0); if (ca>ga){g.created_at=it.created_at||g.created_at;g.created_at_iso=it.created_at_iso||g.created_at_iso;g.district=it.district||g.district;g.vidhansabha=it.vidhansabha||g.vidhansabha;g.mandal=it.mandal||g.mandal;g.form_type=it.form_type||it.ft||g.form_type;} }
   }
   const groups = Array.from(map.values()); groups.sort((a,b)=>Number(b.created_at||0)-Number(a.created_at||0)); return groups;
 }
@@ -1811,8 +2234,8 @@ function updateDashboard(similarity,timelineCount,photoCount) {
 }
 function renderTimelineGroups(groups) {
   const grid=document.getElementById("viewTimeline"); if(!grid)return; grid.innerHTML="";
-  if(!Array.isArray(groups)||groups.length===0){grid.innerHTML='<div class="text-center text-sm py-10" style="color:#475569">No timeline entries.</div>';return;}
-  const repItems=groups.map(g=>{const rep=(g.items&&g.items[0])?g.items[0]:{};return Object.assign({},rep,{_groupPhotos:g.items,_itemCount:g.items.length, recognized_people: g.recognized_people});});
+  if(!Array.isArray(groups)||groups.length===0){grid.innerHTML='<div class="text-center py-16 text-sm font-bold tracking-widest uppercase text-slate-500 bg-white/5 rounded-3xl border border-white/5">No timeline entries.</div>';return;}
+  const repItems=groups.map(g=>{const rep=(g.items&&g.items[0])?g.items[0]:{};return Object.assign({},rep,{_groupPhotos:g.items,_itemCount:g.items.length});});
   if(typeof window._renderTimelineMain==='function')window._renderTimelineMain(repItems,window._globalPhotoMap||new Map());
 }
 function applyFilter() {
