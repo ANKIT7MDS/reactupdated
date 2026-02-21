@@ -664,13 +664,18 @@ function showStatsPopup(profile, events, photoUrls) {
 
 function closePopup() {
   $("stats-popup").classList.remove("show");
-  // Auto-fill form with matched data
+  // Auto-fill form with ALL matched data
   if (matchedFaceData && matchedFaceData.profile) {
     const p = matchedFaceData.profile;
     if (p.name && $("name")) $("name").value = p.name;
     if (p.mobile && $("mobile")) $("mobile").value = p.mobile;
+    if (p.designation && $("designation")) $("designation").value = p.designation;
+    if (p.address && $("address")) $("address").value = p.address;
+    // District → Vidhansabha → Mandal cascade (after initDistrictCascade runs)
     $("form-match-badge").classList.remove("hidden");
     $("match-summary").textContent = "✅ डेटा auto-fill हुआ";
+    // Store profile for location fill after cascade is initialized
+    window._pendingLocationFill = p;
   }
   proceedToForm();
 }
@@ -684,10 +689,17 @@ function closePopupSkip() {
 function proceedToForm() {
   $("camera-screen").style.display = "none";
   $("form-screen").classList.add("show");
-  // Load branding for form
   applyFormBranding();
   initDistrictCascade();
   setupMobileLookup();
+
+  // Apply location autofill AFTER cascade is initialized
+  if (window._pendingLocationFill) {
+    const p = window._pendingLocationFill;
+    window._pendingLocationFill = null;
+    // Small delay to ensure cascade dropdowns are ready
+    setTimeout(() => applyLocationAutofill(p), 100);
+  }
 }
 
 function goBackToCamera() {
@@ -2734,12 +2746,24 @@ function applyLocationAutofill(info) {
   const d = (info.district||"").trim();
   const v = (info.vidhansabha||"").trim();
   const m = (info.mandal||"").trim();
-  if (d && $("district")) {
-    $("district").value = d; $("district").dispatchEvent(new Event("change"));
+  if (!d) return;
+
+  const dSel = $("district");
+  const vSel = $("vidhansabha");
+  const mSel = $("mandal");
+  if (!dSel) return;
+
+  dSel.value = d;
+  dSel.dispatchEvent(new Event("change"));
+
+  if (v && vSel) {
     setTimeout(() => {
-      if (v && $("vidhansabha")) { $("vidhansabha").value = v; $("vidhansabha").dispatchEvent(new Event("change")); }
-      setTimeout(() => { if (m && $("mandal")) $("mandal").value = m; }, 120);
-    }, 120);
+      vSel.value = v;
+      vSel.dispatchEvent(new Event("change"));
+      if (m && mSel) {
+        setTimeout(() => { mSel.value = m; }, 150);
+      }
+    }, 150);
   }
 }
 
