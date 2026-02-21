@@ -583,9 +583,7 @@
             <button id="copySummaryBtnMobile" class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold btn-ghost">
               <i class="fa-regular fa-copy text-[10px]" style="color:#D4A017"></i> Copy Stats
             </button>
-            <button id="btnAiReport" class="hidden flex-1 items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white" style="background:linear-gradient(135deg,#3730a3,#6d28d9);box-shadow:0 4px 20px rgba(109,40,217,0.3);">
-              <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> AI Report ✨
-            </button>
+            <div id="btnAiReport" class="hidden"></div>
           </div>
         </div>
 
@@ -656,9 +654,7 @@
             <button class="filter-btn filter-pill" data-filter="tour">Tours</button>
             <button class="filter-btn filter-pill" data-filter="report">Reports</button>
             <button class="filter-btn filter-pill" data-filter="other">Others</button>
-            <button id="btnAiReportTimeline" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white ml-auto flex-shrink-0" style="background:linear-gradient(135deg,#3730a3,#6d28d9);box-shadow:0 4px 16px rgba(109,40,217,0.3);">
-              <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> AI Report
-            </button>
+            <div id="btnAiReportTimeline" class="hidden"></div>
           </div>
 
           <div class="p-4 sm:p-5">
@@ -1018,7 +1014,7 @@
     el.resultsContainer.classList.remove("hidden");
     el.copySummaryBtn && el.copySummaryBtn.classList.remove("hidden");
     el.copySummaryBtn && el.copySummaryBtn.classList.add("flex");
-    if (el.btnAiReport) { el.btnAiReport.classList.remove("hidden"); el.btnAiReport.classList.add("flex"); }
+    // AI Report removed
     initFilters();
     const simNum = Number(sim);
     el.scoreVal.textContent = `${simNum.toFixed(0)}%`;
@@ -1189,8 +1185,8 @@
       if (totalAtt) pills.push({ text: `👥 ${String(totalAtt)} उपस्थित`, style: "background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.2);color:#60A5FA;" });
       if (level) pills.push({ text: level, style: "background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);color:#A78BFA;" });
       if (designation) pills.push({ text: designation, style: "background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);color:#F97316;" });
-      if (withLabel) pills.push({ text: `✓ ${withLabel}`, style: "background:rgba(62,207,178,0.08);border:1px solid rgba(62,207,178,0.25);color:#3ECFB2;" });
-      else if (faceCount > 1) pills.push({ text: `👤 ${faceCount} लोग`, style: "background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#64748b;" });
+      if (withLabel) pills.push({ text: `✓ ${withLabel.split(',')[0].trim()}`, style: "background:rgba(62,207,178,0.08);border:1px solid rgba(62,207,178,0.25);color:#3ECFB2;" });
+      // faceCount shown in photo section with names now
       if (guests) pills.push({ text: `अतिथि: ${String(guests).slice(0, 28)}`, style: "background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#94a3b8;" });
       if (speakers) pills.push({ text: `वक्ता: ${String(speakers).slice(0, 28)}`, style: "background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#94a3b8;" });
       if (pills.length) {
@@ -1204,24 +1200,89 @@
 
       card.innerHTML = html;
 
-      // Row 5: Photo thumbnails (compact)
+      // ── Row 5: Photo thumbnails (bigger) + Names beneath ──
       if (eventPhotos.length > 0) {
-        const strip = document.createElement("div"); strip.className = "flex gap-1 mb-1.5"; strip.style.overflowX = "auto";
-        const maxShow = 6;
-        eventPhotos.slice(0, maxShow).forEach(u => {
+        const photoSection = document.createElement("div");
+        photoSection.style.cssText = "margin-bottom:6px;";
+
+        // Parse names from with_label + face data
+        // with_label format: "अंकित सोनी, सौरभ, राहुल" or "Name1 with Name2, Name3"
+        const allNames = [];
+        if (withLabel && withLabel.trim()) {
+          // Split by comma, "with", "and", "एंड", "और"
+          const raw = withLabel.replace(/\bwith\b/gi, ',').replace(/\band\b/gi, ',').replace(/\bएंड\b/g, ',').replace(/\bऔर\b/g, ',');
+          raw.split(',').forEach(n => { const t = n.trim(); if (t) allNames.push(t); });
+        }
+        // Also check item.faces array if present
+        if (Array.isArray(item.faces)) {
+          item.faces.forEach(f => {
+            const n = f.name || f.Name || f.label || "";
+            if (n && !allNames.includes(n)) allNames.push(n);
+          });
+        }
+        // Also check data.attendees or data.names
+        const attendeeStr = data.attendees || data.attendee_names || data["उपस्थित_नाम"] || "";
+        if (attendeeStr) {
+          String(attendeeStr).split(',').forEach(n => { const t = n.trim(); if (t && !allNames.includes(t)) allNames.push(t); });
+        }
+
+        // Build thumbnail strip
+        const strip = document.createElement("div");
+        strip.style.cssText = "display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;";
+        const maxShow = 5;
+        eventPhotos.slice(0, maxShow).forEach((u, pi) => {
+          const thumb = document.createElement("div");
+          thumb.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;";
+
           const im = document.createElement("img"); setImgSrcWithRetry(im, u);
-          im.style.cssText = "width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid rgba(212,160,23,0.15);flex-shrink:0;transition:border-color 0.2s;";
-          im.onmouseenter = () => im.style.borderColor = "rgba(212,160,23,0.5)";
-          im.onmouseleave = () => im.style.borderColor = "rgba(212,160,23,0.15)";
-          strip.appendChild(im);
+          im.style.cssText = "width:56px;height:56px;border-radius:8px;object-fit:cover;border:1.5px solid rgba(212,160,23,0.2);flex-shrink:0;transition:border-color 0.2s,transform 0.2s;display:block;";
+          im.onmouseenter = () => { im.style.borderColor = "rgba(212,160,23,0.7)"; im.style.transform = "scale(1.05)"; };
+          im.onmouseleave = () => { im.style.borderColor = "rgba(212,160,23,0.2)"; im.style.transform = "scale(1)"; };
+
+          // Name label below thumbnail
+          if (allNames[pi]) {
+            const nameEl = document.createElement("div");
+            const firstName = allNames[pi].split(' ')[0]; // First name only to keep compact
+            nameEl.style.cssText = "font-size:8px;font-weight:700;color:#94a3b8;text-align:center;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1;";
+            nameEl.title = allNames[pi]; // Full name on hover
+            nameEl.textContent = firstName;
+            thumb.appendChild(im);
+            thumb.appendChild(nameEl);
+          } else {
+            thumb.appendChild(im);
+          }
+          strip.appendChild(thumb);
         });
+
+        // "+N more" tile
         if (eventPhotos.length > maxShow) {
           const more = document.createElement("div");
-          more.style.cssText = "width:40px;height:40px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);color:#D4A017;gap:1px;flex-shrink:0;";
-          more.innerHTML = `<i class="fa-solid fa-images text-xs"></i><span>+${eventPhotos.length - maxShow}</span>`;
+          more.style.cssText = "width:56px;height:56px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:800;background:rgba(212,160,23,0.08);border:1.5px dashed rgba(212,160,23,0.3);color:#D4A017;gap:2px;flex-shrink:0;";
+          more.innerHTML = `<i class="fa-solid fa-images text-sm"></i><span>+${eventPhotos.length - maxShow}</span>`;
           strip.appendChild(more);
         }
-        card.appendChild(strip);
+
+        photoSection.appendChild(strip);
+
+        // Names summary row below thumbnails (if more names than thumbnails shown)
+        if (allNames.length > 0) {
+          const nameRow = document.createElement("div");
+          nameRow.style.cssText = "margin-top:4px;";
+          const shown = allNames.slice(0, 2);
+          const remaining = allNames.length - shown.length;
+          let nameText = shown.map(n => `<span style="color:#D4A017;font-weight:700;">${escapeHtml(n)}</span>`).join(', ');
+          if (remaining > 0) nameText += ` <span style="color:#475569">& ${remaining} अन्य</span>`;
+          nameRow.innerHTML = `<span style="font-size:10px;color:#64748b;"><i class="fa-solid fa-users text-[8px] mr-1" style="color:#D4A01780;"></i>${nameText}</span>`;
+          photoSection.appendChild(nameRow);
+        } else if (faceCount > 1) {
+          // fallback: just show face count if no names
+          const nameRow = document.createElement("div");
+          nameRow.style.cssText = "margin-top:3px;font-size:10px;color:#475569;";
+          nameRow.innerHTML = `<i class="fa-solid fa-users text-[8px] mr-1"></i>${faceCount} लोग उपस्थित`;
+          photoSection.appendChild(nameRow);
+        }
+
+        card.appendChild(photoSection);
       }
 
       // Footer: slideshow CTA
