@@ -305,8 +305,23 @@ const BASE_URL = `https://${API_ID}.execute-api.${REGION}.amazonaws.com/prod`;
 
 const qs = (n) => { try { return new URLSearchParams(window.location.search).get(n) || ""; } catch(e) { return ""; } };
 const token = qs("token") || "";
-const cidParam = (qs("cid") || qs("collection_id") || "").trim();
 const $ = id => document.getElementById(id);
+
+// cidParam: from URL directly, OR resolved from token response
+let cidParam = (qs("cid") || qs("collection_id") || "").trim();
+
+// Resolve collection_id from token if not in URL
+async function resolveCollectionId() {
+  if (cidParam) return; // already have it
+  if (!token) return;
+  try {
+    const res = await apiCall("public_get_config", { token, form_type: "president_tour_form" });
+    const cid = res.collection_id || res.cid ||
+      (res.config && (res.config.collection_id || res.config.cid)) ||
+      (res.settings && (res.settings.collection_id || res.settings.cid)) || "";
+    if (cid) { cidParam = cid.trim(); }
+  } catch(e) { console.warn("resolveCollectionId failed", e); }
+}
 
 // ─── STATE ───
 let allTours = [];
@@ -887,6 +902,9 @@ document.addEventListener("keydown", e => {
   const yearAgo = new Date(now - 365 * 24 * 3600 * 1000);
   $("f-to").value = now.toISOString().split("T")[0];
   $("f-from").value = yearAgo.toISOString().split("T")[0];
+
+  // First resolve collection_id from token if needed
+  await resolveCollectionId();
 
   await Promise.all([loadBranding(), loadData()]);
 })();
