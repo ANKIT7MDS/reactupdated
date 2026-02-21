@@ -2825,11 +2825,17 @@ function showSuccess(formData) {
 }
 
 function openTimeline() {
-  // Redirect to search page with token/cid
+  // Redirect to search page with token/cid + name/mobile for direct search
   const params = new URLSearchParams();
   if (token) params.set("token", token);
   else if (cidParam) params.set("cid", cidParam);
-  // Also pass the selfie as hint (pre-fill search)
+  
+  // Pass name/mobile so search page can auto-search without selfie
+  const nameVal = ($("name") && $("name").value) ? $("name").value.trim() : "";
+  const mobileVal = ($("mobile") && $("mobile").value) ? $("mobile").value.trim() : "";
+  if (nameVal) params.set("autosearch_name", nameVal);
+  if (mobileVal) params.set("autosearch_mobile", mobileVal);
+  
   const url = `${SEARCH_URL}?${params.toString()}`;
   window.location.href = url;
 }
