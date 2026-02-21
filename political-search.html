@@ -30,6 +30,7 @@
       --gold-400: #EFC24A; --gold-500: #D4A017; --crimson-500: #E63950; --jade-400: #3ECFB2;
     }
     * { box-sizing: border-box; }
+    html, body { overflow-x: hidden; max-width: 100vw; }
     html { scroll-behavior: smooth; }
 
     body {
@@ -465,6 +466,25 @@
         preview.src = url; preview.classList.remove("hidden");
         if (placeholder) placeholder.classList.add("hidden");
         if (scanLine) scanLine.classList.remove("hidden");
+        // Also set as profile avatar thumbnail
+        const avatarImg = document.getElementById('profileAvatarImg');
+        const avatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
+        if (avatarImg) {
+          avatarImg.src = url;
+          avatarImg.classList.remove('hidden');
+          if (avatarPlaceholder) avatarPlaceholder.classList.add('hidden');
+        }
+        // On mobile: if selfieInput (camera zone), auto-submit after short delay
+        if (inputEl.id === 'selfieInput') {
+          // Only auto-submit on actual mobile devices, not desktop
+          const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+          if (isMobile) {
+            setTimeout(() => {
+              const searchBtn = document.getElementById('searchBtn');
+              if (searchBtn && !searchBtn.disabled) searchBtn.click();
+            }, 500);
+          }
+        }
       } catch (e) { console.error(e); }
     }
 
@@ -527,35 +547,28 @@
     </div>
   </nav>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12 relative z-10 safe-area-bottom">
-    <div class="grid lg:grid-cols-12 gap-8 lg:gap-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 relative z-10 safe-area-bottom" style="overflow-x:hidden;">
+    <div class="grid lg:grid-cols-12 gap-6 lg:gap-8">
 
-      <!-- ══ LEFT COLUMN (Now Sticky on Desktop) ══ -->
-      <div class="lg:col-span-4 relative">
-        <div class="sticky top-28 space-y-6 sm:space-y-8">
+      <!-- ══ LEFT COLUMN ══ -->
+      <div class="lg:col-span-3 relative">
+        <div class="sticky top-24 space-y-4">
           
           <!-- ─ Step Indicator ─ -->
-          <div class="flex items-center justify-between px-3 bg-white/5 backdrop-blur-xl p-4 rounded-3xl border border-white/10 shadow-lg">
-            <div class="flex items-center gap-3">
+          <div class="flex items-center justify-between px-3 bg-white/5 backdrop-blur-xl p-3 rounded-2xl border border-white/10 shadow-lg">
+            <div class="flex items-center gap-2">
                <div class="step-num active" id="step1Num">1</div>
-               <div class="flex flex-col">
-                 <span class="text-xs font-extrabold text-white uppercase tracking-widest">सेल्फी</span>
-                 <span class="text-[10px] text-slate-400 font-medium tracking-wide">स्कैन करें</span>
-               </div>
+               <span class="text-[10px] font-extrabold text-white uppercase tracking-widest hidden sm:block">सेल्फी</span>
             </div>
-            <div class="step-line mx-2" id="stepLine1"></div>
-            <div class="flex items-center gap-3">
+            <div class="step-line mx-1" id="stepLine1"></div>
+            <div class="flex items-center gap-2">
                <div class="step-num pending" id="step2Num">2</div>
-               <div class="flex flex-col hidden sm:flex">
-                 <span class="text-xs font-bold text-slate-500 uppercase tracking-widest" id="step2Label">विवरण</span>
-               </div>
+               <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden sm:block" id="step2Label">विवरण</span>
             </div>
-            <div class="step-line mx-2" id="stepLine2"></div>
-            <div class="flex items-center gap-3">
+            <div class="step-line mx-1" id="stepLine2"></div>
+            <div class="flex items-center gap-2">
                <div class="step-num pending" id="step3Num">3</div>
-               <div class="flex flex-col hidden sm:flex">
-                 <span class="text-xs font-bold text-slate-500 uppercase tracking-widest" id="step3Label">रिजल्ट</span>
-               </div>
+               <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden sm:block" id="step3Label">रिजल्ट</span>
             </div>
           </div>
 
@@ -577,7 +590,7 @@
 
               <div class="relative mb-6">
                 <label class="upload-zone rounded-3xl flex flex-col items-center justify-center cursor-pointer min-h-[280px]">
-                  <input id="selfieInput" accept="image/*" capture="user" type="file" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="previewImage(this)" />
+                  <input id="selfieInput" accept="image/*" type="file" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="previewImage(this)" />
                   <div id="uploadPlaceholder" class="flex flex-col items-center justify-center py-10 pointer-events-none select-none upload-zone-inner relative">
                     <!-- Scan corners -->
                     <div class="scan-corner scan-corner-tl"></div>
@@ -608,7 +621,7 @@
                 <span class="tracking-wide">या गैलरी से फोटो चुनें</span>
               </label>
 
-              <button id="searchBtn" class="btn-primary w-full text-base flex items-center justify-center gap-3 z-10">
+              <button id="searchBtn" class="btn-primary w-full text-base flex items-center justify-center gap-3 z-10 lg:flex hidden">
                 <i class="fa-solid fa-magnifying-glass text-xl"></i>
                 <span>चेहरा खोजें</span>
               </button>
@@ -666,76 +679,54 @@
           </div>
 
           <!-- ─ Stats (visible after results load) ─ -->
-          <div id="statsDashboard" class="hidden space-y-5 animate-fadeup">
+          <div id="statsDashboard" class="hidden space-y-3 animate-fadeup">
             <!-- Profile Hero Banner -->
-            <div id="profileHero" class="hidden p-5 sm:p-6">
-              <div class="flex items-center gap-4 relative z-10">
-                <img id="profileAvatarImg" class="profile-avatar hidden" src="" alt="Profile" />
-                <div id="profileAvatarPlaceholder" class="profile-avatar flex items-center justify-center bg-gold-400/10 border-gold-400/40">
-                  <i class="fa-solid fa-user text-2xl text-gold-400"></i>
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div id="profileNameDisplay" class="profile-name truncate">—</div>
-                  <div class="flex items-center gap-3 mt-2 flex-wrap">
-                    <span id="profileMobileDisplay" class="text-xs font-mono text-slate-400 tracking-widest hidden"></span>
-                    <span class="text-[10px] px-2.5 py-1 rounded-lg bg-teal-400/10 border border-teal-400/30 text-teal-400 font-extrabold uppercase tracking-widest">✓ Identified</span>
+            <div id="profileHero" class="hidden p-4 rounded-2xl overflow-hidden" style="background:linear-gradient(135deg,rgba(17,32,68,0.7) 0%,rgba(2,5,10,0.9) 100%);border:1px solid rgba(212,160,23,0.2);backdrop-filter:blur(40px);">
+              <div class="flex items-center gap-3 relative z-10">
+                <div class="relative flex-shrink-0">
+                  <img id="profileAvatarImg" class="profile-avatar hidden" src="" alt="Profile" style="width:52px;height:52px;" />
+                  <div id="profileAvatarPlaceholder" class="flex items-center justify-center bg-gold-400/10 border-gold-400/40 rounded-full" style="width:52px;height:52px;border:2px solid rgba(212,160,23,0.4);">
+                    <i class="fa-solid fa-user text-lg text-gold-400"></i>
                   </div>
                 </div>
-                <div class="text-right flex-shrink-0">
-                  <div class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1">Match</div>
-                  <div class="font-display text-2xl font-bold text-gradient-teal" id="similarityText">—</div>
+                <div class="min-w-0 flex-1">
+                  <div id="profileNameDisplay" class="font-display font-bold text-white truncate text-sm" style="background:linear-gradient(135deg,#FFEAA7,#D4A017);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">—</div>
+                  <div class="flex items-center gap-2 mt-1 flex-wrap">
+                    <span id="profileMobileDisplay" class="text-[10px] font-mono text-slate-400 tracking-widest hidden"></span>
+                    <span class="text-[9px] px-2 py-0.5 rounded-md bg-teal-400/10 border border-teal-400/30 text-teal-400 font-extrabold uppercase tracking-widest">✓ Identified</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-3 sm:gap-4">
-              <div class="stat-card p-4 sm:p-5 group overflow-hidden">
-                <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-500 group-hover:scale-110"><i class="fa-solid fa-fingerprint text-8xl text-teal-400"></i></div>
-                <!-- Arc chart -->
-                <div class="flex justify-end mb-2">
-                  <svg class="arc-svg" viewBox="0 0 60 40">
-                    <path class="arc-bg" d="M 5 35 A 25 25 0 0 1 55 35" />
-                    <path id="arcMatch" class="arc-fill" d="M 5 35 A 25 25 0 0 1 55 35" stroke="#3ECFB2" stroke-dasharray="78.5" stroke-dashoffset="78.5"/>
-                  </svg>
-                </div>
-                <div class="text-[10px] font-extrabold uppercase tracking-widest mb-2 text-slate-400">Match</div>
-                <div class="text-3xl sm:text-4xl font-display font-bold text-gradient-teal mb-3" id="scoreVal">—</div>
-                <div class="rounded-full overflow-hidden bg-white/10 h-1.5 shadow-inner">
-                  <div id="scoreBar" class="stat-bar-fill w-0 bg-gradient-to-r from-teal-500 to-emerald-300"></div>
+            <!-- Stats grid - compact 3 col -->
+            <div class="grid grid-cols-3 gap-2">
+              <div class="stat-card p-3 group overflow-hidden">
+                <div class="text-[9px] font-extrabold uppercase tracking-widest mb-1 text-slate-500">Match</div>
+                <div class="text-xl font-display font-bold text-gradient-teal" id="scoreVal">—</div>
+                <div class="rounded-full overflow-hidden bg-white/10 h-1 mt-2 shadow-inner">
+                  <div id="scoreBar" class="stat-bar-fill w-0 bg-gradient-to-r from-teal-500 to-emerald-300" style="height:4px;"></div>
                 </div>
               </div>
-              <div class="stat-card p-4 sm:p-5 group overflow-hidden">
-                <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-500 group-hover:scale-110"><i class="fa-solid fa-map-location-dot text-8xl text-gold-400"></i></div>
-                <div class="flex justify-end mb-2">
-                  <svg class="arc-svg" viewBox="0 0 60 40">
-                    <path class="arc-bg" d="M 5 35 A 25 25 0 0 1 55 35" />
-                    <path id="arcEvents" class="arc-fill" d="M 5 35 A 25 25 0 0 1 55 35" stroke="#D4A017" stroke-dasharray="78.5" stroke-dashoffset="78.5"/>
-                  </svg>
-                </div>
-                <div class="text-[10px] font-extrabold uppercase tracking-widest mb-2 text-slate-400">Events</div>
-                <div class="text-3xl sm:text-4xl font-display font-bold text-white tracking-wide count-animate" id="eventCountVal">0</div>
+              <div class="stat-card p-3 group overflow-hidden">
+                <div class="text-[9px] font-extrabold uppercase tracking-widest mb-1 text-slate-500">Events</div>
+                <div class="text-xl font-display font-bold text-white tracking-wide count-animate" id="eventCountVal">0</div>
                 <div id="timelineCount" class="hidden"></div>
               </div>
-              <div class="stat-card p-4 sm:p-5 group overflow-hidden">
-                <div class="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-500 group-hover:scale-110"><i class="fa-solid fa-camera-retro text-8xl text-gold-400"></i></div>
-                <div class="flex justify-end mb-2">
-                  <svg class="arc-svg" viewBox="0 0 60 40">
-                    <path class="arc-bg" d="M 5 35 A 25 25 0 0 1 55 35" />
-                    <path id="arcPhotos" class="arc-fill" d="M 5 35 A 25 25 0 0 1 55 35" stroke="#EFC24A" stroke-dasharray="78.5" stroke-dashoffset="78.5"/>
-                  </svg>
-                </div>
-                <div class="text-[10px] font-extrabold uppercase tracking-widest mb-2 text-slate-400">Photos</div>
-                <div class="text-3xl sm:text-4xl font-display font-bold text-white tracking-wide count-animate" id="photoCountVal">0</div>
+              <div class="stat-card p-3 group overflow-hidden">
+                <div class="text-[9px] font-extrabold uppercase tracking-widest mb-1 text-slate-500">Photos</div>
+                <div class="text-xl font-display font-bold text-white tracking-wide count-animate" id="photoCountVal">0</div>
                 <div id="photoCount" class="hidden"></div>
+                <div id="similarityText" class="hidden"></div>
               </div>
             </div>
 
-            <div class="flex gap-3">
-              <button id="copySummaryBtnMobile" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-widest btn-ghost border border-white/10 bg-white/5 hover:bg-white/10">
-                <i class="fa-solid fa-share-nodes text-gold-400 text-base"></i> Share
+            <div class="flex gap-2">
+              <button id="copySummaryBtnMobile" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest btn-ghost border border-white/10 bg-white/5 hover:bg-white/10">
+                <i class="fa-solid fa-share-nodes text-gold-400 text-sm"></i> Share
               </button>
-              <button id="whatsappShareBtn" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-widest btn-whatsapp">
-                <i class="fa-brands fa-whatsapp text-base"></i> WhatsApp
+              <button id="whatsappShareBtn" class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest btn-whatsapp">
+                <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
               </button>
               <div id="btnAiReport" class="hidden"></div>
             </div>
@@ -745,7 +736,7 @@
       </div>
 
       <!-- ══ RIGHT COLUMN ══ -->
-      <div class="lg:col-span-8 space-y-8 relative">
+      <div class="lg:col-span-9 space-y-6 relative">
 
         <!-- Empty State -->
         <div id="emptyState" class="glass rounded-[40px] flex flex-col items-center justify-center text-center p-10 min-h-[600px] relative overflow-hidden">
@@ -804,61 +795,54 @@
         </div>
 
         <!-- Results Container -->
-        <div id="resultsContainer" class="hidden glass rounded-[40px] overflow-hidden min-h-[600px] flex flex-col shadow-2xl border border-white/10 relative">
+        <div id="resultsContainer" class="hidden animate-fadeup">
 
-          <!-- Tabs -->
-          <div class="flex items-stretch bg-[#02050A]/90 backdrop-blur-2xl border-b border-white/10 sticky top-[80px] sm:top-[96px] z-30 px-3 pt-3 hide-scroll shadow-lg" style="overflow-x: auto;">
-            <button id="btnTabPhotos" class="tab-btn tab-active flex-1 text-sm sm:text-base px-8 py-5 gap-3 whitespace-nowrap min-w-[160px]">
-              <i class="fa-regular fa-images text-lg"></i>
-              <span>Photo Gallery</span>
-            </button>
-            <button id="btnTabTimeline" class="tab-btn tab-inactive flex-1 text-sm sm:text-base px-8 py-5 gap-3 whitespace-nowrap min-w-[160px]">
-              <i class="fa-solid fa-timeline text-lg"></i>
-              <span>Timeline View</span>
-            </button>
-            <div class="flex-shrink-0 flex items-center px-5">
-               <button id="btnAllSlideshow" class="flex items-center gap-3 px-6 py-3.5 rounded-full bg-gold-400/10 text-gold-400 text-xs font-extrabold uppercase tracking-widest hover:bg-gold-400 hover:text-navy-950 transition-all duration-300 border border-gold-400/40 shadow-[0_0_20px_rgba(212,160,23,0.15)] hover:shadow-[0_0_30px_rgba(212,160,23,0.4)] hover:scale-105">
-                 <i class="fa-solid fa-play text-sm"></i>
-                 <span class="hidden sm:inline">Play All Events</span>
-               </button>
-            </div>
-          </div>
-
-          <!-- Filter pills (timeline only) -->
-          <div id="timelineFilters" class="hidden items-center gap-3 px-6 py-4 bg-white/5 border-b border-white/5 overflow-x-auto hide-scroll">
-            <button class="filter-btn filter-pill active" data-filter="all" style="font-family:'Noto Sans Devanagari',sans-serif;">सभी <span class="filter-count" id="countAll">0</span></button>
-            <button class="filter-btn filter-pill" data-filter="visitor_form">Visitor <span class="filter-count" id="countVisitor">0</span></button>
-            <button class="filter-btn filter-pill" data-filter="president_tour_form">Tour <span class="filter-count" id="countTour">0</span></button>
-            <button class="filter-btn filter-pill" data-filter="party_attendance">Attendance <span class="filter-count" id="countAttendance">0</span></button>
-            <button class="filter-btn filter-pill" data-filter="mandal_reporting_form">Mandal <span class="filter-count" id="countMandal">0</span></button>
-            <div class="ml-auto flex items-center gap-3 flex-shrink-0 pl-4 border-l border-white/10">
-              <input type="date" id="tlFromDate" class="rounded-xl px-3 py-2 text-xs font-bold bg-slate-900/80 border border-white/10 text-slate-300 w-[130px] focus:border-gold-400 outline-none transition-colors" title="From Date">
-              <span class="text-slate-500"><i class="fa-solid fa-arrow-right-long"></i></span>
-              <input type="date" id="tlToDate" class="rounded-xl px-3 py-2 text-xs font-bold bg-slate-900/80 border border-white/10 text-slate-300 w-[130px] focus:border-gold-400 outline-none transition-colors" title="To Date">
-              <button id="btnDownloadTimeline" title="Timeline Download करें" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/30 transition-all">
-                <i class="fa-solid fa-file-export text-slate-400"></i><span class="hidden sm:inline">Export</span>
+          <!-- Compact top bar: Tabs + Filters + Slideshow -->
+          <div class="glass rounded-2xl overflow-hidden mb-4" style="border:1px solid rgba(255,255,255,0.07);">
+            <div class="flex items-center border-b px-3 gap-1" style="border-color:rgba(255,255,255,0.06);background:rgba(2,5,10,0.6);">
+              <button id="btnTabPhotos" class="tab-btn tab-active flex-shrink-0 px-4 py-3 text-xs gap-2 whitespace-nowrap" style="min-height:44px;font-size:12px;letter-spacing:0.05em;">
+                <i class="fa-regular fa-images"></i><span>Photos</span>
+              </button>
+              <button id="btnTabTimeline" class="tab-btn flex-shrink-0 px-4 py-3 text-xs gap-2 whitespace-nowrap" style="min-height:44px;font-size:12px;letter-spacing:0.05em;">
+                <i class="fa-solid fa-timeline"></i><span>Timeline</span>
+              </button>
+              <div class="flex-1"></div>
+              <button id="btnAllSlideshow" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold-400/10 text-gold-400 font-extrabold uppercase tracking-widest hover:bg-gold-400 hover:text-navy-950 transition-all border border-gold-400/40 flex-shrink-0" style="font-size:10px;">
+                <i class="fa-solid fa-play text-xs"></i><span class="hidden sm:inline">Play All</span>
               </button>
             </div>
-            <div id="btnAiReportTimeline" class="hidden"></div>
+
+            <div id="timelineFilters" class="hidden items-center gap-2 px-4 py-2.5 overflow-x-auto hide-scroll" style="background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.04);">
+              <button class="filter-btn filter-pill active" data-filter="all" style="font-family:'Noto Sans Devanagari',sans-serif;font-size:10px;padding:5px 12px;">सभी <span class="filter-count" id="countAll">0</span></button>
+              <button class="filter-btn filter-pill" data-filter="visitor_form" style="font-size:10px;padding:5px 12px;">Visitor <span class="filter-count" id="countVisitor">0</span></button>
+              <button class="filter-btn filter-pill" data-filter="president_tour_form" style="font-size:10px;padding:5px 12px;">Tour <span class="filter-count" id="countTour">0</span></button>
+              <button class="filter-btn filter-pill" data-filter="party_attendance" style="font-size:10px;padding:5px 12px;">Attendance <span class="filter-count" id="countAttendance">0</span></button>
+              <button class="filter-btn filter-pill" data-filter="mandal_reporting_form" style="font-size:10px;padding:5px 12px;">Mandal <span class="filter-count" id="countMandal">0</span></button>
+              <div class="ml-auto flex items-center gap-2 flex-shrink-0 pl-3" style="border-left:1px solid rgba(255,255,255,0.08);">
+                <input type="date" id="tlFromDate" class="rounded-lg px-2 py-1 text-[10px] font-bold bg-slate-900/80 border border-white/10 text-slate-300 focus:border-gold-400 outline-none transition-colors" style="width:110px;" title="From">
+                <i class="fa-solid fa-arrow-right-long text-slate-600 text-xs"></i>
+                <input type="date" id="tlToDate" class="rounded-lg px-2 py-1 text-[10px] font-bold bg-slate-900/80 border border-white/10 text-slate-300 focus:border-gold-400 outline-none transition-colors" style="width:110px;" title="To">
+                <button id="btnDownloadTimeline" title="Export" class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all">
+                  <i class="fa-solid fa-file-export text-slate-400 text-xs"></i><span class="hidden sm:inline">Export</span>
+                </button>
+              </div>
+              <div id="btnAiReportTimeline" class="hidden"></div>
+            </div>
           </div>
 
-          <div class="p-6 sm:p-10 flex-1 relative">
-
-            <!-- Photos View -->
-            <div id="viewPhotos" class="animate-fadeup h-full flex flex-col">
-              <div id="photosGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6 flex-1 content-start">
-                <!-- injected -->
-              </div>
-              <div class="text-center mt-12 text-xs font-extrabold tracking-[0.2em] uppercase flex items-center justify-center gap-3 text-slate-400 bg-white/5 py-5 rounded-3xl border border-white/5 backdrop-blur-sm">
-                <i class="fa-solid fa-shield-check text-teal-400 text-base"></i> 100% Encrypted & Secure Database
-              </div>
-            </div>
-
-            <!-- Timeline View -->
-            <div id="viewTimeline" class="hidden relative pl-8 sm:pl-12 timeline-rail space-y-8 animate-fadeup pb-10">
+          <!-- Photos View - directly visible -->
+          <div id="viewPhotos" class="animate-fadeup">
+            <div id="photosGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               <!-- injected -->
             </div>
+            <div class="text-center mt-6 text-[10px] font-extrabold tracking-[0.15em] uppercase flex items-center justify-center gap-2 text-slate-500 py-3 rounded-2xl border border-white/5" style="background:rgba(255,255,255,0.02);">
+              <i class="fa-solid fa-shield-check text-teal-400 text-xs"></i> 100% Encrypted & Secure Database
+            </div>
+          </div>
 
+          <!-- Timeline View -->
+          <div id="viewTimeline" class="hidden relative pl-8 sm:pl-10 timeline-rail space-y-6 animate-fadeup pb-8">
+            <!-- injected -->
           </div>
         </div>
 
@@ -1055,18 +1039,20 @@
   }
 
   function switchTab(tab) {
+    const tActive = "tab-btn tab-active flex-shrink-0 px-4 py-3 text-xs gap-2 whitespace-nowrap";
+    const tInactive = "tab-btn flex-shrink-0 px-4 py-3 text-xs gap-2 whitespace-nowrap";
     if (tab === 'timeline') {
       el.viewTimeline.classList.remove('hidden');
       if (el.timelineFilters) { el.timelineFilters.classList.remove('hidden'); el.timelineFilters.classList.add('flex'); }
       el.viewPhotos.classList.add('hidden');
-      if (el.btnTabTimeline) el.btnTabTimeline.className = "tab-btn tab-active flex-1 text-sm sm:text-base px-8 py-5 gap-3 whitespace-nowrap min-w-[160px]";
-      if (el.btnTabPhotos) el.btnTabPhotos.className = "tab-btn tab-inactive flex-1 text-sm sm:text-base px-8 py-5 gap-3 whitespace-nowrap min-w-[160px]";
+      if (el.btnTabTimeline) el.btnTabTimeline.className = tActive;
+      if (el.btnTabPhotos) el.btnTabPhotos.className = tInactive;
     } else {
       el.viewTimeline.classList.add('hidden');
       if (el.timelineFilters) { el.timelineFilters.classList.add('hidden'); el.timelineFilters.classList.remove('flex'); }
       el.viewPhotos.classList.remove('hidden');
-      if (el.btnTabTimeline) el.btnTabTimeline.className = "tab-btn tab-inactive flex-1 text-sm sm:text-base px-8 py-5 gap-3 whitespace-nowrap min-w-[160px]";
-      if (el.btnTabPhotos) el.btnTabPhotos.className = "tab-btn tab-active flex-1 text-sm sm:text-base px-8 py-5 gap-3 whitespace-nowrap min-w-[160px]";
+      if (el.btnTabTimeline) el.btnTabTimeline.className = tInactive;
+      if (el.btnTabPhotos) el.btnTabPhotos.className = tActive;
     }
   }
   if (el.btnTabTimeline) el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
@@ -2121,6 +2107,7 @@
   (function() {
     const mobileSearchBtn = document.getElementById('mobileSearchBtn');
     const mobileConfirmBtn = document.getElementById('mobileConfirmBtn');
+    const mobileBottomBar = document.getElementById('mobileBottomBar');
     const realSearchBtn = document.getElementById('searchBtn');
     const realConfirmBtn = document.getElementById('confirmBtn');
     if (mobileSearchBtn && realSearchBtn) {
@@ -2129,18 +2116,26 @@
     if (mobileConfirmBtn && realConfirmBtn) {
       mobileConfirmBtn.addEventListener('click', () => { realConfirmBtn.click(); });
     }
-    // Show confirm when step2 is visible
+    // Toggle between search/confirm based on step2 visibility
     const step2 = document.getElementById('step2Card');
-    if (step2) {
-      const obs = new MutationObserver(() => {
-        const isVisible = !step2.classList.contains('hidden');
-        if (mobileSearchBtn) mobileSearchBtn.classList.toggle('hidden', isVisible);
-        if (mobileSearchBtn) mobileSearchBtn.classList.toggle('flex', !isVisible);
-        if (mobileConfirmBtn) mobileConfirmBtn.classList.toggle('hidden', !isVisible);
-        if (mobileConfirmBtn) mobileConfirmBtn.classList.toggle('flex', isVisible);
-      });
-      obs.observe(step2, { attributes: true, attributeFilter: ['class'] });
+    const step1 = document.getElementById('step1Card');
+    const resultsContainer = document.getElementById('resultsContainer');
+    function syncBar() {
+      if (!mobileBottomBar) return;
+      const step2Visible = step2 && !step2.classList.contains('hidden');
+      const resultsVisible = resultsContainer && !resultsContainer.classList.contains('hidden');
+      // Hide bar when results are showing
+      if (resultsVisible) {
+        mobileBottomBar.style.display = 'none';
+        return;
+      }
+      mobileBottomBar.style.display = '';
+      if (mobileSearchBtn) { mobileSearchBtn.style.display = step2Visible ? 'none' : 'flex'; }
+      if (mobileConfirmBtn) { mobileConfirmBtn.style.display = step2Visible ? 'flex' : 'none'; }
     }
+    if (step2) new MutationObserver(syncBar).observe(step2, { attributes: true, attributeFilter: ['class'] });
+    if (resultsContainer) new MutationObserver(syncBar).observe(resultsContainer, { attributes: true, attributeFilter: ['class'] });
+    syncBar();
   })();
 
   // ── Intercept setStatus for toast ──
@@ -2194,15 +2189,18 @@
   }
 
   // ── Toast on search actions ──
+  let _scanToast = null;
   document.addEventListener('DOMContentLoaded', () => {
     const searchBtn = document.getElementById('searchBtn');
     const confirmBtn = document.getElementById('confirmBtn');
     if (searchBtn) {
-      const _origClick = searchBtn.onclick;
       searchBtn.addEventListener('click', function() {
         const input = document.getElementById('selfieInput') || document.getElementById('uploadInput');
         const hasFile = input && input.files && input.files.length > 0;
-        if (hasFile) showToast('AI स्कैन शुरू हो गया...', 'loading', 4000);
+        if (hasFile) {
+          if (_scanToast) dismissToast(_scanToast);
+          _scanToast = showToast('AI स्कैन शुरू हो गया...', 'loading', 8000);
+        }
       });
     }
     // Update profile hero when confirm is clicked
@@ -2214,7 +2212,17 @@
       });
     }
   });
+
+  // Dismiss scan toast when results come in (patch updateDashboard)
+  const _origUD2 = window.updateDashboard;
+  window.updateDashboard = function() {
+    if (_scanToast) { dismissToast(_scanToast); _scanToast = null; }
+    if (typeof _origUD2 === 'function') return _origUD2.apply(this, arguments);
+  };
   </script>
+
+<script>
+// ── Timeline Grouping Patch ──
 let globalTimelineGroups = [];
 function buildTimelineGroups(timelineArr) {
   const timeline = Array.isArray(timelineArr) ? timelineArr : [];
@@ -2227,10 +2235,6 @@ function buildTimelineGroups(timelineArr) {
     else { const g=map.get(gid); g.items.push(it); const ca=Number(it.created_at||0),ga=Number(g.created_at||0); if (ca>ga){g.created_at=it.created_at||g.created_at;g.created_at_iso=it.created_at_iso||g.created_at_iso;g.district=it.district||g.district;g.vidhansabha=it.vidhansabha||g.vidhansabha;g.mandal=it.mandal||g.mandal;g.form_type=it.form_type||it.ft||g.form_type;} }
   }
   const groups = Array.from(map.values()); groups.sort((a,b)=>Number(b.created_at||0)-Number(a.created_at||0)); return groups;
-}
-function updateDashboard(similarity,timelineCount,photoCount) {
-  const e2={similarityText:document.getElementById("similarityText"),timelineCount:document.getElementById("timelineCount"),photoCount:document.getElementById("photoCount")};
-  if(e2.similarityText)e2.similarityText.textContent=`${similarity}%`; if(e2.timelineCount)e2.timelineCount.textContent=`${timelineCount}`; if(e2.photoCount)e2.photoCount.textContent=`${photoCount}`;
 }
 function renderTimelineGroups(groups) {
   const grid=document.getElementById("viewTimeline"); if(!grid)return; grid.innerHTML="";
@@ -2247,7 +2251,7 @@ function applyFilter() {
 (function patchSearchSubmitHook() {
   const _orig=window.renderPhotos;
   window.renderPhotos=function(photoUrls,timeline){
-    try{globalTimelineGroups=buildTimelineGroups(window.globalTimelineData||timeline||[]);const scoreEl=document.getElementById("scoreVal");const sim=scoreEl?Number(scoreEl.textContent.replace('%','')||0).toFixed(0):'0';updateDashboard(sim,globalTimelineGroups.length,Array.isArray(photoUrls)?photoUrls.length:0);}catch(e){console.warn('timeline grouping patch failed',e);}
+    try{globalTimelineGroups=buildTimelineGroups(window.globalTimelineData||timeline||[]);const scoreEl=document.getElementById("scoreVal");const sim=scoreEl?Number(scoreEl.textContent.replace('%','')||0).toFixed(0):'0';}catch(e){console.warn('timeline grouping patch failed',e);}
     return _orig?_orig(photoUrls,timeline):undefined;
   };
 })();
