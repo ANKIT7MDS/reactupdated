@@ -475,7 +475,7 @@ const isPub = () => !!TOK;
 // STATE
 // ═══════════════════════════════════════════════════
 let camFile=null, camDataUrl=null, searchResp=null;
-let entryId=null, finalTok=null, upUrl=null, s3k=null;
+let entryId=null, finalTok=null, upUrl=null, s3k=null, faceS3k=null; // faceS3k = selfie key for search
 let facingMode="user", mobTimer=null, remoteCfg=null;
 
 // ═══════════════════════════════════════════════════
@@ -639,7 +639,7 @@ async function runMatch(file){
     if(CID)  cp.collection_id=CID;
     if(DBG) console.log("📤 create payload:", JSON.stringify(cp));
     const cr = await api(isPub()?"public_create_entry":"create_entry", cp);
-    entryId=cr.entry_id; finalTok=cr.finalize_token; upUrl=cr.upload_url; s3k=cr.s3_key;
+    entryId=cr.entry_id; finalTok=cr.finalize_token; upUrl=cr.upload_url; s3k=cr.s3_key; faceS3k=cr.s3_key; // keep face s3key for timeline
     if(DBG) console.log("📥 create resp:", JSON.stringify(cr));
 
     // UPLOAD
@@ -978,12 +978,12 @@ function openTimeline(){
   const mb=(_$("f-mobile")&&_$("f-mobile").value)||"";
   if(n) p.set("autosearch_name",n);
   if(mb) p.set("autosearch_mobile",mb);
-  if(s3k) p.set("autosearch_s3key",s3k);
+  if(faceS3k) p.set("autosearch_s3key",faceS3k);  // use selfie key, not submit entry key
   location.href=`${SURL}?${p.toString()}`;
 }
 function doNewEntry(){
   camFile=null; camDataUrl=null; searchResp=null;
-  entryId=null; finalTok=null; upUrl=null; s3k=null; window._autofillProfile=null;
+  entryId=null; finalTok=null; upUrl=null; s3k=null; faceS3k=null; window._autofillProfile=null;
   _$("scr-ok").style.display="none";
   _$("scr-cam").style.display="block";
   if(_$("vform")) _$("vform").reset();
