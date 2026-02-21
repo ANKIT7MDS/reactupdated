@@ -4,6 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>EventLens AI — Karyakarta Intelligence</title>
+  <!-- PWA Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="EventLens AI" />
+  <meta name="application-name" content="EventLens AI" />
+  <meta name="theme-color" content="#02050A" />
+  <meta name="description" content="AI-powered Karyakarta Intelligence — face search & event timeline" />
+  <!-- PWA Icons (inline SVG as data URI for standalone use) -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%2302050A'/%3E%3Crect width='192' height='192' rx='40' fill='url(%23g)'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23D4A017' stop-opacity='.3'/%3E%3Cstop offset='1' stop-color='%2302050A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ctext x='96' y='130' font-size='90' text-anchor='middle' fill='%23D4A017'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E" />
+  <!-- Inline Web Manifest -->
+  <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22EventLens+AI%22%2C%22short_name%22%3A%22EventLens%22%2C%22description%22%3A%22AI+Karyakarta+Intelligence%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2302050A%22%2C%22theme_color%22%3A%22%2302050A%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D%2527http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527%2520viewBox%3D%270%2520 0%2520192%2520192%2527%253E%253Crect%2520width%3D%2527192%2527%2520height%3D%2527192%2527%2520rx%3D%252740%2527%2520fill%3D%2527%252302050A%2527%2F%253E%253Ctext%2520x%3D%252796%2527%2520y%3D%2527130%2527%2520font-size%3D%252790%2527%2520text-anchor%3D%2527middle%2527%2520fill%3D%2527%2523D4A017%2527%253E%25E2%259A%25A1%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
@@ -330,9 +342,9 @@
     @keyframes rippleAnim { to{transform:scale(4);opacity:0} }
 
     /* ─── Mobile Bottom Bar ─── */
-    #mobileBottomBar { display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(2,5,10,0.95);backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,0.08);padding:12px 20px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -20px 50px rgba(0,0,0,0.6); }
-    @media(max-width:1023px){ #mobileBottomBar{display:flex;gap:12px;align-items:center;} }
-    @media(max-width:1023px){ .safe-area-bottom{padding-bottom:calc(96px + env(safe-area-inset-bottom));} }
+    #mobileBottomBar { display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(2,5,10,0.97);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,0.08);padding:10px 16px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -20px 50px rgba(0,0,0,0.7); }
+    @media(max-width:1023px){ #mobileBottomBar{display:flex;gap:10px;align-items:center;} }
+    @media(max-width:1023px){ .safe-area-bottom{padding-bottom:calc(90px + env(safe-area-inset-bottom));} }
 
     /* ─── Premium Skeleton Loader ─── */
     .skeleton { background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmerAnim 1.8s ease-in-out infinite; }
@@ -1055,16 +1067,18 @@
       if (el.btnTabPhotos) el.btnTabPhotos.className = tActive;
     }
   }
-  if (el.btnTabTimeline) el.btnTabTimeline.addEventListener('click', () => switchTab('timeline'));
-  if (el.btnTabPhotos) el.btnTabPhotos.addEventListener('click', () => switchTab('photos'));
+  if (el.btnTabTimeline) el.btnTabTimeline.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('timeline'); });
+  if (el.btnTabPhotos) el.btnTabPhotos.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('photos'); });
 
   function initFilters() {
-    const btns = el.timelineFilters.querySelectorAll('.filter-btn');
+    const btns = el.timelineFilters ? el.timelineFilters.querySelectorAll('.filter-btn') : [];
     btns.forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
         btns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentFilter = btn.dataset.filter;
+        window.currentFilter = currentFilter;
         applyFilter();
       });
     });
@@ -1077,11 +1091,14 @@
   }
   function applyFilter() {
     if (!globalTimelineData.length) return;
+    // sync from window.currentFilter (set by patch script)
+    if (window.currentFilter && window.currentFilter !== currentFilter) currentFilter = window.currentFilter;
     let filtered = globalTimelineData;
     if (currentFilter !== 'all') {
       filtered = filtered.filter(item => {
-        const type = (item.form_type || "").toLowerCase();
-        return type === currentFilter || type.includes(currentFilter.replace("_form",""));
+        const type = (item.form_type || item.ft || "").toString().toLowerCase().trim();
+        const target = currentFilter.toLowerCase();
+        return type === target || type.replace('_form','') === target.replace('_form','') || type.includes(target.replace('_form',''));
       });
     }
     const fromEl = document.getElementById("tlFromDate");
@@ -1115,7 +1132,130 @@
       const vidhan = d.vidhansabha || "";
       return `<tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px 10px">${date}</td><td style="padding:6px 10px">${ft}</td><td style="padding:6px 10px">${prog}</td><td style="padding:6px 10px">${dist}</td><td style="padding:6px 10px">${vidhan}</td></tr>`;
     }).join("");
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${name} - Timeline</title><style>body{font-family:sans-serif;padding:20px;color:#1e293b}h2{color:#f97316}table{width:100%;border-collapse:collapse}th{background:#f97316;color:white;padding:8px 10px;text-align:left}tr:nth-child(even){background:#f8fafc}@media print{body{padding:0}}</style></head><body><h2>📋 ${name} — Activity Timeline</h2><p style="color:#64748b">Total Events: ${globalTimelineData.length} | Generated: ${new Date().toLocaleDateString('hi-IN')}</p><table><tr><th>दिनांक</th><th>Form Type</th><th>कार्यक्रम</th><th>जिला</th><th>विधानसभा</th></tr>${rows}</table></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${name} - Timeline</title><style>body{font-family:sans-serif;padding:20px;color:#1e293b}h2{color:#f97316}table{width:100%;border-collapse:collapse}th{background:#f97316;color:white;padding:8px 10px;text-align:left}tr:nth-child(even){background:#f8fafc}@media print{body{padding:0}}</style></head><body><h2>📋 ${name} — Activity Timeline</h2><p style="color:#64748b">Total Events: ${globalTimelineData.length} | Generated: ${new Date().toLocaleDateString('hi-IN')}</p><table><tr><th>दिनांक</th><th>Form Type</th><th>कार्यक्रम</th><th>जिला</th><th>विधानसभा</th></tr>${rows}</table>
+  <!-- PWA Install Prompt + Service Worker -->
+  <script>
+  // ── Service Worker Registration (for PWA offline support) ──
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE = 'eventlens-v1';
+      const ASSETS = [location.href];
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).catch(()=>{}));
+        self.skipWaiting();
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'text/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+  }
+
+  // ── PWA Install Banner ──
+  let _deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _deferredPrompt = e;
+    showInstallBanner();
+  });
+
+  function showInstallBanner() {
+    if (document.getElementById('pwaInstallBanner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'pwaInstallBanner';
+    banner.style.cssText = `
+      position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+      z-index:10000;max-width:360px;width:calc(100% - 32px);
+      background:linear-gradient(135deg,rgba(11,21,48,0.98),rgba(2,5,10,0.98));
+      border:1px solid rgba(212,160,23,0.4);border-radius:20px;
+      padding:16px 20px;backdrop-filter:blur(40px);
+      box-shadow:0 20px 60px rgba(0,0,0,0.7),0 0 0 1px rgba(212,160,23,0.1);
+      display:flex;align-items:center;gap:14px;
+      animation:slideUpBanner 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+    `;
+    banner.innerHTML = `
+      <style>@keyframes slideUpBanner{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>
+      <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#D4A017,#B8880F);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 15px rgba(212,160,23,0.4);">
+        <i class="fa-solid fa-bolt" style="color:#02050A;font-size:20px;"></i>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Outfit',sans-serif;font-weight:800;color:#fff;font-size:14px;margin-bottom:2px;">EventLens AI Install करें</div>
+        <div style="font-family:'Noto Sans Devanagari',sans-serif;color:#94a3b8;font-size:11px;">Home Screen पर add करें — faster & offline</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button id="pwaInstallBtn" style="background:linear-gradient(135deg,#F5D78A,#D4A017);color:#02050A;font-weight:800;font-size:12px;padding:8px 16px;border-radius:12px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:0.03em;box-shadow:0 4px 12px rgba(212,160,23,0.4);">Install</button>
+        <button id="pwaDismissBtn" style="background:rgba(255,255,255,0.06);color:#94a3b8;font-weight:700;font-size:12px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;font-family:'Outfit',sans-serif;">✕</button>
+      </div>
+    `;
+    document.body.appendChild(banner);
+
+    document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+      if (_deferredPrompt) {
+        _deferredPrompt.prompt();
+        const { outcome } = await _deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          banner.style.transition = 'all 0.3s ease';
+          banner.style.opacity = '0';
+          banner.style.transform = 'translateX(-50%) translateY(20px)';
+          setTimeout(() => banner.remove(), 300);
+        }
+        _deferredPrompt = null;
+      }
+    });
+    document.getElementById('pwaDismissBtn').addEventListener('click', () => {
+      banner.style.transition = 'all 0.3s ease';
+      banner.style.opacity = '0';
+      banner.style.transform = 'translateX(-50%) translateY(20px)';
+      setTimeout(() => banner.remove(), 300);
+    });
+  }
+
+  // ── iOS Install Hint (Safari doesn't support beforeinstallprompt) ──
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.navigator.standalone === true;
+  const shownKey = 'el_ios_hint';
+  if (isIOS && !isStandalone && !sessionStorage.getItem(shownKey)) {
+    sessionStorage.setItem(shownKey, '1');
+    setTimeout(() => {
+      if (document.getElementById('pwaInstallBanner')) return;
+      const hint = document.createElement('div');
+      hint.style.cssText = `
+        position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+        z-index:10000;max-width:340px;width:calc(100% - 32px);
+        background:linear-gradient(135deg,rgba(11,21,48,0.98),rgba(2,5,10,0.98));
+        border:1px solid rgba(212,160,23,0.3);border-radius:20px;
+        padding:16px 18px;backdrop-filter:blur(40px);
+        box-shadow:0 20px 60px rgba(0,0,0,0.7);
+        animation:slideUpBanner 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+      `;
+      hint.innerHTML = `
+        <style>@keyframes slideUpBanner{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#D4A017,#B8880F);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa-solid fa-bolt" style="color:#02050A;font-size:18px;"></i>
+          </div>
+          <div>
+            <div style="font-family:'Outfit',sans-serif;font-weight:800;color:#fff;font-size:13px;">Home Screen पर Install करें</div>
+          </div>
+          <button onclick="this.closest('div[style]').remove()" style="margin-left:auto;background:none;border:none;color:#64748b;font-size:16px;cursor:pointer;flex-shrink:0;">✕</button>
+        </div>
+        <div style="font-family:'Noto Sans Devanagari',sans-serif;color:#94a3b8;font-size:12px;line-height:1.7;background:rgba(255,255,255,0.04);padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);">
+          Safari में नीचे <span style="color:#D4A017;font-weight:800;">Share <i class="fa-solid fa-arrow-up-from-bracket" style="font-size:11px;"></i></span> button दबाएं → <span style="color:#D4A017;font-weight:800;">"Add to Home Screen"</span> चुनें
+        </div>
+      `;
+      document.body.appendChild(hint);
+      setTimeout(() => {
+        if (hint.parentNode) {
+          hint.style.transition = 'all 0.4s ease';
+          hint.style.opacity = '0';
+          setTimeout(() => hint.remove(), 400);
+        }
+      }, 8000);
+    }, 3000);
+  }
+  </script>
+</body></html>`;
     const blob = new Blob([html], {type:"text/html"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -1232,20 +1372,22 @@
     updateFilterCounts(window.globalTimelineData || []);
     setStep(3);
     // Toast on success
-    if (typeof showToast === 'function') showToast(`${events} events और ${photos} photos मिले!`, 'success');
+
   }
 
   function updateFilterCounts(timeline) {
-    const counts = { all: timeline.length, visitor_form: 0, president_tour_form: 0, party_attendance: 0, mandal_reporting_form: 0 };
-    timeline.forEach(item => {
-      const ft = (item.form_type || item.ft || '').toLowerCase();
-      if (ft.includes('visitor')) counts.visitor_form++;
-      else if (ft.includes('president') || ft.includes('tour')) counts.president_tour_form++;
-      else if (ft.includes('attendance')) counts.party_attendance++;
-      else if (ft.includes('mandal')) counts.mandal_reporting_form++;
+    // Count using same logic as applyFilter
+    const counts = { all: 0, visitor_form: 0, president_tour_form: 0, party_attendance: 0, mandal_reporting_form: 0 };
+    (Array.isArray(timeline) ? timeline : []).forEach(item => {
+      const ft = (item.form_type || item.ft || '').toString().toLowerCase().trim();
+      counts.all++;
+      if (ft === 'visitor_form' || ft.includes('visitor')) counts.visitor_form++;
+      if (ft === 'president_tour_form' || ft.includes('president') || ft.includes('tour')) counts.president_tour_form++;
+      if (ft === 'party_attendance' || ft.includes('attendance')) counts.party_attendance++;
+      if (ft === 'mandal_reporting_form' || ft === 'mandal_reporting' || ft.includes('mandal')) counts.mandal_reporting_form++;
     });
-    const map = { all: 'countAll', visitor_form: 'countVisitor', president_tour_form: 'countTour', party_attendance: 'countAttendance', mandal_reporting_form: 'countMandal' };
-    Object.entries(map).forEach(([key, id]) => {
+    const idMap = { all: 'countAll', visitor_form: 'countVisitor', president_tour_form: 'countTour', party_attendance: 'countAttendance', mandal_reporting_form: 'countMandal' };
+    Object.entries(idMap).forEach(([key, id]) => {
       const el2 = document.getElementById(id);
       if (el2) el2.textContent = counts[key] || 0;
     });
@@ -1844,11 +1986,14 @@
     const timeline = (res.events&&Array.isArray(res.events)&&res.events.length) ? res.events : (res.timeline||[]);
     const tCount = timeline.length, pCount = Array.isArray(res.photo_urls) ? res.photo_urls.length : 0;
     globalTimelineData = timeline;
+    window.globalTimelineData = timeline;
     globalPhotoMap = new Map();
     (res.photo_urls||[]).forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k)) globalPhotoMap.set(k,u); });
     if (el.step2Card) el.step2Card.classList.add("hidden");
     currentFilter = "all";
+    window.currentFilter = "all";
     updateDashboard(sim, tCount, pCount);
+    updateFilterCounts(timeline);
     applyFilter();
     renderPhotos(res.photo_urls||[], timeline);
     switchTab("photos");
@@ -1977,9 +2122,10 @@
 
       const sim = data.similarity ? Number(data.similarity).toFixed(0) : "—";
       updateDashboard(sim, timeline.length, photoUrls.length);
+      updateFilterCounts(timeline);
       applyFilter();
       renderPhotos(photoUrls, timeline);
-      switchTab("timeline");
+      switchTab("photos");
       setStatus("", "info");
     } catch(e) {
       el.skeletonLoader.classList.add("hidden");
@@ -2189,21 +2335,8 @@
   }
 
   // ── Toast on search actions ──
-  let _scanToast = null;
   document.addEventListener('DOMContentLoaded', () => {
-    const searchBtn = document.getElementById('searchBtn');
     const confirmBtn = document.getElementById('confirmBtn');
-    if (searchBtn) {
-      searchBtn.addEventListener('click', function() {
-        const input = document.getElementById('selfieInput') || document.getElementById('uploadInput');
-        const hasFile = input && input.files && input.files.length > 0;
-        if (hasFile) {
-          if (_scanToast) dismissToast(_scanToast);
-          _scanToast = showToast('AI स्कैन शुरू हो गया...', 'loading', 8000);
-        }
-      });
-    }
-    // Update profile hero when confirm is clicked
     if (confirmBtn) {
       confirmBtn.addEventListener('click', function() {
         const nameVal = document.getElementById('nameInput')?.value || '';
@@ -2212,13 +2345,6 @@
       });
     }
   });
-
-  // Dismiss scan toast when results come in (patch updateDashboard)
-  const _origUD2 = window.updateDashboard;
-  window.updateDashboard = function() {
-    if (_scanToast) { dismissToast(_scanToast); _scanToast = null; }
-    if (typeof _origUD2 === 'function') return _origUD2.apply(this, arguments);
-  };
   </script>
 
 <script>
@@ -2251,11 +2377,139 @@ function applyFilter() {
 (function patchSearchSubmitHook() {
   const _orig=window.renderPhotos;
   window.renderPhotos=function(photoUrls,timeline){
-    try{globalTimelineGroups=buildTimelineGroups(window.globalTimelineData||timeline||[]);const scoreEl=document.getElementById("scoreVal");const sim=scoreEl?Number(scoreEl.textContent.replace('%','')||0).toFixed(0):'0';}catch(e){console.warn('timeline grouping patch failed',e);}
+    try{
+      const tl = window.globalTimelineData||timeline||[];
+      globalTimelineGroups=buildTimelineGroups(tl);
+      // Update filter counts now that we have data
+      if(typeof window.updateFilterCounts==='function') window.updateFilterCounts(tl);
+    }catch(e){console.warn('timeline grouping patch failed',e);}
     return _orig?_orig(photoUrls,timeline):undefined;
   };
 })();
 </script>
 
+
+  <!-- PWA Install Prompt + Service Worker -->
+  <script>
+  // ── Service Worker Registration (for PWA offline support) ──
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE = 'eventlens-v1';
+      const ASSETS = [location.href];
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).catch(()=>{}));
+        self.skipWaiting();
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'text/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+  }
+
+  // ── PWA Install Banner ──
+  let _deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _deferredPrompt = e;
+    showInstallBanner();
+  });
+
+  function showInstallBanner() {
+    if (document.getElementById('pwaInstallBanner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'pwaInstallBanner';
+    banner.style.cssText = `
+      position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+      z-index:10000;max-width:360px;width:calc(100% - 32px);
+      background:linear-gradient(135deg,rgba(11,21,48,0.98),rgba(2,5,10,0.98));
+      border:1px solid rgba(212,160,23,0.4);border-radius:20px;
+      padding:16px 20px;backdrop-filter:blur(40px);
+      box-shadow:0 20px 60px rgba(0,0,0,0.7),0 0 0 1px rgba(212,160,23,0.1);
+      display:flex;align-items:center;gap:14px;
+      animation:slideUpBanner 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+    `;
+    banner.innerHTML = `
+      <style>@keyframes slideUpBanner{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>
+      <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#D4A017,#B8880F);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 15px rgba(212,160,23,0.4);">
+        <i class="fa-solid fa-bolt" style="color:#02050A;font-size:20px;"></i>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Outfit',sans-serif;font-weight:800;color:#fff;font-size:14px;margin-bottom:2px;">EventLens AI Install करें</div>
+        <div style="font-family:'Noto Sans Devanagari',sans-serif;color:#94a3b8;font-size:11px;">Home Screen पर add करें — faster & offline</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button id="pwaInstallBtn" style="background:linear-gradient(135deg,#F5D78A,#D4A017);color:#02050A;font-weight:800;font-size:12px;padding:8px 16px;border-radius:12px;border:none;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:0.03em;box-shadow:0 4px 12px rgba(212,160,23,0.4);">Install</button>
+        <button id="pwaDismissBtn" style="background:rgba(255,255,255,0.06);color:#94a3b8;font-weight:700;font-size:12px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;font-family:'Outfit',sans-serif;">✕</button>
+      </div>
+    `;
+    document.body.appendChild(banner);
+
+    document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+      if (_deferredPrompt) {
+        _deferredPrompt.prompt();
+        const { outcome } = await _deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          banner.style.transition = 'all 0.3s ease';
+          banner.style.opacity = '0';
+          banner.style.transform = 'translateX(-50%) translateY(20px)';
+          setTimeout(() => banner.remove(), 300);
+        }
+        _deferredPrompt = null;
+      }
+    });
+    document.getElementById('pwaDismissBtn').addEventListener('click', () => {
+      banner.style.transition = 'all 0.3s ease';
+      banner.style.opacity = '0';
+      banner.style.transform = 'translateX(-50%) translateY(20px)';
+      setTimeout(() => banner.remove(), 300);
+    });
+  }
+
+  // ── iOS Install Hint (Safari doesn't support beforeinstallprompt) ──
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.navigator.standalone === true;
+  const shownKey = 'el_ios_hint';
+  if (isIOS && !isStandalone && !sessionStorage.getItem(shownKey)) {
+    sessionStorage.setItem(shownKey, '1');
+    setTimeout(() => {
+      if (document.getElementById('pwaInstallBanner')) return;
+      const hint = document.createElement('div');
+      hint.style.cssText = `
+        position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+        z-index:10000;max-width:340px;width:calc(100% - 32px);
+        background:linear-gradient(135deg,rgba(11,21,48,0.98),rgba(2,5,10,0.98));
+        border:1px solid rgba(212,160,23,0.3);border-radius:20px;
+        padding:16px 18px;backdrop-filter:blur(40px);
+        box-shadow:0 20px 60px rgba(0,0,0,0.7);
+        animation:slideUpBanner 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+      `;
+      hint.innerHTML = `
+        <style>@keyframes slideUpBanner{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#D4A017,#B8880F);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa-solid fa-bolt" style="color:#02050A;font-size:18px;"></i>
+          </div>
+          <div>
+            <div style="font-family:'Outfit',sans-serif;font-weight:800;color:#fff;font-size:13px;">Home Screen पर Install करें</div>
+          </div>
+          <button onclick="this.closest('div[style]').remove()" style="margin-left:auto;background:none;border:none;color:#64748b;font-size:16px;cursor:pointer;flex-shrink:0;">✕</button>
+        </div>
+        <div style="font-family:'Noto Sans Devanagari',sans-serif;color:#94a3b8;font-size:12px;line-height:1.7;background:rgba(255,255,255,0.04);padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);">
+          Safari में नीचे <span style="color:#D4A017;font-weight:800;">Share <i class="fa-solid fa-arrow-up-from-bracket" style="font-size:11px;"></i></span> button दबाएं → <span style="color:#D4A017;font-weight:800;">"Add to Home Screen"</span> चुनें
+        </div>
+      `;
+      document.body.appendChild(hint);
+      setTimeout(() => {
+        if (hint.parentNode) {
+          hint.style.transition = 'all 0.4s ease';
+          hint.style.opacity = '0';
+          setTimeout(() => hint.remove(), 400);
+        }
+      }, 8000);
+    }, 3000);
+  }
+  </script>
 </body>
 </html>
