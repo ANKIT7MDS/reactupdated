@@ -1028,8 +1028,16 @@
 
   function get(obj, key, fallback = "") { if (!obj) return fallback; const v = obj[key]; return isNonEmpty(v) ? v : fallback; }
   function getFormTypeLabel(ft) {
-    const map = { president_tour_form:"President Tour", mandal_reporting:"Mandal Report", mandal_reporting_form:"Mandal Report", visitor_form:"Visitor", party_attendance:"Party Attendance", coordinator_entry:"Coordinator Entry", coordinator_form:"Coordinator Form" };
-    return map[ft] || (ft ? ft.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : "Event");
+    const map = {
+      president_tour_form: "जिला अध्यक्ष जी का प्रवास कार्यक्रम",
+      mandal_reporting: "मंडल कार्यक्रम",
+      mandal_reporting_form: "मंडल कार्यक्रम",
+      visitor_form: "कार्यालय आगन्तुक",
+      party_attendance: "कार्यक्रम उपस्थिति",
+      coordinator_entry: "समन्वयक प्रविष्टि",
+      coordinator_form: "समन्वयक प्रविष्टि",
+    };
+    return map[ft] || (ft ? ft.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : "कार्यक्रम");
   }
 
   function buildEventSummary(item) {
@@ -1052,11 +1060,11 @@
     if (faceCount) highlights.push(`${faceCount} faces`);
     const bsPName = data.program_name || data["कार्यक्रम_का_नाम"] || data.name_of_program || "";
     const bsPType = data.program_type || data["कार्यक्रम_का_प्रकार"] || "";
-    if (form === "president_tour_form") { title = bsPName||bsPType||data.tour_title||"President Tour"; icon = "fa-plane-departure"; const venue = data.tour_location||data.tour_venue||data.venue||data["स्थान"]||""; subtitle=[formDate,venue].filter(isNonEmpty).join(" • "); if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests",get(data,"guests","")]); }
-    else if (form === "mandal_reporting" || form === "mandal_reporting_form") { title = bsPName||data.venue||data["स्थान"]||"Mandal Report"; icon = "fa-clipboard-list"; if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests",get(data,"guests","")]); }
-    else if (form === "visitor_form") { title = get(item,"name",get(data,"name",data["नाम"]||"Visitor")); icon = "fa-user-clock"; }
-    else if (form === "party_attendance") { title = bsPName||bsPType||"Party Attendance"; icon = "fa-users-line"; }
-    else if (form === "coordinator_entry" || form === "coordinator_form") { title = get(data,"name",data["नाम"]||bsPName||"Coordinator Entry"); icon = "fa-id-badge"; }
+    if (form === "president_tour_form") { title = bsPName||bsPType||data.tour_title||"जिला अध्यक्ष जी का प्रवास कार्यक्रम"; icon = "fa-plane-departure"; const venue = data.tour_location||data.tour_venue||data.venue||data["स्थान"]||""; subtitle=[formDate,venue].filter(isNonEmpty).join(" • "); if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests",get(data,"guests","")]); }
+    else if (form === "mandal_reporting" || form === "mandal_reporting_form") { title = bsPName||data.venue||data["स्थान"]||"मंडल कार्यक्रम"; icon = "fa-clipboard-list"; if (isNonEmpty(get(data,"guests",""))) highlights.push(["Guests",get(data,"guests","")]); }
+    else if (form === "visitor_form") { title = get(item,"name",get(data,"name",data["नाम"]||"कार्यालय आगन्तुक")); icon = "fa-user-clock"; }
+    else if (form === "party_attendance") { title = bsPName||bsPType||"कार्यक्रम उपस्थिति"; icon = "fa-users-line"; }
+    else if (form === "coordinator_entry" || form === "coordinator_form") { title = get(data,"name",data["नाम"]||bsPName||"समन्वयक प्रविष्टि"); icon = "fa-id-badge"; }
     else if (bsPName) { title = bsPName; }
     const locBits = [district,vidhansabha].filter(isNonEmpty);
     if (locBits.length) footer.push(locBits.join(", "));
@@ -1132,11 +1140,11 @@
       const pName = data.program_name||data["कार्यक्रम_का_नाम"]||data.name_of_program||data.karyakram_name||"";
       const pType = data.program_type||data["कार्यक्रम_का_प्रकार"]||data.type||"";
       let title = form||"Event", icon = "fa-calendar-check";
-      if (form==="president_tour_form") { title=pName||pType||data.tour_title||"President Tour"; icon="fa-plane-departure"; }
-      else if (form==="mandal_reporting"||form==="mandal_reporting_form") { title=pName||data.venue||data["स्थान"]||"Mandal Report"; icon="fa-clipboard-list"; }
-      else if (form==="visitor_form") { title=item.name||data.name||data["नाम"]||"Visitor"; icon="fa-user-clock"; }
-      else if (form==="party_attendance") { title=pName||pType||"Party Attendance"; icon="fa-users-line"; }
-      else if (form==="coordinator_entry"||form==="coordinator_form") { title=data.name||data["नाम"]||pName||"Coordinator Entry"; icon="fa-id-badge"; }
+      if (form==="president_tour_form") { title=pName||pType||data.tour_title||"जिला अध्यक्ष जी का प्रवास कार्यक्रम"; icon="fa-plane-departure"; }
+      else if (form==="mandal_reporting"||form==="mandal_reporting_form") { title=pName||data.venue||data["स्थान"]||"मंडल कार्यक्रम"; icon="fa-clipboard-list"; }
+      else if (form==="visitor_form") { title=item.name||data.name||data["नाम"]||"कार्यालय आगन्तुक"; icon="fa-user-clock"; }
+      else if (form==="party_attendance") { title=pName||pType||"कार्यक्रम उपस्थिति"; icon="fa-users-line"; }
+      else if (form==="coordinator_entry"||form==="coordinator_form") { title=data.name||data["नाम"]||pName||"समन्वयक प्रविष्टि"; icon="fa-id-badge"; }
       else if (pName) { title=pName; }
       const district=item.district||data.district||"", vidhansabha=item.vidhansabha||data.vidhansabha||"";
       const locStr=[district,vidhansabha].filter(Boolean).join(", ");
@@ -1205,25 +1213,57 @@
         const photoSection = document.createElement("div");
         photoSection.style.cssText = "margin-bottom:6px;";
 
-        // Parse names from with_label + face data
-        // with_label format: "अंकित सोनी, सौरभ, राहुल" or "Name1 with Name2, Name3"
+        // ── Extract all matched person names from every possible source ──
         const allNames = [];
+        const addName = (n) => { const t = String(n||"").trim(); if (t && t.length > 1 && !allNames.includes(t)) allNames.push(t); };
+
+        // Source 1: item.with_label — could be "Name1, Name2" or "Name1 with Name2 and Name3"
         if (withLabel && withLabel.trim()) {
-          // Split by comma, "with", "and", "एंड", "और"
-          const raw = withLabel.replace(/\bwith\b/gi, ',').replace(/\band\b/gi, ',').replace(/\bएंड\b/g, ',').replace(/\bऔर\b/g, ',');
-          raw.split(',').forEach(n => { const t = n.trim(); if (t) allNames.push(t); });
+          const raw = withLabel
+            .replace(/\bwith\b/gi, ',')
+            .replace(/\band\b/gi, ',')
+            .replace(/\bएंड\b/g, ',')
+            .replace(/\bऔर\b/g, ',')
+            .replace(/\bतथा\b/g, ',');
+          raw.split(',').forEach(n => addName(n));
         }
-        // Also check item.faces array if present
-        if (Array.isArray(item.faces)) {
-          item.faces.forEach(f => {
-            const n = f.name || f.Name || f.label || "";
-            if (n && !allNames.includes(n)) allNames.push(n);
+
+        // Source 2: item.faces[] — array of matched face objects
+        const faceSources = [item.faces, item.matched_faces, item.identified_faces, item.face_list];
+        faceSources.forEach(arr => {
+          if (!Array.isArray(arr)) return;
+          arr.forEach(f => {
+            if (!f) return;
+            // face object could have name in many keys
+            const n = f.name || f.Name || f.label || f.person_name || f.personName ||
+                      f.matched_name || f.matchedName || f.display_name || f.displayName || "";
+            addName(n);
+          });
+        });
+
+        // Source 3: photos array — if photos are objects {url, name} or {url, person}
+        if (Array.isArray(item.photos)) {
+          item.photos.forEach(p => {
+            if (typeof p === 'object' && p !== null) {
+              addName(p.name || p.person_name || p.personName || p.label || p.matched_name || "");
+            }
           });
         }
-        // Also check data.attendees or data.names
-        const attendeeStr = data.attendees || data.attendee_names || data["उपस्थित_नाम"] || "";
-        if (attendeeStr) {
-          String(attendeeStr).split(',').forEach(n => { const t = n.trim(); if (t && !allNames.includes(t)) allNames.push(t); });
+
+        // Source 4: item.names[] or item.attendee_names[]
+        const nameArraySources = [item.names, item.attendee_names, item.person_names, data.names, data.attendee_names];
+        nameArraySources.forEach(arr => {
+          if (Array.isArray(arr)) arr.forEach(n => addName(typeof n === 'string' ? n : (n.name || n.label || "")));
+          else if (typeof arr === 'string' && arr.trim()) arr.split(',').forEach(n => addName(n));
+        });
+
+        // Source 5: item-level name fields (visitor_form has item.name)
+        if (form === "visitor_form") addName(item.name || data.name || data["नाम"]);
+
+        // Console log for debugging (remove in production)
+        if (allNames.length === 0 && (withLabel || faceCount > 0)) {
+          console.log('[EventLens] No names parsed. item keys:', Object.keys(item).join(', '));
+          console.log('[EventLens] with_label:', withLabel, '| face_count:', faceCount);
         }
 
         // Build thumbnail strip
@@ -1264,21 +1304,21 @@
 
         photoSection.appendChild(strip);
 
-        // Names summary row below thumbnails (if more names than thumbnails shown)
+        // Names summary row below thumbnails
         if (allNames.length > 0) {
           const nameRow = document.createElement("div");
-          nameRow.style.cssText = "margin-top:4px;";
-          const shown = allNames.slice(0, 2);
+          nameRow.style.cssText = "margin-top:5px;padding:5px 8px;border-radius:8px;background:rgba(212,160,23,0.05);border:1px solid rgba(212,160,23,0.1);";
+          const maxShow = 3;
+          const shown = allNames.slice(0, maxShow);
           const remaining = allNames.length - shown.length;
-          let nameText = shown.map(n => `<span style="color:#D4A017;font-weight:700;">${escapeHtml(n)}</span>`).join(', ');
-          if (remaining > 0) nameText += ` <span style="color:#475569">& ${remaining} अन्य</span>`;
-          nameRow.innerHTML = `<span style="font-size:10px;color:#64748b;"><i class="fa-solid fa-users text-[8px] mr-1" style="color:#D4A01780;"></i>${nameText}</span>`;
+          let nameText = shown.map(n => `<span style="color:#EFC24A;font-weight:700;">${escapeHtml(n)}</span>`).join(' <span style="color:#334155;">•</span> ');
+          if (remaining > 0) nameText += ` <span style="color:#475569;font-size:9px;">& ${remaining} अन्य</span>`;
+          nameRow.innerHTML = `<div style="display:flex;align-items:center;gap:5px;"><i class="fa-solid fa-users text-[9px]" style="color:#D4A017;flex-shrink:0;"></i><span style="font-size:10px;color:#94a3b8;line-height:1.4;">${nameText}</span></div>`;
           photoSection.appendChild(nameRow);
-        } else if (faceCount > 1) {
-          // fallback: just show face count if no names
+        } else if (faceCount > 0) {
           const nameRow = document.createElement("div");
-          nameRow.style.cssText = "margin-top:3px;font-size:10px;color:#475569;";
-          nameRow.innerHTML = `<i class="fa-solid fa-users text-[8px] mr-1"></i>${faceCount} लोग उपस्थित`;
+          nameRow.style.cssText = "margin-top:4px;font-size:10px;color:#475569;display:flex;align-items:center;gap:4px;";
+          nameRow.innerHTML = `<i class="fa-solid fa-users text-[8px]"></i><span>${faceCount} लोग पहचाने गए</span>`;
           photoSection.appendChild(nameRow);
         }
 
@@ -1288,7 +1328,7 @@
       // Footer: slideshow CTA
       const footer = document.createElement("div");
       footer.style.cssText = "padding-top:6px;border-top:1px solid rgba(212,160,23,0.07);display:flex;align-items:center;justify-content:space-between;";
-      footer.innerHTML = `<span class="text-[9px]" style="color:#1A3060">${escapeHtml(form || "event")}</span><span class="text-[9px] flex items-center gap-1 font-bold" style="color:#D4A017"><i class="fa-solid fa-play text-[7px]"></i>Slideshow देखें</span>`;
+      footer.innerHTML = `<span class="text-[9px] font-medium" style="color:#334155">${escapeHtml(getFormTypeLabel(form))}</span><span class="text-[9px] flex items-center gap-1 font-bold" style="color:#D4A017"><i class="fa-solid fa-play text-[7px]"></i>Slideshow देखें</span>`;
       card.appendChild(footer);
       card.addEventListener("click", () => openEventSlideshow(item, { title, icon, details: buildEventDetails(item,form,data,displayDate,formDate) }));
       wrapper.appendChild(card);
@@ -1573,11 +1613,11 @@
       const pName = data.program_name || data["कार्यक्रम_का_नाम"] || data.name_of_program || "";
       const pType = data.program_type || data["कार्यक्रम_का_प्रकार"] || "";
       let title = pName || pType || form || "Event";
-      if (form === "president_tour_form") title = pName || pType || data.tour_title || "President Tour";
-      else if (form === "mandal_reporting" || form === "mandal_reporting_form") title = pName || data.venue || data["स्थान"] || "Mandal Report";
-      else if (form === "visitor_form") title = item.name || data.name || data["नाम"] || "Visitor";
-      else if (form === "party_attendance") title = pName || pType || "Party Attendance";
-      else if (form === "coordinator_entry" || form === "coordinator_form") title = data.name || data["नाम"] || pName || "Coordinator Entry";
+      if (form === "president_tour_form") title = pName || pType || data.tour_title || "जिला अध्यक्ष जी का प्रवास कार्यक्रम";
+      else if (form === "mandal_reporting" || form === "mandal_reporting_form") title = pName || data.venue || data["स्थान"] || "मंडल कार्यक्रम";
+      else if (form === "visitor_form") title = item.name || data.name || data["नाम"] || "कार्यालय आगन्तुक";
+      else if (form === "party_attendance") title = pName || pType || "कार्यक्रम उपस्थिति";
+      else if (form === "coordinator_entry" || form === "coordinator_form") title = data.name || data["नाम"] || pName || "समन्वयक प्रविष्टि";
       const details = buildEventDetails(item, form, data, displayDate, formDate);
       const eventPhotos = getEventPhotos(item, globalPhotoMap);
       eventPhotos.forEach(u => { urlToEvent.set(u, { title, formType: getFormTypeLabel(form), details }); });
