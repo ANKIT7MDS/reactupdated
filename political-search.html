@@ -1926,14 +1926,12 @@
   if (autoName || autoMobile || autoS3Key) {
     if (el.nameInput && autoName) el.nameInput.value = autoName;
     if (el.mobileInput && autoMobile) el.mobileInput.value = autoMobile;
-    setTimeout(() => {
-      if (autoS3Key) {
-        // Use already-uploaded selfie s3key — no new upload needed
-        doAutoS3Search(autoS3Key, autoName, autoMobile);
-      } else {
-        doAutoTextSearch(autoName, autoMobile);
-      }
-    }, 400);
+    if (autoS3Key) {
+      // s3key available — use visitor's already-uploaded selfie for face search
+      setTimeout(() => doAutoS3Search(autoS3Key, autoName, autoMobile), 400);
+    }
+    // If only name/mobile but no s3key — do nothing, let user take new selfie
+    // (text_search action not supported by backend)
   }
 
   // Search using existing s3_key (selfie already uploaded from visitor form)
@@ -1945,34 +1943,35 @@
     setStatus("चेहरे से रिकॉर्ड खोजा जा रहा है...", "loading");
 
     try {
-      const isPublic = !!token;
+      // Use same public_search action as visitor form (s3_key direct search)
+      // token must go in payload AND in body for public endpoint
+      const cid = qs.get("cid") || qs.get("collection_id") || "";
       const searchPayload = { s3_key: s3key, days: 730 };
-      if (isPublic) searchPayload.token = token;
-      else searchPayload.collection_id = (qs.get("cid") || qs.get("collection_id") || "");
+      if (token) searchPayload.token = token;
+      if (cid)   searchPayload.collection_id = cid;
 
-      const url2 = isPublic ? `${BASE_URL}/political/public/search` : `${BASE_URL}/political/search`;
+      const url2 = `${BASE_URL}/political/search`;
+      const body = { action: "public_search", payload: searchPayload };
+      if (token) body.token = token;  // also at body level for some endpoints
+
       const res2 = await fetch(url2, {
         method: "POST", cache: "no-store",
-        body: JSON.stringify({ action: "run_search", payload: searchPayload })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
       });
       const data = await res2.json().catch(() => ({}));
 
-      // If face search gives no result, fall back to text search
       const timeline = data.events || data.timeline || [];
       const photoUrls = data.photo_urls || [];
-
-      if (!timeline.length && (nameVal || mobileVal)) {
-        // Face not found — fallback to text search
-        return doAutoTextSearch(nameVal, mobileVal);
-      }
 
       el.skeletonLoader.classList.add("hidden");
 
       if (!timeline.length) {
+        // Face search gave no result — show empty but don't error
         setStatus("कोई रिकॉर्ड नहीं मिला", "error");
         el.emptyState.classList.remove("hidden");
-        el.emptyState.querySelector("h3").textContent = "कोई रिकॉर्ड नहीं मिला";
-        el.emptyState.querySelector("p").textContent = "इस चेहरे का कोई रिकॉर्ड नहीं है।";
+        try { el.emptyState.querySelector("h3").textContent = "कोई रिकॉर्ड नहीं मिला"; } catch(e){}
+        try { el.emptyState.querySelector("p").textContent = "इस visitor का कोई पुराना रिकॉर्ड नहीं है।"; } catch(e){}
         return;
       }
 
@@ -1981,8 +1980,8 @@
       photoUrls.forEach(u => { const k = parseS3KeyFromUrl(u); if (k) globalPhotoMap.set(k, u); });
 
       // Pre-fill name/mobile from profile or URL params
-      const profile = data.profile || {};
-      if (el.nameInput) el.nameInput.value = profile.name || nameVal || "";
+      const profile = data.profile || (data.events && data.events[0] && data.events[0].data) || {};
+      if (el.nameInput)   el.nameInput.value   = profile.name   || nameVal  || "";
       if (el.mobileInput) el.mobileInput.value = profile.mobile || mobileVal || "";
 
       const sim = data.similarity ? Number(data.similarity).toFixed(0) : "—";
@@ -1993,65 +1992,15 @@
       setStatus("", "info");
     } catch(e) {
       el.skeletonLoader.classList.add("hidden");
-      // Fallback to text search on error
-      if (nameVal || mobileVal) return doAutoTextSearch(nameVal, mobileVal);
       el.emptyState.classList.remove("hidden");
+      try { el.emptyState.querySelector("h3").textContent = "Error"; } catch(err){}
+      try { el.emptyState.querySelector("p").textContent = e.message || "कुछ गलत हुआ"; } catch(err){}
       setStatus(e.message || "Error", "error");
     }
   }
 
-  async function doAutoTextSearch(nameVal, mobileVal) {
-    if (!nameVal && !mobileVal) return;
-    el.emptyState.classList.add("hidden");
-    el.skeletonLoader.classList.remove("hidden");
-    el.resultsContainer.classList.add("hidden");
-    el.statsDashboard.classList.add("hidden");
-    setStatus("रिकॉर्ड खोजा जा रहा है...", "loading");
-
-    try {
-      const isPublic = !!token;
-      const payload = {};
-      if (isPublic) payload.token = token;
-      else payload.collection_id = (qs.get("cid") || qs.get("collection_id") || "");
-      if (nameVal) payload.name = nameVal;
-      if (mobileVal) payload.mobile = mobileVal;
-      payload.form_type = "search";
-
-      const url2 = isPublic ? `${BASE_URL}/political/public/search` : `${BASE_URL}/political/search`;
-      const res2 = await fetch(url2, {
-        method: "POST", cache: "no-store",
-        body: JSON.stringify({ action: "text_search", payload })
-      });
-      const data = await res2.json().catch(() => ({}));
-      const timeline = data.events || data.timeline || data.items || [];
-      const photoUrls = data.photo_urls || [];
-
-      el.skeletonLoader.classList.add("hidden");
-
-      if (!timeline.length) {
-        setStatus("कोई रिकॉर्ड नहीं मिला", "error");
-        el.emptyState.classList.remove("hidden");
-        el.emptyState.querySelector("h3").textContent = "कोई रिकॉर्ड नहीं मिला";
-        el.emptyState.querySelector("p").textContent = `"${nameVal || mobileVal}" का डेटा नहीं है।`;
-        return;
-      }
-
-      globalTimelineData = timeline;
-      globalPhotoMap = new Map();
-      photoUrls.forEach(u => { const k = parseS3KeyFromUrl(u); if (k) globalPhotoMap.set(k, u); });
-
-      const sim = data.similarity ? Number(data.similarity).toFixed(0) : "—";
-      updateDashboard(sim, timeline.length, photoUrls.length);
-      applyFilter();
-      renderPhotos(photoUrls, timeline);
-      switchTab("timeline");
-      setStatus("", "info");
-    } catch(e) {
-      el.skeletonLoader.classList.add("hidden");
-      el.emptyState.classList.remove("hidden");
-      setStatus(e.message || "Error", "error");
-    }
-  }
+  // doAutoTextSearch removed — text_search action not supported by backend
+  // Timeline search only works via face s3_key (doAutoS3Search)
 })();
 </script>
 
