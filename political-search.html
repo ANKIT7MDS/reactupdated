@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>EventLens AI — Karyakarta Intelligence</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { display: ['Cinzel','serif'], body: ['Noto Sans Devanagari','DM Sans','ui-sans-serif','system-ui','-apple-system','Segoe UI','Roboto','sans-serif'] },
+          fontFamily: { display: ['Cinzel', 'serif'], body: ['DM Sans', 'sans-serif'] },
           colors: {
             navy: { 950: '#03070F', 900: '#060D1F', 800: '#0B1530', 700: '#112044', 600: '#1A3060' },
             gold: { 300: '#F5D78A', 400: '#EFC24A', 500: '#D4A017', 600: '#B8880F' },
@@ -40,7 +40,7 @@
         url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D4A017' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
       background-attachment: fixed;
       color: #D1D9E6;
-      font-family: 'Noto Sans Devanagari','DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+      font-family: 'DM Sans', sans-serif;
       min-height: 100vh; min-height: 100dvh;
       -webkit-tap-highlight-color: transparent;
     }
@@ -60,7 +60,6 @@
 
     /* ─── Navbar ─── */
     .navbar {
-      padding-top: env(safe-area-inset-top);
       background: linear-gradient(180deg, rgba(3,7,15,0.98) 0%, rgba(6,13,31,0.95) 100%);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(212,160,23,0.15);
@@ -133,7 +132,7 @@
       width: 100%; background: rgba(255,255,255,0.04);
       border: 1.5px solid rgba(255,255,255,0.1);
       color: #fff; border-radius: 14px;
-      padding: 13px 16px; font-family: 'Noto Sans Devanagari','DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+      padding: 13px 16px; font-family: 'DM Sans', sans-serif;
       font-size: 15px; transition: all 0.25s ease;
     }
     .field-input::placeholder { color: #334155; }
@@ -175,57 +174,18 @@
     .filter-pill.active { background: rgba(212,160,23,0.15); border-color: rgba(212,160,23,0.6); color: var(--gold-400); box-shadow: 0 0 12px rgba(212,160,23,0.2); }
 
     /* ─── Timeline ─── */
-.timeline-rail::before {
-  content: ''; position: absolute; top: 0; bottom: 0; left: 20px; width: 2px;
-  background: linear-gradient(to bottom,
-    rgba(239,194,74,0.65) 0%,
-    rgba(212,160,23,0.18) 55%,
-    rgba(212,160,23,0.06) 75%,
-    transparent 100%);
-  box-shadow: 0 0 18px rgba(212,160,23,0.18);
-}
-.timeline-dot {
-  background: rgba(3,7,15,0.95);
-  border: 2px solid rgba(239,194,74,0.42);
-  box-shadow: 0 0 0 3px rgba(239,194,74,0.08), 0 6px 18px rgba(0,0,0,0.45);
-  transition: all 0.2s ease;
-}
-.timeline-item:hover .timeline-dot {
-  border-color: rgba(239,194,74,0.9);
-  background: rgba(239,194,74,0.18);
-  box-shadow: 0 0 0 4px rgba(239,194,74,0.12), 0 0 18px rgba(239,194,74,0.28);
-}
-
-.event-card {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(160deg,
-    rgba(26,48,96,0.62) 0%,
-    rgba(17,32,68,0.55) 35%,
-    rgba(6,13,31,0.88) 100%);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-left: 3px solid rgba(239,194,74,0.38);
-  box-shadow: 0 10px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
-  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
-}
-.event-card::before{
-  content:'';
-  position:absolute; inset:-1px;
-  background: radial-gradient(120% 90% at 20% 0%,
-    rgba(239,194,74,0.10) 0%,
-    transparent 60%);
-  pointer-events:none;
-  opacity: 1;
-}
-.event-card:active{ transform: scale(0.99); }
-.event-card:hover {
-  border-left-color: rgba(239,194,74,0.95);
-  transform: translateX(4px);
-  box-shadow: 0 14px 44px rgba(0,0,0,0.55), -6px 0 26px rgba(212,160,23,0.14), inset 0 1px 0 rgba(255,255,255,0.07);
-}
-.timeline-title { letter-spacing: 0.01em; }
-.timeline-meta { color: rgba(209,217,230,0.80); }
-.timeline-summary { color: rgba(209,217,230,0.70); }
+    .timeline-rail::before {
+      content: ''; position: absolute; top: 0; bottom: 0; left: 20px; width: 1px;
+      background: linear-gradient(to bottom, rgba(212,160,23,0.5) 0%, rgba(212,160,23,0.1) 60%, transparent 100%);
+    }
+    .timeline-dot { background: var(--navy-900); border: 2px solid rgba(212,160,23,0.3); transition: all 0.2s ease; }
+    .timeline-item:hover .timeline-dot { border-color: var(--gold-400); background: rgba(212,160,23,0.15); box-shadow: 0 0 12px rgba(212,160,23,0.4); }
+    .event-card {
+      background: linear-gradient(145deg, rgba(17,32,68,0.5) 0%, rgba(6,13,31,0.7) 100%);
+      border: 1px solid rgba(255,255,255,0.05); border-left: 2px solid rgba(212,160,23,0.2);
+      transition: all 0.25s ease;
+    }
+    .event-card:hover { border-left-color: var(--gold-400); transform: translateX(4px); box-shadow: 0 8px 32px rgba(0,0,0,0.4), -4px 0 20px rgba(212,160,23,0.1); }
 
     /* ─── Skeleton ─── */
     .skeleton {
@@ -297,7 +257,7 @@
     ::-webkit-scrollbar-thumb:hover { background: rgba(212,160,23,0.4); }
 
     /* ─── Mobile ─── */
-    @media (max-width: 1023px) { .mobile-pb { padding-bottom: calc(104px + env(safe-area-inset-bottom)); } }
+    @media (max-width: 1023px) { .mobile-pb { padding-bottom: 24px; } }
 
     /* ═══════════════════════════════════════════
        SLIDESHOW — PPT style: image left, detail right
@@ -393,109 +353,21 @@
 
     /* ─── Token badge ─── */
     .token-badge { background: rgba(62,207,178,0.08); border: 1px solid rgba(62,207,178,0.2); color: var(--jade-400); font-size: 11px; }
-  
 
-    /* ─── Premium UX Enhancements ─── */
-    :focus-visible { outline: 3px solid rgba(212,160,23,0.45); outline-offset: 2px; border-radius: 14px; }
-    @media (prefers-reduced-motion: reduce) {
-      * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    /* ─── Recognized Person Chip Premium Style ─── */
+    .recognized-chip {
+      background: rgba(62,207,178,0.1);
+      border: 1px solid rgba(62,207,178,0.3);
+      color: #3ECFB2;
+      box-shadow: 0 0 10px rgba(62,207,178,0.1);
+      transition: all 0.3s ease;
     }
-
-    /* ─── Toast ─── */
-    #toast {
-      position: fixed; left: 12px; right: 12px;
-      bottom: calc(14px + env(safe-area-inset-bottom));
-      z-index: 99999;
-      display: none;
-      padding: 12px 14px;
-      border-radius: 16px;
-      font-weight: 800;
-      font-size: 13px;
-      letter-spacing: .01em;
-      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    .recognized-chip:hover {
+      background: rgba(62,207,178,0.2);
+      box-shadow: 0 0 15px rgba(62,207,178,0.3);
+      transform: translateY(-1px);
     }
-
-    /* ─── Mobile Action Bar ─── */
-    .mobile-actionbar {
-      position: fixed;
-      left: 10px; right: 10px;
-      bottom: calc(10px + env(safe-area-inset-bottom));
-      z-index: 9998;
-      display: none;
-      background: linear-gradient(180deg, rgba(6,13,31,0.86) 0%, rgba(3,7,15,0.92) 100%);
-      border: 1px solid rgba(212,160,23,0.22);
-      border-radius: 18px;
-      box-shadow: 0 10px 38px rgba(0,0,0,0.65);
-      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-      overflow: hidden;
-    }
-    .mbar-inner { display: flex; gap: 10px; padding: 10px; align-items: center; }
-    .mbar-btn {
-      flex: 1;
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      height: 46px;
-      padding: 0 14px;
-      border-radius: 14px;
-      font-weight: 900;
-      font-size: 13px;
-      letter-spacing: 0.02em;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      transition: transform .12s ease, opacity .12s ease;
-    }
-    .mbar-btn:active { transform: translateY(1px); }
-    .mbar-btn.primary {
-      background: linear-gradient(135deg, #D4A017 0%, #EFC24A 45%, #B8880F 100%);
-      color: #060D1F;
-      border: 1px solid rgba(255,255,255,0.18);
-    }
-    .mbar-btn.secondary {
-      background: rgba(255,255,255,0.06);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.14);
-    }
-    .mbar-btn.ghost {
-      background: rgba(212,160,23,0.10);
-      color: #fff;
-      border: 1px solid rgba(212,160,23,0.22);
-    }
-    .mbar-btn[disabled] { opacity: 0.45; pointer-events: none; }
-
-    .mbar-seg { flex: 1; display: flex; gap: 8px; }
-    .mbar-tab {
-      flex: 1;
-      height: 46px;
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      border-radius: 14px;
-      font-weight: 900;
-      font-size: 12.5px;
-      background: rgba(255,255,255,0.06);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-    .mbar-tab.active {
-      background: rgba(212,160,23,0.14);
-      border-color: rgba(212,160,23,0.28);
-      color: #fff;
-    }
-    .mbar-iconbtn {
-      width: 46px; height: 46px;
-      display: inline-flex; align-items: center; justify-content: center;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.06);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-    .mbar-iconbtn:active { transform: translateY(1px); }
-
-    .mobile-actionbar [data-group] { display: none; }
-    .mobile-actionbar[data-mode="step1"] #mbarStep1 { display: flex; width: 100%; }
-    .mobile-actionbar[data-mode="step2"] #mbarStep2 { display: flex; width: 100%; }
-    .mobile-actionbar[data-mode="step3"] #mbarStep3 { display: flex; width: 100%; }
-
-    @media (max-width: 1023px) { .mobile-actionbar { display: block; } }
-</style>
+  </style>
 
   <script>
     function previewImage(inputEl) {
@@ -534,36 +406,6 @@
       return obj.thumb_url || obj.thumbUrl || obj.thumbnail_url || obj.thumbnailUrl || fallbackUrl;
     }
   </script>
-
-  <script>
-    // Global helpers (UI only)
-    window.haptic = (ms = 12) => { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} };
-
-    window.toast = function (msg, type = "info") {
-      try {
-        const t = document.getElementById("toast");
-        if (!t) return;
-        const bg = type === "error"
-          ? "rgba(230,57,80,0.18)"
-          : type === "success"
-            ? "rgba(62,207,178,0.14)"
-            : "rgba(212,160,23,0.14)";
-        const br = type === "error"
-          ? "rgba(230,57,80,0.35)"
-          : type === "success"
-            ? "rgba(62,207,178,0.30)"
-            : "rgba(212,160,23,0.35)";
-        t.style.background = bg;
-        t.style.border = "1px solid " + br;
-        t.style.color = "#fff";
-        t.textContent = msg;
-        t.style.display = "block";
-        clearTimeout(window.__toastTimer);
-        window.__toastTimer = setTimeout(() => { t.style.display = "none"; }, 2400);
-      } catch (e) {}
-    };
-  </script>
-
 </head>
 
 <body class="font-body">
@@ -607,18 +449,18 @@
           <div class="step-num active" id="step1Num">1</div>
           <div class="flex flex-col">
             <span class="text-xs font-bold text-white leading-none">सेल्फी अपलोड</span>
-            <span class="text-[10px]" style="color:rgba(209,217,230,0.62)">चेहरे से खोजें</span>
+            <span class="text-[10px]" style="color:#475569">चेहरे से खोजें</span>
           </div>
           <div class="step-line mx-1" id="stepLine1"></div>
           <div class="step-num pending" id="step2Num">2</div>
           <div class="flex flex-col">
-            <span class="text-xs font-bold leading-none" style="color:rgba(209,217,230,0.62)" id="step2Label">जानकारी</span>
+            <span class="text-xs font-bold leading-none" style="color:#475569" id="step2Label">जानकारी</span>
             <span class="text-[10px]" style="color:#334155">नाम व मोबाइल</span>
           </div>
           <div class="step-line mx-1" id="stepLine2"></div>
           <div class="step-num pending" id="step3Num">3</div>
           <div class="flex flex-col">
-            <span class="text-xs font-bold leading-none" style="color:rgba(209,217,230,0.62)" id="step3Label">रिजल्ट</span>
+            <span class="text-xs font-bold leading-none" style="color:#475569" id="step3Label">रिजल्ट</span>
             <span class="text-[10px]" style="color:#334155">फोटो व टाइमलाइन</span>
           </div>
         </div>
@@ -633,7 +475,7 @@
               </div>
               <div>
                 <h2 class="font-bold text-white text-sm leading-tight">सेल्फी सर्च</h2>
-                <p class="text-[11px]" style="color:rgba(209,217,230,0.62)">कार्यकर्ता को चेहरे से पहचानें</p>
+                <p class="text-[11px]" style="color:#475569">कार्यकर्ता को चेहरे से पहचानें</p>
               </div>
             </div>
 
@@ -647,7 +489,7 @@
                     <i class="fa-solid fa-camera text-3xl" style="color:#D4A017"></i>
                   </div>
                   <span class="font-bold text-white text-base mb-1">📸 Camera खोलें</span>
-                  <span class="text-xs" style="color:rgba(209,217,230,0.62)">सेल्फी लें या टच करें</span>
+                  <span class="text-xs" style="color:#475569">सेल्फी लें या टच करें</span>
                 </div>
                 <!-- Preview -->
                 <img id="preview" class="hidden absolute inset-0 w-full h-full object-cover rounded-2xl z-10" alt="Preview" />
@@ -682,7 +524,7 @@
                 <i class="fa-solid fa-circle-check text-2xl" style="color:#3ECFB2"></i>
               </div>
               <div class="font-bold text-white text-base" id="matchTitle">मैच मिला!</div>
-              <div class="text-xs mt-1" style="color:rgba(209,217,230,0.80)" id="matchSubtitle">विवरण भरें और रिजल्ट देखें</div>
+              <div class="text-xs mt-1" style="color:#64748b" id="matchSubtitle">विवरण भरें और रिजल्ट देखें</div>
               <div class="flex justify-center gap-2 mt-3 flex-wrap" id="matchPills"></div>
             </div>
 
@@ -696,7 +538,7 @@
                   <span class="ml-auto text-[9px] px-2 py-0.5 rounded-full" style="background:rgba(230,57,80,0.1);color:#FF7088;border:1px solid rgba(230,57,80,0.2);">अनिवार्य</span>
                 </label>
                 <div class="relative">
-                  <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:rgba(209,217,230,0.62)"></i>
+                  <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:#475569"></i>
                   <input id="nameInput" type="text" placeholder="कार्यकर्ता का पूरा नाम" class="field-input pl-9" autocomplete="name" />
                 </div>
               </div>
@@ -706,8 +548,8 @@
                   <span class="ml-auto text-[9px] px-2 py-0.5 rounded-full" style="background:rgba(230,57,80,0.1);color:#FF7088;border:1px solid rgba(230,57,80,0.2);">अनिवार्य</span>
                 </label>
                 <div class="relative">
-                  <i class="fa-solid fa-mobile-screen absolute left-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:rgba(209,217,230,0.62)"></i>
-                  <input id="mobileInput" type="tel" placeholder="10 अंक मोबाइल नंबर" class="field-input pl-9" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" inputmode="numeric" />
+                  <i class="fa-solid fa-mobile-screen absolute left-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:#475569"></i>
+                  <input id="mobileInput" type="tel" placeholder="10 अंक मोबाइल नंबर" class="field-input pl-9" maxlength="10" pattern="[0-9]{10}" autocomplete="tel" />
                 </div>
                 <p id="mobileError" class="hidden text-[10px] mt-1 ml-1" style="color:#FF7088">कृपया 10 अंक का मोबाइल नंबर डालें</p>
               </div>
@@ -728,7 +570,7 @@
             <!-- Match Score -->
             <div class="stat-card rounded-xl p-3 relative overflow-hidden">
               <div class="absolute right-2 top-2 opacity-5"><i class="fa-solid fa-bullseye text-4xl" style="color:#D4A017"></i></div>
-              <div class="text-[8px] font-bold uppercase tracking-widest mb-1" style="color:rgba(209,217,230,0.62)">Match</div>
+              <div class="text-[8px] font-bold uppercase tracking-widest mb-1" style="color:#475569">Match</div>
               <div class="text-2xl font-bold text-white leading-none mb-1.5" id="scoreVal">—</div>
               <div class="rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06);height:3px;">
                 <div id="scoreBar" class="stat-bar-fill" style="width:0%;background:linear-gradient(90deg,#2AB89C,#3ECFB2)"></div>
@@ -738,14 +580,14 @@
             <!-- Events -->
             <div class="stat-card rounded-xl p-3 relative overflow-hidden">
               <div class="absolute right-2 top-2 opacity-5"><i class="fa-solid fa-timeline text-4xl" style="color:#D4A017"></i></div>
-              <div class="text-[8px] font-bold uppercase tracking-widest mb-1" style="color:rgba(209,217,230,0.62)">Events</div>
+              <div class="text-[8px] font-bold uppercase tracking-widest mb-1" style="color:#475569">Events</div>
               <div class="text-2xl font-bold text-white leading-none" id="eventCountVal">0</div>
               <div id="timelineCount" class="hidden"></div>
             </div>
             <!-- Photos -->
             <div class="stat-card rounded-xl p-3 relative overflow-hidden">
               <div class="absolute right-2 top-2 opacity-5"><i class="fa-solid fa-images text-4xl" style="color:#D4A017"></i></div>
-              <div class="text-[8px] font-bold uppercase tracking-widest mb-1" style="color:rgba(209,217,230,0.62)">Photos</div>
+              <div class="text-[8px] font-bold uppercase tracking-widest mb-1" style="color:#475569">Photos</div>
               <div class="text-2xl font-bold text-white leading-none" id="photoCountVal">0</div>
               <div id="photoCount" class="hidden"></div>
             </div>
@@ -770,19 +612,19 @@
             <i class="fa-solid fa-fingerprint text-4xl" style="color:#1A3060"></i>
           </div>
           <h3 class="font-display text-xl text-white mb-2" style="letter-spacing:0.04em;">Search Ready</h3>
-          <p class="text-sm max-w-xs leading-relaxed" style="color:rgba(209,217,230,0.62)">बाईं तरफ सेल्फी लें और कार्यकर्ता की पहचान तुरंत करें</p>
+          <p class="text-sm max-w-xs leading-relaxed" style="color:#475569">बाईं तरफ सेल्फी लें और कार्यकर्ता की पहचान तुरंत करें</p>
           <div class="grid grid-cols-3 gap-3 mt-8 w-full max-w-xs">
             <div class="p-3 rounded-xl text-center" style="background:rgba(17,32,68,0.4);border:1px solid rgba(212,160,23,0.08);">
               <i class="fa-solid fa-face-viewfinder mb-1.5 text-lg block" style="color:#D4A01770"></i>
-              <span class="text-[10px] font-semibold" style="color:rgba(209,217,230,0.62)">Face AI</span>
+              <span class="text-[10px] font-semibold" style="color:#475569">Face AI</span>
             </div>
             <div class="p-3 rounded-xl text-center" style="background:rgba(17,32,68,0.4);border:1px solid rgba(212,160,23,0.08);">
               <i class="fa-solid fa-images mb-1.5 text-lg block" style="color:#D4A01770"></i>
-              <span class="text-[10px] font-semibold" style="color:rgba(209,217,230,0.62)">Gallery</span>
+              <span class="text-[10px] font-semibold" style="color:#475569">Gallery</span>
             </div>
             <div class="p-3 rounded-xl text-center" style="background:rgba(17,32,68,0.4);border:1px solid rgba(212,160,23,0.08);">
               <i class="fa-solid fa-timeline mb-1.5 text-lg block" style="color:#D4A01770"></i>
-              <span class="text-[10px] font-semibold" style="color:rgba(209,217,230,0.62)">Timeline</span>
+              <span class="text-[10px] font-semibold" style="color:#475569">Timeline</span>
             </div>
           </div>
         </div>
@@ -829,7 +671,7 @@
             <button class="filter-btn filter-pill" data-filter="mandal_reporting_form">Mandal</button>
             <div class="ml-auto flex items-center gap-2 flex-shrink-0">
               <input type="date" id="tlFromDate" class="rounded-lg px-2 py-1 text-[10px] font-medium" style="background:rgba(15,23,42,0.7);border:1px solid rgba(212,160,23,0.2);color:#94a3b8;width:120px;" title="From Date">
-              <span class="text-[10px]" style="color:rgba(209,217,230,0.62)">—</span>
+              <span class="text-[10px]" style="color:#475569">—</span>
               <input type="date" id="tlToDate" class="rounded-lg px-2 py-1 text-[10px] font-medium" style="background:rgba(15,23,42,0.7);border:1px solid rgba(212,160,23,0.2);color:#94a3b8;width:120px;" title="To Date">
               <button id="btnDownloadTimeline" title="Timeline Download करें" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold" style="background:rgba(212,160,23,0.1);border:1px solid rgba(212,160,23,0.3);color:#D4A017;">
                 <i class="fa-solid fa-download text-[9px]"></i><span class="hidden sm:inline">Export</span>
@@ -926,49 +768,6 @@
     </div>
   </div>
 
-
-  <!-- ══ TOAST ══ -->
-  <div id="toast"></div>
-
-  <!-- ══ MOBILE ACTION BAR (UI only; backend flow unchanged) ══ -->
-  <div id="mobileActionBar" class="mobile-actionbar" data-mode="step1" aria-label="Quick actions">
-    <div class="mbar-inner" id="mbarStep1" data-group="step1">
-      <button id="mbarUpload" class="mbar-btn secondary" type="button" aria-label="Upload selfie">
-        <i class="fa-solid fa-cloud-arrow-up"></i><span>Upload</span>
-      </button>
-      <button id="mbarSearch" class="mbar-btn primary" type="button" aria-label="Search by selfie">
-        <i class="fa-solid fa-magnifying-glass"></i><span>खोजें</span>
-      </button>
-    </div>
-
-    <div class="mbar-inner" id="mbarStep2" data-group="step2">
-      <button id="mbarBackToUpload" class="mbar-btn secondary" type="button" aria-label="Back">
-        <i class="fa-solid fa-arrow-left"></i><span>Back</span>
-      </button>
-      <button id="mbarConfirm" class="mbar-btn primary" type="button" aria-label="Confirm and view results">
-        <i class="fa-solid fa-circle-check"></i><span>रिजल्ट देखें</span>
-      </button>
-    </div>
-
-    <div class="mbar-inner" id="mbarStep3" data-group="step3">
-      <div class="mbar-seg" role="tablist" aria-label="Results tabs">
-        <button id="mbarPhotos" class="mbar-tab active" type="button" role="tab" aria-selected="true">
-          <i class="fa-regular fa-image"></i><span>Photos</span>
-        </button>
-        <button id="mbarTimeline" class="mbar-tab" type="button" role="tab" aria-selected="false">
-          <i class="fa-solid fa-timeline"></i><span>Timeline</span>
-        </button>
-      </div>
-      <button id="mbarSlideshow" class="mbar-iconbtn" type="button" aria-label="Slideshow">
-        <i class="fa-solid fa-play"></i>
-      </button>
-      <button id="mbarNewSearch" class="mbar-iconbtn" type="button" aria-label="New search">
-        <i class="fa-solid fa-rotate-left"></i>
-      </button>
-    </div>
-  </div>
-
-
 <!-- ══ JAVASCRIPT ══ -->
 <script>
 (() => {
@@ -1027,17 +826,6 @@
     timelineCount: document.getElementById("timelineCount"),
     photoCount: document.getElementById("photoCount"),
   };
-
-  // UI gating: disable AI Report buttons if API key is not configured on this page
-  if (!apiKey) {
-    [el.btnAiReport, el.btnAiReportTimeline].forEach(b => {
-      if (!b) return;
-      b.disabled = true;
-      b.title = "Admin enable required (AI key missing)";
-      b.classList.add("opacity-50", "cursor-not-allowed");
-    });
-  }
-
 
   // ── Step indicator ──
   function setStep(n) {
@@ -1265,87 +1053,7 @@
       const vidhan = d.vidhansabha || "";
       return `<tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px 10px">${date}</td><td style="padding:6px 10px">${ft}</td><td style="padding:6px 10px">${prog}</td><td style="padding:6px 10px">${dist}</td><td style="padding:6px 10px">${vidhan}</td></tr>`;
     }).join("");
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${name} - Timeline</title><style>body{font-family:sans-serif;padding:20px;color:#1e293b}h2{color:#f97316}table{width:100%;border-collapse:collapse}th{background:#f97316;color:white;padding:8px 10px;text-align:left}tr:nth-child(even){background:#f8fafc}@media print{body{padding:0}}</style></head><body><h2>📋 ${name} — Activity Timeline</h2><p style="color:rgba(209,217,230,0.80)">Total Events: ${globalTimelineData.length} | Generated: ${new Date().toLocaleDateString('hi-IN')}</p><table><tr><th>दिनांक</th><th>Form Type</th><th>कार्यक्रम</th><th>जिला</th><th>विधानसभा</th></tr>${rows}</table>
-<script>
-  // Mobile Action Bar wiring (UI only; no backend changes)
-  (function(){
-    const mbar = document.getElementById("mobileActionBar");
-    if(!mbar) return;
-
-    const step2 = document.getElementById("step2Card");
-    const results = document.getElementById("resultsContainer");
-    const viewPhotos = document.getElementById("viewPhotos");
-    const viewTimeline = document.getElementById("viewTimeline");
-    const selfieInput = document.getElementById("selfieInput");
-
-    const click = (id) => { const el = document.getElementById(id); if(el) { try{ window.haptic && window.haptic(); }catch(e){} el.click(); } };
-
-    // Buttons
-    const bUpload = document.getElementById("mbarUpload");
-    const bSearch = document.getElementById("mbarSearch");
-    const bBack = document.getElementById("mbarBackToUpload");
-    const bConfirm = document.getElementById("mbarConfirm");
-    const bPhotos = document.getElementById("mbarPhotos");
-    const bTimeline = document.getElementById("mbarTimeline");
-    const bSlideshow = document.getElementById("mbarSlideshow");
-    const bNew = document.getElementById("mbarNewSearch");
-
-    bUpload && bUpload.addEventListener("click", () => { try{ window.haptic && window.haptic(); }catch(e){} selfieInput && selfieInput.click(); });
-    bSearch && bSearch.addEventListener("click", () => click("searchBtn"));
-    bBack && bBack.addEventListener("click", () => { try{ window.haptic && window.haptic(); }catch(e){} window.scrollTo({top:0, behavior:"smooth"}); });
-    bConfirm && bConfirm.addEventListener("click", () => click("confirmBtn"));
-
-    bPhotos && bPhotos.addEventListener("click", () => click("btnTabPhotos"));
-    bTimeline && bTimeline.addEventListener("click", () => click("btnTabTimeline"));
-    bSlideshow && bSlideshow.addEventListener("click", () => click("btnAllSlideshow"));
-    bNew && bNew.addEventListener("click", () => click("newSearchBtn"));
-
-    function isHidden(el){ return !el || el.classList.contains("hidden"); }
-
-    function updateTabState(){
-      const photosActive = !isHidden(viewPhotos) && isHidden(viewTimeline);
-      if(bPhotos){ bPhotos.classList.toggle("active", photosActive); bPhotos.setAttribute("aria-selected", photosActive ? "true":"false"); }
-      if(bTimeline){ bTimeline.classList.toggle("active", !photosActive); bTimeline.setAttribute("aria-selected", photosActive ? "false":"true"); }
-    }
-
-    function updateMode(){
-      // Hide actionbar while slideshow is active (avoid double UI)
-      const ss = document.getElementById("slideshowOverlay");
-      if(ss && ss.classList.contains("active")) { mbar.style.display="none"; return; }
-      mbar.style.display = "";
-
-      const mode = (!isHidden(results)) ? "step3" : (!isHidden(step2) ? "step2" : "step1");
-      if(mbar.dataset.mode !== mode) mbar.dataset.mode = mode;
-
-      // Step1: disable search until selfie selected
-      if(mode === "step1"){
-        const ok = selfieInput && selfieInput.files && selfieInput.files.length > 0;
-        if(bSearch) bSearch.disabled = !ok;
-        if(!ok && window.matchMedia && window.matchMedia("(max-width: 1023px)").matches){
-          // gentle hint only once per load
-          if(!window.__hintedUpload){ window.__hintedUpload = true; window.toast && window.toast("पहले सेल्फी अपलोड करें", "info"); }
-        }
-      }
-
-      if(mode === "step3") updateTabState();
-    }
-
-    // Observe class changes for mode switching
-    const obs = new MutationObserver(updateMode);
-    step2 && obs.observe(step2, { attributes:true, attributeFilter:["class"]});
-    results && obs.observe(results, { attributes:true, attributeFilter:["class"]});
-    viewPhotos && obs.observe(viewPhotos, { attributes:true, attributeFilter:["class"]});
-    viewTimeline && obs.observe(viewTimeline, { attributes:true, attributeFilter:["class"]});
-    const ss = document.getElementById("slideshowOverlay");
-    ss && obs.observe(ss, { attributes:true, attributeFilter:["class"]});
-
-    selfieInput && selfieInput.addEventListener("change", updateMode);
-
-    updateMode();
-  })();
-</script>
-
-</body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${name} - Timeline</title><style>body{font-family:sans-serif;padding:20px;color:#1e293b}h2{color:#f97316}table{width:100%;border-collapse:collapse}th{background:#f97316;color:white;padding:8px 10px;text-align:left}tr:nth-child(even){background:#f8fafc}@media print{body{padding:0}}</style></head><body><h2>📋 ${name} — Activity Timeline</h2><p style="color:#64748b">Total Events: ${globalTimelineData.length} | Generated: ${new Date().toLocaleDateString('hi-IN')}</p><table><tr><th>दिनांक</th><th>Form Type</th><th>कार्यक्रम</th><th>जिला</th><th>विधानसभा</th></tr>${rows}</table></body></html>`;
     const blob = new Blob([html], {type:"text/html"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -1418,7 +1126,7 @@
       titleEl.textContent = `${item.title} (${index+1}/${galleryImages.length})`;
       const body = document.createElement("div"); body.className = "h-full flex flex-col"; body.style.background = "#000";
       const imgCont = document.createElement("div"); imgCont.className = "flex-1 flex items-center justify-center p-3";
-      const img = document.createElement("img"); img.src = item.url; img.decoding="async"; img.referrerPolicy="no-referrer"; img.className = "max-w-full max-h-full object-contain rounded-lg"; imgCont.appendChild(img);
+      const img = document.createElement("img"); img.src = item.url; img.className = "max-w-full max-h-full object-contain rounded-lg"; imgCont.appendChild(img);
       const actions = document.createElement("div"); actions.className = "p-4 flex justify-between items-center"; actions.style.background = "rgba(3,7,15,0.9)";
       const dlBtn = document.createElement("a"); dlBtn.href = item.url; dlBtn.download = `event_photo_${index}.jpg`; dlBtn.className = "px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 text-white"; dlBtn.style.cssText = "background:rgba(212,160,23,0.15);border:1px solid rgba(212,160,23,0.3);"; dlBtn.innerHTML = '<i class="fa-solid fa-download text-xs" style="color:#D4A017"></i> Download'; actions.appendChild(dlBtn);
       body.appendChild(imgCont); body.appendChild(actions); bodyEl.innerHTML = ""; bodyEl.appendChild(body);
@@ -1450,7 +1158,6 @@
   function setStatus(msg, type = "info") {
     if (!el.statusBox) return;
     el.statusBox.classList.remove("hidden");
-    if (window.toast && (type === "error" || type === "success")) { window.toast(msg, type); }
     const colors = { error: 'rgba(230,57,80,0.12);border:1px solid rgba(230,57,80,0.3);color:#FF7088', success: 'rgba(62,207,178,0.1);border:1px solid rgba(62,207,178,0.3);color:#3ECFB2', loading: 'rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);color:#D4A017' };
     const style = colors[type] || 'rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#94a3b8';
     el.statusBox.innerHTML = `<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold" style="background:${style}">${type==='loading'?'<i class="fa-solid fa-circle-notch fa-spin"></i>':''}${escapeHtml(msg)}</div>`;
@@ -1461,8 +1168,6 @@
     el.skeletonLoader.classList.add("hidden");
     el.statsDashboard.classList.remove("hidden");
     el.resultsContainer.classList.remove("hidden");
-    // Mobile: bring results into view (UI only)
-    try{ if (window.matchMedia && window.matchMedia("(max-width: 1023px)").matches) { setTimeout(()=>el.statsDashboard && el.statsDashboard.scrollIntoView({behavior:"smooth", block:"start"}), 160); } }catch(e){}
     el.copySummaryBtn && el.copySummaryBtn.classList.remove("hidden");
     el.copySummaryBtn && el.copySummaryBtn.classList.add("flex");
     // AI Report removed
@@ -1532,7 +1237,7 @@
     const div = document.createElement("div"); div.className = "space-y-3 p-5";
     rows.forEach(([k,v]) => {
       const row = document.createElement("div"); row.className = "flex flex-col sm:flex-row sm:justify-between pb-2 last:border-0"; row.style.borderBottom = "1px solid rgba(212,160,23,0.08)";
-      row.innerHTML = `<span class="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style="color:rgba(209,217,230,0.62)">${k}</span><span class="text-sm font-medium text-right break-words" style="color:#D1D9E6">${v}</span>`;
+      row.innerHTML = `<span class="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style="color:#475569">${k}</span><span class="text-sm font-medium text-right break-words" style="color:#D1D9E6">${v}</span>`;
       div.appendChild(row);
     });
     return div;
@@ -1577,7 +1282,7 @@
   function renderTimeline(timeline, photoUrlByKey) {
     el.viewTimeline.innerHTML = "";
     if (!Array.isArray(timeline) || timeline.length === 0) {
-      el.viewTimeline.innerHTML = `<div class="text-center py-10 text-sm" style="color:rgba(209,217,230,0.62)">इस फ़िल्टर में कोई इवेंट नहीं: ${currentFilter}</div>`;
+      el.viewTimeline.innerHTML = `<div class="text-center py-10 text-sm" style="color:#475569">इस फ़िल्टर में कोई इवेंट नहीं: ${currentFilter}</div>`;
       return;
     }
     const sorted = [...timeline].sort((a,b) => {
@@ -1605,7 +1310,7 @@
 
       const wrapper = document.createElement("div"); wrapper.className = "relative pl-2 timeline-item"; wrapper.style.animationDelay = `${index*50}ms`;
       const dot = document.createElement("div"); dot.className = "timeline-dot absolute w-3.5 h-3.5 rounded-full z-10"; dot.style.cssText = "left:-28px;top:16px;"; wrapper.appendChild(dot);
-      const card = document.createElement("div"); card.className = "event-card rounded-xl cursor-pointer"; card.style.padding = "12px 14px";
+      const card = document.createElement("div"); card.className = "event-card rounded-xl cursor-pointer"; card.style.padding = "10px 12px";
 
       // ── Build all content pieces ──
       const mandal = item.mandal || data.mandal || "";
@@ -1623,19 +1328,19 @@
           <span class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style="background:${iconColor}18;border:1px solid ${iconColor}30;">
             <i class="fa-solid ${icon} text-[10px]" style="color:${iconColor}"></i>
           </span>
-          <h3 class="timeline-title font-extrabold text-[13px] leading-snug" style="color:#E8EEF7;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(title)}</h3>
+          <h3 class="font-bold text-xs leading-snug" style="color:#E8EEF7;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(title)}</h3>
         </div>
-        ${displayDate ? `<span class="badge-gold px-1.5 py-0.5 rounded flex-shrink-0 text-[10px] font-extrabold whitespace-nowrap">${escapeHtml(displayDate)}</span>` : ""}
+        ${displayDate ? `<span class="badge-gold px-1.5 py-0.5 rounded flex-shrink-0 text-[9px] font-bold whitespace-nowrap">${escapeHtml(displayDate)}</span>` : ""}
       </div>`;
 
       // Row 2: Info grid — show everything compactly
       const infoChips = [];
-      if (locStr) infoChips.push(`<span style="color:rgba(209,217,230,0.80)"><i class="fa-solid fa-location-dot text-[8px] mr-0.5" style="color:rgba(239,194,74,0.65)"></i>${escapeHtml(locStr)}</span>`);
-      if (mandal) infoChips.push(`<span style="color:rgba(209,217,230,0.80)"><i class="fa-solid fa-sitemap text-[8px] mr-0.5" style="color:rgba(239,194,74,0.65)"></i>${escapeHtml(mandal)}</span>`);
-      if (venueStr) infoChips.push(`<span style="color:rgba(209,217,230,0.80)"><i class="fa-solid fa-map-pin text-[8px] mr-0.5" style="color:rgba(239,194,74,0.65)"></i>${escapeHtml(venueStr)}</span>`);
-      if (pType && form !== "president_tour_form") infoChips.push(`<span style="color:rgba(209,217,230,0.80)">${escapeHtml(pType)}</span>`);
+      if (locStr) infoChips.push(`<span style="color:#64748b"><i class="fa-solid fa-location-dot text-[8px] mr-0.5" style="color:#D4A01750"></i>${escapeHtml(locStr)}</span>`);
+      if (mandal) infoChips.push(`<span style="color:#64748b"><i class="fa-solid fa-sitemap text-[8px] mr-0.5" style="color:#D4A01750"></i>${escapeHtml(mandal)}</span>`);
+      if (venueStr) infoChips.push(`<span style="color:#64748b"><i class="fa-solid fa-map-pin text-[8px] mr-0.5" style="color:#D4A01750"></i>${escapeHtml(venueStr)}</span>`);
+      if (pType && form !== "president_tour_form") infoChips.push(`<span style="color:#64748b">${escapeHtml(pType)}</span>`);
       if (infoChips.length) {
-        html += `<div class="flex flex-wrap gap-x-3 gap-y-0.5 mb-2 text-[11px] leading-relaxed timeline-meta">${infoChips.join("")}</div>`;
+        html += `<div class="flex flex-wrap gap-x-3 gap-y-0.5 mb-1.5 text-[10px]">${infoChips.join("")}</div>`;
       }
 
       // Row 3: Detail pills (attendance, level, designation, guests, speakers)
@@ -1646,15 +1351,15 @@
       if (designation) pills.push({ text: designation, style: "background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);color:#F97316;" });
       if (withLabel) pills.push({ text: `✓ ${withLabel.split(',')[0].trim()}`, style: "background:rgba(62,207,178,0.08);border:1px solid rgba(62,207,178,0.25);color:#3ECFB2;" });
       // faceCount shown in photo section with names now
-      if (guests) pills.push({ text: `अतिथि: ${String(guests).slice(0, 28)}`, style: "background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:rgba(209,217,230,0.78);" });
-      if (speakers) pills.push({ text: `वक्ता: ${String(speakers).slice(0, 28)}`, style: "background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:rgba(209,217,230,0.78);" });
+      if (guests) pills.push({ text: `अतिथि: ${String(guests).slice(0, 28)}`, style: "background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#94a3b8;" });
+      if (speakers) pills.push({ text: `वक्ता: ${String(speakers).slice(0, 28)}`, style: "background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#94a3b8;" });
       if (pills.length) {
-        html += `<div class="flex flex-wrap gap-1 mb-1.5">${pills.map(p => `<span class="text-[10px] px-2 py-0.5 rounded-full font-semibold" style="${p.style}">${escapeHtml(p.text)}</span>`).join("")}</div>`;
+        html += `<div class="flex flex-wrap gap-1 mb-1.5">${pills.map(p => `<span class="text-[9px] px-1.5 py-0.5 rounded font-semibold" style="${p.style}">${escapeHtml(p.text)}</span>`).join("")}</div>`;
       }
 
       // Row 4: Summary/report snippet
       if (reportSummary) {
-        html += `<div class="text-[11px] mb-2 italic timeline-summary" style="color:#475569;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(String(reportSummary))}</div>`;
+        html += `<div class="text-[10px] mb-1.5 italic" style="color:#475569;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(String(reportSummary))}</div>`;
       }
 
       card.innerHTML = html;
@@ -1668,7 +1373,12 @@
         const allNames = [];
         const addName = (n) => { const t = String(n||"").trim(); if (t && t.length > 1 && !allNames.includes(t)) allNames.push(t); };
 
-        // Source 1: item.with_names[] — PRIMARY FIELD — array of matched person names
+        // **NEW BACKEND FIELD SUPPORT**: 'recognized_people' list sent by lambda
+        if (Array.isArray(item.recognized_people)) {
+          item.recognized_people.forEach(n => addName(n));
+        }
+
+        // Source 1: item.with_names[]
         if (Array.isArray(item.with_names)) {
           item.with_names.forEach(n => {
             if (typeof n === 'string') addName(n);
@@ -1676,7 +1386,7 @@
           });
         }
 
-        // Source 2: item.with_label — fallback string "Name1, Name2"
+        // Source 2: item.with_label
         if (allNames.length === 0 && withLabel && withLabel.trim()) {
           const raw = withLabel
             .replace(/\bwith\b/gi, ',').replace(/\band\b/gi, ',')
@@ -1684,7 +1394,7 @@
           raw.split(',').forEach(n => addName(n));
         }
 
-        // Source 3: item.faces[] / item.matched_faces[]
+        // Source 3: item.faces[]
         const faceSources = [item.faces, item.matched_faces, item.identified_faces];
         faceSources.forEach(arr => {
           if (!Array.isArray(arr)) return;
@@ -1694,18 +1404,9 @@
           });
         });
 
-        // Source 4: photos array — if photos are objects {url, name}
-        if (Array.isArray(item.photos)) {
-          item.photos.forEach(p => {
-            if (p && typeof p === 'object') addName(p.name || p.person_name || p.label || "");
-          });
-        }
-
-        // Source 5: visitor_form direct name
-        if (form === "visitor_form") addName(item.name || data.name || data["नाम"]);
-
-        // with_more tells us how many more people were matched beyond with_names
-        const withMore = Number(item.with_more || 0);
+        // Filter out the searched person's own name from the chips if possible
+        const searchedName = (document.getElementById("nameInput") ? document.getElementById("nameInput").value.trim().toLowerCase() : "");
+        const finalNames = allNames.filter(n => n.toLowerCase() !== searchedName);
 
         // Build thumbnail strip
         const strip = document.createElement("div");
@@ -1715,23 +1416,12 @@
           const thumb = document.createElement("div");
           thumb.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;";
 
-          const im = document.createElement("img"); im.loading="lazy"; im.decoding="async"; im.referrerPolicy="no-referrer"; setImgSrcWithRetry(im, u);
+          const im = document.createElement("img"); setImgSrcWithRetry(im, u);
           im.style.cssText = "width:56px;height:56px;border-radius:8px;object-fit:cover;border:1.5px solid rgba(212,160,23,0.2);flex-shrink:0;transition:border-color 0.2s,transform 0.2s;display:block;";
           im.onmouseenter = () => { im.style.borderColor = "rgba(212,160,23,0.7)"; im.style.transform = "scale(1.05)"; };
           im.onmouseleave = () => { im.style.borderColor = "rgba(212,160,23,0.2)"; im.style.transform = "scale(1)"; };
 
-          // Name label below thumbnail
-          if (allNames[pi]) {
-            const nameEl = document.createElement("div");
-            const firstName = allNames[pi].split(' ')[0]; // First name only to keep compact
-            nameEl.style.cssText = "font-size:8px;font-weight:700;color:#94a3b8;text-align:center;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1;";
-            nameEl.title = allNames[pi]; // Full name on hover
-            nameEl.textContent = firstName;
-            thumb.appendChild(im);
-            thumb.appendChild(nameEl);
-          } else {
-            thumb.appendChild(im);
-          }
+          thumb.appendChild(im);
           strip.appendChild(thumb);
         });
 
@@ -1745,29 +1435,42 @@
 
         photoSection.appendChild(strip);
 
-        // Names summary row below thumbnails
-        if (allNames.length > 0) {
-          const nameRow = document.createElement("div");
-          nameRow.style.cssText = "margin-top:5px;padding:5px 8px;border-radius:8px;background:rgba(212,160,23,0.05);border:1px solid rgba(212,160,23,0.1);";
-          const maxShow = 3;
-          const shown = allNames.slice(0, maxShow);
-          // Total remaining = names not shown + with_more (backend's extra count)
-          const remaining = (allNames.length - shown.length) + withMore;
-          let nameText = shown.map(n => `<span style="color:#EFC24A;font-weight:700;">${escapeHtml(n)}</span>`).join(' <span style="color:#334155;">•</span> ');
-          if (remaining > 0) nameText += ` <span style="color:#475569;font-size:9px;">& ${remaining} अन्य</span>`;
-          nameRow.innerHTML = `<div style="display:flex;align-items:center;gap:5px;"><i class="fa-solid fa-users text-[9px]" style="color:#D4A017;flex-shrink:0;"></i><span style="font-size:10px;color:#94a3b8;line-height:1.4;">${nameText}</span></div>`;
-          photoSection.appendChild(nameRow);
-        } else if (withMore > 0) {
-          // with_more present but no names — show count
-          const nameRow = document.createElement("div");
-          nameRow.style.cssText = "margin-top:4px;font-size:10px;color:#475569;display:flex;align-items:center;gap:4px;";
-          nameRow.innerHTML = `<i class="fa-solid fa-users text-[8px]"></i><span>${withMore} अन्य लोग भी उपस्थित</span>`;
-          photoSection.appendChild(nameRow);
-        } else if (faceCount > 1) {
-          const nameRow = document.createElement("div");
-          nameRow.style.cssText = "margin-top:4px;font-size:10px;color:#475569;display:flex;align-items:center;gap:4px;";
-          nameRow.innerHTML = `<i class="fa-solid fa-users text-[8px]"></i><span>${faceCount} लोग पहचाने गए</span>`;
-          photoSection.appendChild(nameRow);
+        // ── PREMIUM: AI Recognized Persons Block ──
+        if (finalNames.length > 0) {
+          const aiRow = document.createElement("div");
+          aiRow.className = "mt-2 p-2.5 rounded-xl";
+          aiRow.style.background = "linear-gradient(90deg, rgba(62,207,178,0.08) 0%, transparent 100%)";
+          aiRow.style.borderLeft = "2px solid #3ECFB2";
+
+          // Generate pills
+          let chips = finalNames.slice(0, 4).map(n => 
+            `<span class="recognized-chip inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold">
+              <i class="fa-solid fa-user-check text-[9px]"></i> ${escapeHtml(n)}
+             </span>`
+          ).join('');
+
+          if (finalNames.length > 4) {
+             chips += `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold" style="background:rgba(255,255,255,0.05);color:#94a3b8;">+${finalNames.length - 4} अन्य</span>`;
+          }
+
+          aiRow.innerHTML = `
+            <div class="flex items-center gap-1.5 mb-1.5">
+              <i class="fa-solid fa-microchip text-[10px]" style="color:#3ECFB2"></i>
+              <span class="text-[9px] font-bold uppercase tracking-widest" style="color:#3ECFB2">AI Recognized Persons</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${chips}
+            </div>
+          `;
+          photoSection.appendChild(aiRow);
+        } else if (item.with_more > 0 || faceCount > 1) {
+          // If we know there are faces but backend didn't map names yet
+          const fallbackCount = item.with_more || faceCount;
+          const aiRow = document.createElement("div");
+          aiRow.className = "mt-2 flex items-center gap-1.5 px-2 py-1.5 rounded-lg";
+          aiRow.style.background = "rgba(62,207,178,0.05)";
+          aiRow.innerHTML = `<i class="fa-solid fa-users" style="color:#3ECFB2;font-size:10px;"></i><span class="text-[10px] font-semibold" style="color:#94a3b8">${fallbackCount} अन्य लोग पहचाने गए (AI Processing)</span>`;
+          photoSection.appendChild(aiRow);
         }
 
         card.appendChild(photoSection);
@@ -1799,8 +1502,15 @@
     push("🎤 वक्ता", data.other_speakers || data["वक्ता"]);
     push("🏷️ पदनाम", data.designation || data["पदनाम"]);
     if (item.with_label) push("🤝 साथ में", item.with_label);
-    if (Array.isArray(item.with_names) && item.with_names.length > 0) {
-      const nameStr = item.with_names.join(", ") + (item.with_more > 0 ? ` & ${item.with_more} अन्य` : "");
+    
+    // Merge backend 'recognized_people' and 'with_names' for details view
+    let detailNames = [];
+    if (Array.isArray(item.recognized_people)) detailNames.push(...item.recognized_people);
+    if (Array.isArray(item.with_names)) detailNames.push(...item.with_names.map(n => typeof n === 'object' ? n.name : n));
+    detailNames = [...new Set(detailNames)].filter(n => n); // unique
+
+    if (detailNames.length > 0) {
+      const nameStr = detailNames.join(", ") + (item.with_more > 0 ? ` & ${item.with_more} अन्य` : "");
       push("👥 पहचाने गए लोग", nameStr);
     }
     push("📄 विवरण", data.program_details || data.report_summary || data["विवरण"]);
@@ -1898,7 +1608,7 @@
       titleEl.textContent = title || "Event";
       thumbRow.innerHTML = "";
       photos.forEach((p,i) => {
-        const t = document.createElement("img"); t.src = p.url; t.loading="lazy"; t.decoding="async"; t.referrerPolicy="no-referrer"; t.className = "ss-thumb"; t.alt = "";
+        const t = document.createElement("img"); t.src = p.url; t.className = "ss-thumb"; t.alt = "";
         t.addEventListener("click", () => { stopAuto(); goTo(i); }); thumbRow.appendChild(t);
       });
       overlay.classList.add("active");
@@ -1937,7 +1647,7 @@
     el.photosGrid.innerHTML = "";
     galleryImages = [];
     if (!Array.isArray(photoUrls)||photoUrls.length===0) {
-      el.photosGrid.innerHTML = `<div class="col-span-full text-center py-10 text-sm" style="color:rgba(209,217,230,0.62)">कोई फोटो नहीं मिली</div>`;
+      el.photosGrid.innerHTML = `<div class="col-span-full text-center py-10 text-sm" style="color:#475569">कोई फोटो नहीं मिली</div>`;
       return;
     }
     const byKey = new Map();
@@ -1947,7 +1657,7 @@
     Array.from(byKey.entries()).forEach(([k,url],idx) => {
       galleryImages.push({ url, title: labelByKey.get(k)||"Event Photo", id: k });
       const wrapper = document.createElement("div"); wrapper.className = "photo-item";
-      const img = document.createElement("img"); setImgSrcWithRetry(img,url); img.loading = "lazy"; img.decoding = "async"; img.referrerPolicy = "no-referrer"; img.alt = (labelByKey.get(k)||"Event Photo"); img.className = "w-full h-full object-cover";
+      const img = document.createElement("img"); setImgSrcWithRetry(img,url); img.loading = "lazy"; img.className = "w-full h-full object-cover";
       const playIcon = document.createElement("div"); playIcon.className = "play-icon"; playIcon.innerHTML = '<div style="width:36px;height:36px;border-radius:50%;background:rgba(212,160,23,0.9);display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-play text-navy-950 text-xs" style="color:#060D1F;margin-left:2px;"></i></div>';
       wrapper.appendChild(img); wrapper.appendChild(playIcon);
       wrapper.addEventListener("click", () => { modal.open("Gallery",null,true); modal.showGalleryImage(idx); });
@@ -2347,8 +2057,14 @@ function buildTimelineGroups(timelineArr) {
     if (!it||typeof it!=='object') continue;
     const eid = (it.event_id||it.eventId||it.event_key||it.eventKey||it.entry_id||it.entryId||'').toString().trim();
     const gid = eid||(it.entry_id||it.entryId||'').toString().trim()||Math.random().toString(36).slice(2);
-    if (!map.has(gid)) { map.set(gid,{group_id:gid,event_id:eid||gid,form_type:it.form_type||it.ft||'unknown',created_at:it.created_at||'0',created_at_iso:it.created_at_iso||'',with_label:it.with_label||'',face_count:it.face_count||0,district:it.district||(it.data||{}).district||'',vidhansabha:it.vidhansabha||(it.data||{}).vidhansabha||'',mandal:it.mandal||(it.data||{}).mandal||'',items:[it]}); }
-    else { const g=map.get(gid); g.items.push(it); const ca=Number(it.created_at||0),ga=Number(g.created_at||0); if (ca>ga){g.created_at=it.created_at||g.created_at;g.created_at_iso=it.created_at_iso||g.created_at_iso;g.district=it.district||g.district;g.vidhansabha=it.vidhansabha||g.vidhansabha;g.mandal=it.mandal||g.mandal;g.form_type=it.form_type||it.ft||g.form_type;} }
+    if (!map.has(gid)) { map.set(gid,{group_id:gid,event_id:eid||gid,form_type:it.form_type||it.ft||'unknown',created_at:it.created_at||'0',created_at_iso:it.created_at_iso||'',with_label:it.with_label||'',face_count:it.face_count||0,district:it.district||(it.data||{}).district||'',vidhansabha:it.vidhansabha||(it.data||{}).vidhansabha||'',mandal:it.mandal||(it.data||{}).mandal||'',items:[it], recognized_people: it.recognized_people}); }
+    else { 
+        const g=map.get(gid); 
+        g.items.push(it); 
+        const ca=Number(it.created_at||0),ga=Number(g.created_at||0); 
+        if (ca>ga){g.created_at=it.created_at||g.created_at;g.created_at_iso=it.created_at_iso||g.created_at_iso;g.district=it.district||g.district;g.vidhansabha=it.vidhansabha||g.vidhansabha;g.mandal=it.mandal||g.mandal;g.form_type=it.form_type||it.ft||g.form_type;} 
+        if (Array.isArray(it.recognized_people)) { g.recognized_people = [...new Set([...(g.recognized_people || []), ...it.recognized_people])]; }
+    }
   }
   const groups = Array.from(map.values()); groups.sort((a,b)=>Number(b.created_at||0)-Number(a.created_at||0)); return groups;
 }
@@ -2358,8 +2074,8 @@ function updateDashboard(similarity,timelineCount,photoCount) {
 }
 function renderTimelineGroups(groups) {
   const grid=document.getElementById("viewTimeline"); if(!grid)return; grid.innerHTML="";
-  if(!Array.isArray(groups)||groups.length===0){grid.innerHTML='<div class="text-center text-sm py-10" style="color:rgba(209,217,230,0.62)">No timeline entries.</div>';return;}
-  const repItems=groups.map(g=>{const rep=(g.items&&g.items[0])?g.items[0]:{};return Object.assign({},rep,{_groupPhotos:g.items,_itemCount:g.items.length});});
+  if(!Array.isArray(groups)||groups.length===0){grid.innerHTML='<div class="text-center text-sm py-10" style="color:#475569">No timeline entries.</div>';return;}
+  const repItems=groups.map(g=>{const rep=(g.items&&g.items[0])?g.items[0]:{};return Object.assign({},rep,{_groupPhotos:g.items,_itemCount:g.items.length, recognized_people: g.recognized_people});});
   if(typeof window._renderTimelineMain==='function')window._renderTimelineMain(repItems,window._globalPhotoMap||new Map());
 }
 function applyFilter() {
