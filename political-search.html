@@ -501,35 +501,6 @@
           </div>
         </div>
 
-        <!-- ─ TEXT SEARCH PANEL (Name / Mobile direct search) ─ -->
-        <div id="textSearchCard" class="glass rounded-2xl relative overflow-hidden" style="border-top:2px solid rgba(148,88,255,0.4);">
-          <div class="p-4">
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:rgba(148,88,255,0.12);border:1px solid rgba(148,88,255,0.25)">
-                <i class="fa-solid fa-keyboard text-xs" style="color:#9458ff"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-white text-xs leading-tight">नाम / मोबाइल से खोजें</h3>
-                <p class="text-[10px]" style="color:#475569">सेल्फी के बिना direct search</p>
-              </div>
-            </div>
-            <div class="space-y-2">
-              <div class="relative">
-                <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:#475569"></i>
-                <input id="txtSearchName" type="text" placeholder="नाम टाइप करें (min 3 अक्षर)" class="field-input pl-8 w-full" />
-              </div>
-              <div class="relative">
-                <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:#475569"></i>
-                <input id="txtSearchMobile" type="tel" placeholder="मोबाइल नंबर (10 अंक)" class="field-input pl-8 w-full" maxlength="10" />
-              </div>
-              <button id="txtSearchBtn" class="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2" style="background:rgba(148,88,255,0.15);border:1px solid rgba(148,88,255,0.3);color:#b07aff;">
-                <i class="fa-solid fa-magnifying-glass text-[10px]"></i> टेक्स्ट से खोजें
-              </button>
-              <div id="txtSearchStatus" class="hidden text-center text-[10px] py-1"></div>
-            </div>
-          </div>
-        </div>
-
         <!-- ─ STEP 2: Match + Mandatory Name/Mobile ─ -->
         <div id="step2Card" class="hidden glass rounded-2xl relative overflow-hidden animate-slidein" style="border-top:2px solid rgba(62,207,178,0.5);">
           <div class="p-4 sm:p-5">
@@ -1946,6 +1917,72 @@
     showResults(el.nameInput?el.nameInput.value.trim():"", el.mobileInput?el.mobileInput.value.trim():"");
   });
   if (el.btnAllSlideshow) el.btnAllSlideshow.addEventListener("click", openAllSlideshow);
+
+  // ── AUTO-SEARCH from URL params (when coming from visitor form) ──
+  const autoName = qs.get("autosearch_name") || "";
+  const autoMobile = qs.get("autosearch_mobile") || "";
+  if (autoName || autoMobile) {
+    // Pre-fill step2 fields and auto-run text search
+    if (el.nameInput && autoName) el.nameInput.value = autoName;
+    if (el.mobileInput && autoMobile) el.mobileInput.value = autoMobile;
+    // Show loading immediately
+    setTimeout(() => {
+      doAutoTextSearch(autoName, autoMobile);
+    }, 500);
+  }
+
+  async function doAutoTextSearch(nameVal, mobileVal) {
+    if (!nameVal && !mobileVal) return;
+    el.emptyState.classList.add("hidden");
+    el.skeletonLoader.classList.remove("hidden");
+    el.resultsContainer.classList.add("hidden");
+    el.statsDashboard.classList.add("hidden");
+    setStatus("रिकॉर्ड खोजा जा रहा है...", "loading");
+
+    try {
+      const isPublic = !!token;
+      const payload = {};
+      if (isPublic) payload.token = token;
+      else payload.collection_id = (qs.get("cid") || qs.get("collection_id") || "");
+      if (nameVal) payload.name = nameVal;
+      if (mobileVal) payload.mobile = mobileVal;
+      payload.form_type = "search";
+
+      const url2 = isPublic ? `${BASE_URL}/political/public/search` : `${BASE_URL}/political/search`;
+      const res2 = await fetch(url2, {
+        method: "POST", cache: "no-store",
+        body: JSON.stringify({ action: "text_search", payload })
+      });
+      const data = await res2.json().catch(() => ({}));
+      const timeline = data.events || data.timeline || data.items || [];
+      const photoUrls = data.photo_urls || [];
+
+      el.skeletonLoader.classList.add("hidden");
+
+      if (!timeline.length) {
+        setStatus("कोई रिकॉर्ड नहीं मिला", "error");
+        el.emptyState.classList.remove("hidden");
+        el.emptyState.querySelector("h3").textContent = "कोई रिकॉर्ड नहीं मिला";
+        el.emptyState.querySelector("p").textContent = `"${nameVal || mobileVal}" का डेटा नहीं है।`;
+        return;
+      }
+
+      globalTimelineData = timeline;
+      globalPhotoMap = new Map();
+      photoUrls.forEach(u => { const k = parseS3KeyFromUrl(u); if (k) globalPhotoMap.set(k, u); });
+
+      const sim = data.similarity ? Number(data.similarity).toFixed(0) : "—";
+      updateDashboard(sim, timeline.length, photoUrls.length);
+      applyFilter();
+      renderPhotos(photoUrls, timeline);
+      switchTab("timeline");
+      setStatus("", "info");
+    } catch(e) {
+      el.skeletonLoader.classList.add("hidden");
+      el.emptyState.classList.remove("hidden");
+      setStatus(e.message || "Error", "error");
+    }
+  }
 })();
 </script>
 
