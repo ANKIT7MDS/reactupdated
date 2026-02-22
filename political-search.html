@@ -747,6 +747,10 @@
               </button>
               <div id="btnAiReport" class="hidden"></div>
             </div>
+            <!-- New Search button after results -->
+            <button id="newSearchFromResults" type="button" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest border border-dashed border-white/15 bg-white/3 text-slate-400 hover:text-white hover:border-white/30 transition-all mt-1">
+              <i class="fa-solid fa-arrow-rotate-left text-xs"></i> नई खोज करें
+            </button>
           </div>
 
         </div>
@@ -1056,6 +1060,25 @@
       if (el.mobileInput) el.mobileInput.value = "";
       pendingSearchRes = null;
       setStep(1);
+    });
+  }
+
+  // New search button visible after results
+  const newSearchFromResults = document.getElementById('newSearchFromResults');
+  if (newSearchFromResults) {
+    newSearchFromResults.addEventListener('click', () => {
+      el.step1Card.classList.remove("hidden");
+      el.step2Card.classList.add("hidden");
+      el.statsDashboard.classList.add("hidden");
+      el.resultsContainer.classList.add("hidden");
+      el.emptyState.classList.remove("hidden");
+      el.skeletonLoader.classList.add("hidden");
+      if (el.selfieInput) { el.selfieInput.value = ""; previewImage(el.selfieInput); }
+      if (el.nameInput) el.nameInput.value = "";
+      if (el.mobileInput) el.mobileInput.value = "";
+      pendingSearchRes = null;
+      setStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
 
@@ -1882,6 +1905,7 @@
     globalPhotoMap = new Map();
     (res.photo_urls||[]).forEach(u => { const k = parseS3KeyFromUrl(u); if (isNonEmpty(k)) globalPhotoMap.set(k,u); });
     if (el.step2Card) el.step2Card.classList.add("hidden");
+    if (el.step1Card) el.step1Card.classList.add("hidden");
     currentFilter = "all";
     window.currentFilter = "all";
     updateDashboard(sim, tCount, pCount);
@@ -1889,7 +1913,7 @@
     applyFilter();
     renderPhotos(res.photo_urls||[], timeline);
     switchTab("photos");
-    if (window.innerWidth < 1024) el.statsDashboard.scrollIntoView({ behavior:"smooth", block:"start" });
+    if (window.innerWidth < 1024) el.resultsContainer.scrollIntoView({ behavior:"smooth", block:"start" });
   }
 
   function openAllSlideshow() {
@@ -2012,6 +2036,8 @@
       if (el.nameInput)   el.nameInput.value   = profile.name   || nameVal  || "";
       if (el.mobileInput) el.mobileInput.value = profile.mobile || mobileVal || "";
 
+      if (el.step1Card) el.step1Card.classList.add("hidden");
+      if (el.step2Card) el.step2Card.classList.add("hidden");
       const sim = data.similarity ? Number(data.similarity).toFixed(0) : "—";
       globalTimelineData = timeline;
       window.globalTimelineData = timeline;
