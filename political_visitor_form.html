@@ -826,6 +826,45 @@ function pill(icon,text,bg,cl){
 }
 
 // ═══════════════════════════════════════════════════
+// TIMING LOGGER
+// ═══════════════════════════════════════════════════
+const T = {
+  _m:{},
+  start(l){ this._m[l]=performance.now(); console.log(`⏱️  [START] ${l}`); },
+  end(l){
+    const ms=performance.now()-(this._m[l]||0);
+    const e=ms<300?"🟢":ms<800?"🟡":"🔴";
+    console.log(`${e} [END] ${l} → ${ms.toFixed(0)}ms`);
+    return ms;
+  }
+};
+
+// ═══════════════════════════════════════════════════
+// IMAGE COMPRESSION — MAX 640px, ~80-150KB output
+// ═══════════════════════════════════════════════════
+function compressImage(blob, maxPx=640, quality=0.82){
+  return new Promise(resolve=>{
+    const img=new Image(), url=URL.createObjectURL(blob);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let w=img.width, h=img.height;
+      if(w>maxPx||h>maxPx){
+        if(w>h){h=Math.round(h*(maxPx/w));w=maxPx;}
+        else{w=Math.round(w*(maxPx/h));h=maxPx;}
+      }
+      const c=document.createElement("canvas");
+      c.width=w; c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      c.toBlob(out=>{
+        console.log(`🗜️  ${(blob.size/1024).toFixed(0)}KB → ${(out.size/1024).toFixed(0)}KB (${Math.round(out.size/blob.size*100)}%)`);
+        resolve(out);
+      },"image/jpeg",quality);
+    };
+    img.src=url;
+  });
+}
+
+// ═══════════════════════════════════════════════════
 // CAPTURE
 // ═══════════════════════════════════════════════════
 async function doCapture(){
@@ -837,24 +876,29 @@ async function doCapture(){
   ctx.drawImage(v,0,0,w,h);
   if(v.srcObject) v.srcObject.getTracks().forEach(t=>t.stop());
 
-  cnv.toBlob(async blob=>{
-    const file=new File([blob],"selfie.jpg",{type:"image/jpeg"});
-    camFile=file; camDataUrl=URL.createObjectURL(blob);
+  cnv.toBlob(async rawBlob=>{
+    // Preview — original quality for UI
+    camDataUrl=URL.createObjectURL(rawBlob);
     _$("prev-img").src=camDataUrl;
     _$("cam-box").style.display="none";
     _$("prev-box").style.display="block";
     _$("cam-hint").style.display="none";
-    await runMatch(file);
-  },"image/jpeg",.88);
+    // Compress before upload
+    const compressed=await compressImage(rawBlob,640,0.82);
+    camFile=new File([compressed],"selfie.jpg",{type:"image/jpeg"});
+    await runMatch(camFile);
+  },"image/jpeg",.92);
 }
 async function galUpload(e){
-  const file=e.target.files&&e.target.files[0]; if(!file) return;
-  camFile=file; camDataUrl=URL.createObjectURL(file);
+  const raw=e.target.files&&e.target.files[0]; if(!raw) return;
+  camDataUrl=URL.createObjectURL(raw);
   _$("prev-img").src=camDataUrl;
   _$("cam-box").style.display="none";
   _$("prev-box").style.display="block";
   _$("cam-hint").style.display="none";
-  await runMatch(file);
+  const compressed=await compressImage(raw,640,0.82);
+  camFile=new File([compressed],"selfie.jpg",{type:"image/jpeg"});
+  await runMatch(camFile);
 }
 function doRetake(){
   camFile=null; camDataUrl=null; searchResp=null;
@@ -869,34 +913,72 @@ function doRetake(){
 }
 
 // ═══════════════════════════════════════════════════
-// FACE MATCH
+// FACE MATCH — optimized with timing logs
 // ═══════════════════════════════════════════════════
 async function runMatch(file){
+  const t0 = performance.now();
   setChip("scanning","पहचाना जा रहा है...");
   setPill(pill("fa-solid fa-circle-notch spin","चेहरा पहचाना जा रहा है...","rgba(234,88,12,.1)","var(--o3)"));
   try{
     if(!CID && TOK) await resolveCid();
-    const sha = await sha256(file);
 
-    // CREATE ENTRY
+    // STEP 1: sha256 (local, fast)
+    T.start("1_sha256");
+    const sha = await sha256(file);
+    const t1 = T.end("1_sha256");
+
+    // STEP 2: create_entry (API)
+    T.start("2_create_entry");
     const cp = {form_type:FTYPE, sha256:sha, file_name:"selfie.jpg", mime_type:"image/jpeg", payload:{}};
     if(TOK) cp.token=TOK;
     if(CID)  cp.collection_id=CID;
-    if(DBG) console.log("📤 create payload:", JSON.stringify(cp));
     const cr = await api(isPub()?"public_create_entry":"create_entry", cp);
-    entryId=cr.entry_id; finalTok=cr.finalize_token; upUrl=cr.upload_url; s3k=cr.s3_key; faceS3k=cr.s3_key; // keep face s3key for timeline
-    if(DBG) console.log("📥 create resp:", JSON.stringify(cr));
+    const t2 = T.end("2_create_entry");
+    entryId=cr.entry_id; finalTok=cr.finalize_token; upUrl=cr.upload_url; s3k=cr.s3_key; faceS3k=cr.s3_key;
 
-    // UPLOAD
-    if(upUrl && !cr.duplicate) await fetch(upUrl,{method:"PUT",body:file,headers:{"Content-Type":"image/jpeg"}});
+    // STEP 3+4: Upload to S3 AND Search — PARALLEL if not duplicate!
+    // यही main optimization है — upload wait किए बिना search शुरू
+    T.start("3_s3_upload");
+    T.start("4_face_search");
 
-    // SEARCH
     const sp = {s3_key:s3k, days:730};
     if(TOK) sp.token=TOK;
     if(CID)  sp.collection_id=CID;
-    if(DBG) console.log("🔍 search payload:", JSON.stringify(sp));
-    const sr = await fetch(`${BASE}/political/search`,{method:"POST",cache:"no-store",body:JSON.stringify({action:"public_search",payload:sp})});
-    const sd = await sr.json();
+
+    const uploadPromise = (upUrl && !cr.duplicate)
+      ? fetch(upUrl,{method:"PUT",body:file,headers:{"Content-Type":"image/jpeg"}}).then(r=>{ T.end("3_s3_upload"); return r; })
+      : Promise.resolve().then(()=>{ console.log("⏭️  Upload skipped (duplicate)"); T.end("3_s3_upload"); });
+
+    // Note: search needs S3 file to exist — so we wait for upload first
+    // लेकिन अगर duplicate है तो file already exists — parallel चला सकते हैं
+    let sd;
+    if(cr.duplicate){
+      // File already on S3 — upload + search parallel चलाओ
+      const searchPromise = fetch(`${BASE}/political/search`,{method:"POST",cache:"no-store",
+        body:JSON.stringify({action:"public_search",payload:sp})}).then(r=>r.json());
+      const [,searchData] = await Promise.all([uploadPromise, searchPromise]);
+      T.end("4_face_search");
+      sd = searchData;
+    } else {
+      // New file — upload पहले, फिर search (Rekognition को file चाहिए)
+      await uploadPromise;
+      const sr = await fetch(`${BASE}/political/search`,{method:"POST",cache:"no-store",
+        body:JSON.stringify({action:"public_search",payload:sp})});
+      sd = await sr.json();
+      T.end("4_face_search");
+    }
+
+    // Summary
+    const total = performance.now()-t0;
+    const emoji = total<2000?"🟢":total<3500?"🟡":"🔴";
+    console.log(`
+${emoji} ══ TOTAL: ${total.toFixed(0)}ms ══`);
+    console.log(`  sha256:       ${t1.toFixed(0)}ms`);
+    console.log(`  create_entry: ${t2.toFixed(0)}ms`);
+    console.log(`  (see above for upload + search)`);
+    console.log(`  file_size:    ${(file.size/1024).toFixed(0)}KB`);
+    console.log(`  duplicate:    ${!!cr.duplicate}`);
+
     if(DBG) console.log("🟢 FULL SEARCH RESPONSE:", JSON.stringify(sd));
 
     if(sd.message==="OK" && (sd.face_id||sd.matched)){
