@@ -257,8 +257,14 @@
       z-index: 10; 
     }
     .photo-item:hover::after { opacity: 1; }
-    .photo-item .play-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 2; transform: scale(0.5); }
+    @media (hover: none) {
+      .photo-item:hover { transform: none; box-shadow: none; border-color: rgba(255,255,255,0.06); }
+      .photo-item:hover::after { opacity: 0; }
+      .photo-item:active { transform: scale(0.97); opacity: 0.85; }
+    }
+    .photo-item .play-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 2; transform: scale(0.5); pointer-events: none; }
     .photo-item:hover .play-icon { opacity: 1; transform: scale(1); }
+    @media (hover: none) { .photo-item .play-icon { display: none !important; } }
 
     /* ─── Animations ─── */
     @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(212,160,23,0.5); } 70% { box-shadow: 0 0 0 20px rgba(212,160,23,0); } 100% { box-shadow: 0 0 0 0 rgba(212,160,23,0); } }
@@ -440,10 +446,14 @@
     .ss-thumb.active { border-color: var(--gold-400); opacity: 1; box-shadow: 0 0 20px rgba(212,160,23,0.5); transform: scale(1.1) translateY(-2px); }
     @media (max-width: 767px) {
       #slideshowMain { flex-direction: column; }
-      #ssDetailSide { width: 100%; flex: none; max-height: 40vh; border-left: none; border-top: 1px solid rgba(255,255,255,0.1); }
+      #ssDetailSide { width: 100%; flex: none; max-height: 35vh; border-left: none; border-top: 1px solid rgba(255,255,255,0.1); }
       #ssPhotoSide { flex: 1; min-height: 0; }
-      .ss-nav-btn { width: 44px; height: 44px; font-size: 16px; }
-      #ssPrev { left: 12px; } #ssNext { right: 12px; }
+      .ss-nav-btn { width: 48px; height: 48px; font-size: 18px; background: rgba(0,0,0,0.6); }
+      #ssPrev { left: 8px; } #ssNext { right: 8px; }
+      #ssThumbRow { padding: 10px 16px; }
+      .ss-thumb { width: 52px; height: 52px; }
+      #slideshowTopBar { padding: 12px 16px; }
+      #slideshowTitle { font-size: 14px; }
     }
 
     #detailModal .modal-panel {
@@ -607,7 +617,7 @@
 
               <div class="relative mb-6">
                 <label class="upload-zone rounded-3xl flex flex-col items-center justify-center cursor-pointer min-h-[280px]">
-                  <input id="selfieInput" accept="image/*" type="file" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="previewImage(this)" />
+                  <input id="selfieInput" accept="image/*" capture="user" type="file" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-20" onchange="previewImage(this)" />
                   <div id="uploadPlaceholder" class="flex flex-col items-center justify-center py-10 pointer-events-none select-none upload-zone-inner relative">
                     <!-- Scan corners -->
                     <div class="scan-corner scan-corner-tl"></div>
@@ -849,7 +859,7 @@
 
           <!-- Photos View - directly visible -->
           <div id="viewPhotos" class="animate-fadeup">
-            <div id="photosGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div id="photosGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
               <!-- injected -->
             </div>
             <div class="text-center mt-6 text-[10px] font-extrabold tracking-[0.15em] uppercase flex items-center justify-center gap-2 text-slate-500 py-3 rounded-2xl border border-white/5" style="background:rgba(255,255,255,0.02);">
@@ -1072,8 +1082,23 @@
       if (el.btnTabPhotos) el.btnTabPhotos.className = tActive;
     }
   }
-  if (el.btnTabTimeline) el.btnTabTimeline.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('timeline'); });
-  if (el.btnTabPhotos) el.btnTabPhotos.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('photos'); });
+  if (el.btnTabTimeline) el.btnTabTimeline.addEventListener('click', (e) => { 
+    e.preventDefault(); e.stopPropagation(); 
+    switchTab('timeline'); 
+    // On mobile, keep scroll position at results area
+    if (window.innerWidth < 1024) {
+      const resultsEl = document.getElementById('resultsContainer');
+      if (resultsEl) setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
+  });
+  if (el.btnTabPhotos) el.btnTabPhotos.addEventListener('click', (e) => { 
+    e.preventDefault(); e.stopPropagation(); 
+    switchTab('photos'); 
+    if (window.innerWidth < 1024) {
+      const resultsEl = document.getElementById('resultsContainer');
+      if (resultsEl) setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
+  });
 
   function initFilters() {
     const btns = el.timelineFilters.querySelectorAll('.filter-btn');
@@ -1537,7 +1562,7 @@
       footer.style.cssText = "padding-top:16px;border-top:1px dashed rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:space-between;";
       footer.innerHTML = `<span class="text-[11px] font-extrabold tracking-widest uppercase text-slate-500">${escapeHtml(getFormTypeLabel(form))}</span><span class="text-xs flex items-center gap-2 font-bold text-gold-400 bg-gold-400/10 px-4 py-2 rounded-full hover:bg-gold-400/20 hover:scale-105 transition-all duration-300"><i class="fa-solid fa-expand text-[10px]"></i> View Full Report</span>`;
       card.appendChild(footer);
-      card.addEventListener("click", () => openEventSlideshow(item, { title, icon, details: buildEventDetails(item,form,data,displayDate,formDate) }));
+      card.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openEventSlideshow(item, { title, icon, details: buildEventDetails(item,form,data,displayDate,formDate) }); });
       wrapper.appendChild(card);
       el.viewTimeline.appendChild(wrapper);
     });
